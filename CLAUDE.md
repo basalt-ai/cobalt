@@ -1,5 +1,7 @@
 # CLAUDE.md — Development Guide
 
+> **💡 Collaboration First**: This project values collaborative decision-making. When facing decisions about architecture, developer experience, or anything with significant impact, **always present options and wait for user input** before proceeding. See [Decision-Making Philosophy](#decision-making-philosophy) for details.
+
 ## Project Overview
 
 Cobalt is a TypeScript full-stack application built with a CQRS-inspired architecture. It's designed to be scalable, maintainable, and well-tested from the ground up.
@@ -293,24 +295,90 @@ pnpm add -D <pkg>          # Add dev dependency
 pnpm --filter @cobalt/web add <pkg>  # Add to specific package
 ```
 
-## Decision-Making
+## Decision-Making Philosophy
 
-For **major architectural decisions**:
+**IMPORTANT: When in doubt, ask the user.** This is a collaborative project. The user values being involved in decisions that impact the project's direction, architecture, and developer experience.
 
-1. **Research** the options (2-3 alternatives max)
-2. **Present** options with pros/cons in context of this project
-3. **Recommend** an approach with reasoning
-4. **Wait for approval** before proceeding
-5. **Document** the decision in `.memory/decisions.md`
+### Always Ask About:
 
-For **minor decisions** (coding patterns, small refactors):
-- Use your best judgment following established patterns
-- Document if it's a significant departure from norms
-- Ask if uncertain
+#### 🏗️ Architecture & Design
+- Adding new architectural patterns or layers
+- Changing how layers communicate
+- Introducing new dependencies or frameworks
+- Modifying the database schema structure
+- Changing authentication/authorization approach
+- API design decisions (REST conventions, endpoint structure)
+- State management strategy changes
+
+#### 🛠️ Developer Experience
+- Build tooling changes (bundlers, transpilers)
+- Development workflow modifications
+- Testing strategy changes
+- CI/CD pipeline decisions
+- Deployment approach
+- Development environment setup changes
+- Adding or removing linters/formatters
+
+#### 📦 Dependencies & Infrastructure
+- Adding major dependencies (>10MB, framework-level)
+- Changing package manager or monorepo tools
+- Database migration strategies
+- Caching layer additions
+- Third-party service integrations
+- Infrastructure changes (Docker, hosting)
+
+#### 🎨 User-Facing Impact
+- UI/UX patterns and component libraries
+- API response format changes
+- Error handling strategy for end users
+- Performance optimization approaches
+- Accessibility implementation decisions
+
+### Decision-Making Process
+
+For **decisions that require approval**:
+
+1. **Identify** that a decision point has been reached
+2. **Research** 2-3 viable options (not more, avoid analysis paralysis)
+3. **Present** options clearly:
+   ```
+   I need to make a decision about [X]. Here are the options:
+
+   Option 1: [Name]
+   - Pros: ...
+   - Cons: ...
+   - Context: ...
+
+   Option 2: [Name]
+   - Pros: ...
+   - Cons: ...
+   - Context: ...
+
+   My recommendation: [X] because [reasoning in context of this project]
+
+   What would you prefer?
+   ```
+4. **Wait for approval** - Don't proceed until you have clear direction
+5. **Document** the decision and reasoning in `.memory/decisions.md`
+6. **Implement** following the approved approach
+
+### When You Can Proceed Autonomously
+
+You can use your judgment without asking for:
+- Following existing established patterns in the codebase
+- Writing tests that follow existing test patterns
+- Fixing obvious bugs or typos
+- Refactoring that doesn't change behavior
+- Adding comments or documentation
+- Formatting and linting fixes
+- Implementing already-decided features following the plan
+
+**Rule of thumb**: If the change could be reasonably debated or affects how developers work with the code, ask first.
 
 ## Best Practices
 
 ### DO:
+✅ **Ask before making impactful decisions** (architecture, DX, dependencies)
 ✅ Follow the CQRS pattern consistently
 ✅ Write tests for all backend logic
 ✅ Use strict TypeScript
@@ -319,8 +387,11 @@ For **minor decisions** (coding patterns, small refactors):
 ✅ Use descriptive names
 ✅ Handle errors explicitly
 ✅ Keep commits small and focused
+✅ Present options with pros/cons when asking
+✅ Update `.memory/` after significant changes
 
 ### DON'T:
+❌ Make architectural decisions without user approval
 ❌ Skip writing tests
 ❌ Use `any` type
 ❌ Mix concerns across layers
@@ -329,6 +400,7 @@ For **minor decisions** (coding patterns, small refactors):
 ❌ Make destructive changes without confirmation
 ❌ Bypass type safety
 ❌ Leave TODOs without tracking
+❌ Assume you know the "best" approach without discussing
 
 ## Getting Help
 
