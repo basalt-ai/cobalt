@@ -1,0 +1,17 @@
+{
+  "extends": "@cobalt/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "composite": false
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests", "dashboard-ui"]
+}

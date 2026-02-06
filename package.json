@@ -1,8 +1,8 @@
 {
-	"name": "cobalt",
-	"version": "1.0.0",
+	"name": "cobalt-monorepo",
+	"version": "0.1.0",
 	"private": true,
-	"description": "A TypeScript full-stack application with CQRS architecture",
+	"description": "Cobalt - Cypress for AI agents. Test, evaluate, and track your AI experiments.",
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build",
@@ -12,10 +12,7 @@
 		"lint": "turbo lint",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
-		"check": "biome check --write .",
-		"db:migrate": "turbo db:migrate",
-		"db:generate": "turbo db:generate",
-		"db:studio": "pnpm --filter @cobalt/db prisma studio"
+		"check": "biome check --write ."
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",

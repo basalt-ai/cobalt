@@ -4,7 +4,7 @@
 	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": [".next/**", "!.next/cache/**", "dist/**"]
+			"outputs": ["dist/**", "dashboard-dist/**"]
 		},
 		"dev": {
 			"cache": false,
@@ -22,12 +22,6 @@
 		},
 		"lint": {
 			"outputs": []
-		},
-		"db:generate": {
-			"cache": false
-		},
-		"db:migrate": {
-			"cache": false
 		}
 	}
 }
