@@ -4,139 +4,119 @@
 
 ## Project Overview
 
-Cobalt is a TypeScript full-stack application built with a CQRS-inspired architecture. It's designed to be scalable, maintainable, and well-tested from the ground up.
+Cobalt is a TypeScript CLI testing framework for AI agents and LLM-powered applications. Think "Cypress for AI agents" — it provides experiment runners, evaluators, datasets, and result tracking.
 
 ### Tech Stack
 
-- **Monorepo**: Turborepo with pnpm workspaces
-- **Framework**: Next.js 15 (full-stack - frontend + backend)
-- **Database**: PostgreSQL 16 (via Docker on port 5433)
-- **ORM**: Prisma 6
-- **Testing**: Vitest
-- **Code Quality**: Biome (linting + formatting)
-- **TypeScript**: v5.7 with strict mode enabled
+- **Language**: TypeScript 5.7 with strict mode
+- **Build Tool**: tsup for bundling
+- **CLI Framework**: citty for command-line interface
+- **Testing**: Vitest for unit and integration tests
+- **Code Quality**: Biome for linting and formatting
+- **Database**: better-sqlite3 for history tracking
+- **HTTP Server**: Hono for dashboard API
+- **Package Manager**: pnpm
 
 ## Architecture
 
-### CQRS Pattern
-
-The backend follows a CQRS-inspired layered architecture:
+Cobalt follows a clean, modular architecture:
 
 ```
-Next.js API Route → Controller → Command/Query → Service → Repository → Prisma → PostgreSQL
-```
-
-**Layer Responsibilities:**
-
-- **API Routes** (`/apps/web/app/api/`): Thin HTTP handlers, delegate to controllers
-- **Controllers** (`/apps/web/src/controllers/`): Orchestrate commands/queries, handle errors
-- **Commands** (`/apps/web/src/commands/`): Write operations - CREATE, UPDATE, DELETE
-- **Queries** (`/apps/web/src/queries/`): Read operations - SELECT (never mutate state)
-- **Services** (`/apps/web/src/services/`): Business logic, can be shared across commands/queries
-- **Repositories** (`/apps/web/src/repositories/`): Data access layer, one per entity/aggregate
-- **Prisma**: ORM layer for database communication
-
-### Project Structure
-
-```
-cobalt/
-├── apps/
-│   └── web/                    # Main Next.js application
-│       ├── app/                # Next.js App Router (pages + API routes)
-│       ├── src/                # Backend CQRS layers
-│       │   ├── controllers/
-│       │   ├── commands/
-│       │   ├── queries/
-│       │   ├── services/
-│       │   ├── repositories/
-│       │   └── lib/            # Utilities (errors, logger, etc.)
-│       └── tests/              # Unit and integration tests
-├── packages/
-│   ├── db/                     # Prisma schema and client
-│   ├── types/                  # Shared TypeScript types
-│   ├── sdk/                    # SDK for API consumers (future)
-│   └── tsconfig/               # Shared TypeScript configs
-└── .memory/                    # Project documentation and context
+packages/cobalt/
+├── src/
+│   ├── core/               # Core experiment runner logic
+│   │   ├── experiment.ts   # Main experiment() function
+│   │   ├── Evaluator.ts    # Evaluator class
+│   │   └── config.ts       # Configuration system
+│   ├── datasets/           # Dataset loading and transformation
+│   │   └── Dataset.ts      # Dataset class
+│   ├── evaluators/         # Evaluator implementations
+│   │   ├── llm-judge.ts    # LLM-based evaluation
+│   │   ├── function.ts     # Custom function evaluation
+│   │   ├── exact-match.ts  # String matching
+│   │   └── similarity.ts   # Embeddings (P2 - not implemented)
+│   ├── cli/                # CLI commands
+│   │   ├── index.ts        # CLI entry point
+│   │   └── commands/       # Individual commands (run, init, etc.)
+│   ├── dashboard/          # Dashboard server (P4)
+│   │   ├── server.ts       # Hono server
+│   │   └── routes.ts       # API routes
+│   ├── mcp/                # Model Context Protocol (P3)
+│   │   ├── server.ts       # MCP server
+│   │   └── tools.ts        # MCP tool implementations
+│   ├── storage/            # Data persistence
+│   │   ├── results.ts      # JSON result files
+│   │   ├── cache.ts        # LLM response cache
+│   │   └── db.ts           # SQLite history database
+│   ├── utils/              # Utilities
+│   │   ├── cost.ts         # Token cost estimation
+│   │   ├── stats.ts        # Statistical calculations
+│   │   ├── template.ts     # Template rendering
+│   │   └── hash.ts         # Hash generation
+│   └── types/              # TypeScript types
+└── tests/                  # Test suite
+    ├── unit/               # Unit tests
+    ├── integration/        # Integration tests
+    └── helpers/            # Test helpers and mocks
 ```
 
 ## Development Guidelines
 
 ### 1. Adding New Features
 
-When adding a new feature, follow this sequence:
+When adding a feature, follow these steps:
 
-1. **Define Types** (`packages/types/`)
-   - Add domain types in `src/domain.ts`
-   - Add API types in `src/api.ts` with Zod schemas
+#### For New Evaluator Types (e.g., similarity)
 
-2. **Database Schema** (`packages/db/`)
-   - Update `prisma/schema.prisma`
-   - Run `pnpm db:migrate` to create migration
-   - Document the schema change in `.memory/analysis.md`
+1. **Create evaluator implementation** in `src/evaluators/`
+2. **Define types** in `src/types/index.ts`
+3. **Update Evaluator class** dispatch logic in `src/core/Evaluator.ts`
+4. **Write unit tests** in `tests/unit/evaluators/`
+5. **Update documentation** in `.memory/documentation.md`
 
-3. **Repository Layer** (`apps/web/src/repositories/`)
-   - Create repository class with data access methods
-   - Handle database errors, wrap in `DatabaseError`
-   - Write unit tests with mocked Prisma client
+#### For New CLI Commands
 
-4. **Service Layer** (`apps/web/src/services/`)
-   - Implement business logic
-   - Use constructor injection for repositories
-   - Write unit tests with mocked repositories
+1. **Create command file** in `src/cli/commands/`
+2. **Register command** in `src/cli/index.ts`
+3. **Write tests** (if feasible with mocked file system)
+4. **Update README** with command usage
 
-5. **Command/Query Layer** (`apps/web/src/commands/` or `queries/`)
-   - Create command for writes or query for reads
-   - Orchestrate service calls
-   - Write unit tests with mocked services
+#### For New Dataset Loaders
 
-6. **Controller Layer** (`apps/web/src/controllers/`)
-   - Create controller method
-   - Delegate to appropriate command/query
-   - Keep this layer thin
-
-7. **API Route** (`apps/web/app/api/`)
-   - Create Next.js route handler
-   - Call controller method
-   - Handle errors with proper HTTP status codes
-   - Add input validation if needed
-
-8. **Frontend** (`apps/web/app/`)
-   - Add pages/components as needed
-   - Follow Next.js App Router conventions
-
-9. **Update Documentation**
-   - Add API endpoint to `.memory/documentation.md`
-   - Update `.memory/progress.md` with what was added
-   - Document any architectural decisions in `.memory/decisions.md`
+1. **Add loader method** to `src/datasets/Dataset.ts`
+2. **Write unit tests** in `tests/unit/Dataset.test.ts`
+3. **Update documentation**
 
 ### 2. Writing Tests
 
-**Unit Tests are Mandatory** for all backend layers.
+**Unit tests are mandatory** for all core functionality (experiment runner, evaluators, datasets, utilities).
 
 **Test Structure:**
 ```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
 describe('FeatureName', () => {
-  let service: FeatureService;
-  let mockRepository: FeatureRepository;
-
   beforeEach(() => {
-    mockRepository = {
-      method: vi.fn(),
-    } as unknown as FeatureRepository;
-
-    service = new FeatureService(mockRepository);
-  });
+    vi.clearAllMocks()
+  })
 
   it('should do something', async () => {
-    vi.mocked(mockRepository.method).mockResolvedValue(expected);
-
-    const result = await service.someMethod();
-
-    expect(result).toEqual(expected);
-    expect(mockRepository.method).toHaveBeenCalledWith(expectedArgs);
-  });
-});
+    // Arrange
+    const input = 'test'
+    
+    // Act
+    const result = await functionUnderTest(input)
+    
+    // Assert
+    expect(result).toBe('expected')
+  })
+})
 ```
+
+**Mocking Guidelines:**
+- **LLM APIs**: Mock `openai` and `@anthropic-ai/sdk` modules
+- **File system**: Mock `node:fs` or use helper functions
+- **External services**: Always mock, never make real API calls in tests
 
 **Run Tests:**
 ```bash
@@ -145,25 +125,7 @@ pnpm test:watch        # Watch mode
 pnpm test:coverage     # With coverage report
 ```
 
-### 3. Database Migrations
-
-**Creating a Migration:**
-```bash
-# 1. Edit packages/db/prisma/schema.prisma
-# 2. Run migration
-pnpm --filter @cobalt/db prisma migrate dev --name descriptive_name
-
-# 3. Regenerate Prisma client
-pnpm db:generate
-```
-
-**Important:**
-- Always create migrations with descriptive names
-- Never edit generated migration files manually
-- Test migrations on a clean database before committing
-- Document schema changes in `.memory/analysis.md`
-
-### 4. Code Quality
+### 3. Code Quality
 
 **Before Committing:**
 ```bash
@@ -176,22 +138,22 @@ pnpm build             # Verify build works
 
 **Code Standards:**
 - Use TypeScript strict mode - no `any` types
-- Use path aliases (`@/`) for imports within apps/web
-- Organize imports (Biome does this automatically)
 - Write descriptive variable and function names
 - Add comments only when logic isn't self-evident
 - Keep functions small and focused
+- Handle errors explicitly
+- Use functional programming patterns where appropriate
 
-### 5. Git Workflow
+### 4. Git Workflow
 
 **Commit Messages:**
 
 Follow conventional commits:
 ```
-feat: add user registration endpoint
-fix: resolve database connection pooling issue
-refactor: simplify error handling in repositories
-test: add unit tests for UserService
+feat: add similarity evaluator with embeddings
+fix: resolve dataset CSV parsing bug
+refactor: simplify evaluator dispatch logic
+test: add unit tests for cost estimation
 docs: update API documentation
 chore: upgrade dependencies
 ```
@@ -204,41 +166,64 @@ git commit -m "type: description"
 
 Always include `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` when Claude contributed significantly.
 
-### 6. Error Handling
+### 5. Error Handling
 
-Use custom error classes from `apps/web/src/lib/errors.ts`:
+**For Core Functionality:**
+- Use try-catch blocks appropriately
+- Return meaningful error messages
+- For evaluators: Return `{ score: 0, reason: "error message" }` instead of throwing
 
+**Example:**
 ```typescript
-import { DatabaseError, NotFoundError, ValidationError } from '@/lib/errors';
-
-// In repositories
-throw new DatabaseError('Failed to fetch user');
-
-// In services
-throw new NotFoundError('User not found');
-
-// In API routes
-catch (error) {
-  if (error instanceof AppError) {
-    return NextResponse.json(
-      { error: error.code, message: error.message },
-      { status: error.statusCode }
-    );
+try {
+  const result = await llmCall()
+  return parseResult(result)
+} catch (error) {
+  return {
+    score: 0,
+    reason: `Evaluation error: ${error instanceof Error ? error.message : 'Unknown error'}`
   }
-  // Handle unexpected errors
 }
 ```
 
-### 7. Logging
+### 6. Evaluator Implementation
 
-Use the logger from `apps/web/src/lib/logger.ts`:
+When implementing a new evaluator:
+
+**Required signature:**
+```typescript
+export async function evaluateMyType(
+  config: MyTypeEvaluatorConfig,
+  context: EvaluationContext,
+  apiKey?: string
+): Promise<EvaluationResult> {
+  // Implementation
+  return {
+    score: 0.85,
+    reason: 'Explanation of score'
+  }
+}
+```
+
+**Validation:**
+- Score must be between 0 and 1
+- Provide clear reasoning for the score
+- Handle errors gracefully
+
+### 7. Dataset Transformations
+
+Dataset methods should be **chainable** and **immutable**:
 
 ```typescript
-import { logger } from '@/lib/logger';
-
-logger.info('User created', { userId: user.id });
-logger.error('Failed to process payment', { error, orderId });
-logger.debug('Cache hit', { key });
+class Dataset {
+  map(fn: (item: ExperimentItem) => ExperimentItem): Dataset {
+    return new Dataset({ items: this.items.map(fn) })
+  }
+  
+  filter(predicate: (item: ExperimentItem) => boolean): Dataset {
+    return new Dataset({ items: this.items.filter(predicate) })
+  }
+}
 ```
 
 ## Memory System
@@ -246,12 +231,10 @@ logger.debug('Cache hit', { key });
 **Always maintain the `.memory/` folder** with up-to-date information:
 
 - **decisions.md**: Document architectural choices and reasoning
-- **analysis.md**: Keep codebase structure and entity documentation current
+- **analysis.md**: Keep codebase structure and component documentation current
 - **progress.md**: Log significant milestones and completed work
-- **doubts.md**: Record open questions or concerns
-- **roadmap.md**: Update with future plans and next steps
 - **documentation.md**: Keep API documentation comprehensive
-- **build-issues.md**: Document any build/deployment issues and solutions
+- **roadmap.md**: Update with future plans and next steps
 
 **When to Update:**
 - After adding new features
@@ -264,35 +247,30 @@ logger.debug('Cache hit', { key });
 
 ### Development
 ```bash
-pnpm dev                    # Start dev server
+pnpm dev                    # Watch mode for development
 pnpm build                  # Build for production
-pnpm start                  # Start production server
-```
-
-### Database
-```bash
-docker-compose up -d        # Start PostgreSQL
-docker-compose down         # Stop PostgreSQL
-pnpm db:migrate            # Run migrations
-pnpm db:generate           # Generate Prisma client
-pnpm db:studio             # Open Prisma Studio GUI
+pnpm build:watch            # Watch build
 ```
 
 ### Testing & Quality
 ```bash
 pnpm test                  # Run all tests
 pnpm test:watch            # Run tests in watch mode
+pnpm test:coverage         # Run tests with coverage
 pnpm lint                  # Check code quality
 pnpm format                # Format code
 pnpm check                 # Lint and format
 ```
 
-### Package Management
+### CLI Commands
 ```bash
-pnpm install               # Install dependencies
-pnpm add <pkg>             # Add dependency
-pnpm add -D <pkg>          # Add dev dependency
-pnpm --filter @cobalt/web add <pkg>  # Add to specific package
+pnpm cobalt run <file>     # Run an experiment
+pnpm cobalt init           # Initialize new project
+pnpm cobalt history        # View past runs
+pnpm cobalt compare <id1> <id2>  # Compare runs
+pnpm cobalt serve          # Start dashboard
+pnpm cobalt clean          # Clean cache/results
+pnpm cobalt mcp            # Start MCP server
 ```
 
 ## Decision-Making Philosophy
@@ -302,44 +280,37 @@ pnpm --filter @cobalt/web add <pkg>  # Add to specific package
 ### Always Ask About:
 
 #### 🏗️ Architecture & Design
-- Adding new architectural patterns or layers
-- Changing how layers communicate
+- Adding new evaluator types or patterns
+- Changing how evaluators are dispatched
 - Introducing new dependencies or frameworks
-- Modifying the database schema structure
-- Changing authentication/authorization approach
-- API design decisions (REST conventions, endpoint structure)
-- State management strategy changes
+- Modifying the storage layer (SQLite, file structure)
+- API design decisions (experiment options, Dataset methods)
+- Adding new CLI commands
 
 #### 🛠️ Developer Experience
-- Build tooling changes (bundlers, transpilers)
-- Development workflow modifications
+- Build tooling changes (tsup, bundlers)
 - Testing strategy changes
-- CI/CD pipeline decisions
-- Deployment approach
-- Development environment setup changes
-- Adding or removing linters/formatters
+- CLI argument parsing or command structure
+- Configuration format changes
 
 #### 📦 Dependencies & Infrastructure
-- Adding major dependencies (>10MB, framework-level)
-- Changing package manager or monorepo tools
-- Database migration strategies
-- Caching layer additions
-- Third-party service integrations
-- Infrastructure changes (Docker, hosting)
+- Adding major dependencies
+- LLM provider integrations (OpenAI, Anthropic, others)
+- Storage backend changes
+- Dashboard framework choices
 
 #### 🎨 User-Facing Impact
-- UI/UX patterns and component libraries
-- API response format changes
-- Error handling strategy for end users
-- Performance optimization approaches
-- Accessibility implementation decisions
+- CLI output format changes
+- Result file structure modifications
+- Breaking API changes
+- Configuration schema changes
 
 ### Decision-Making Process
 
 For **decisions that require approval**:
 
 1. **Identify** that a decision point has been reached
-2. **Research** 2-3 viable options (not more, avoid analysis paralysis)
+2. **Research** 2-3 viable options
 3. **Present** options clearly:
    ```
    I need to make a decision about [X]. Here are the options:
@@ -354,61 +325,79 @@ For **decisions that require approval**:
    - Cons: ...
    - Context: ...
 
-   My recommendation: [X] because [reasoning in context of this project]
+   My recommendation: [X] because [reasoning]
 
    What would you prefer?
    ```
-4. **Wait for approval** - Don't proceed until you have clear direction
-5. **Document** the decision and reasoning in `.memory/decisions.md`
+4. **Wait for approval**
+5. **Document** the decision in `.memory/decisions.md`
 6. **Implement** following the approved approach
 
 ### When You Can Proceed Autonomously
 
-You can use your judgment without asking for:
-- Following existing established patterns in the codebase
+- Following existing patterns in the codebase
 - Writing tests that follow existing test patterns
 - Fixing obvious bugs or typos
-- Refactoring that doesn't change behavior
-- Adding comments or documentation
+- Adding documentation
 - Formatting and linting fixes
-- Implementing already-decided features following the plan
-
-**Rule of thumb**: If the change could be reasonably debated or affects how developers work with the code, ask first.
+- Implementing already-decided features
 
 ## Best Practices
 
 ### DO:
-✅ **Ask before making impactful decisions** (architecture, DX, dependencies)
-✅ Follow the CQRS pattern consistently
-✅ Write tests for all backend logic
+✅ **Ask before making impactful decisions**
+✅ Write tests for all core functionality
 ✅ Use strict TypeScript
-✅ Keep layers separated and focused
+✅ Keep modules focused and cohesive
 ✅ Document decisions and changes
-✅ Use descriptive names
-✅ Handle errors explicitly
-✅ Keep commits small and focused
-✅ Present options with pros/cons when asking
-✅ Update `.memory/` after significant changes
+✅ Handle errors gracefully
+✅ Make evaluators return errors as `{score: 0}` not throw
+✅ Keep CLI commands simple and composable
+✅ Cache LLM responses to save costs
+✅ Track token usage and costs
 
 ### DON'T:
 ❌ Make architectural decisions without user approval
-❌ Skip writing tests
+❌ Skip writing tests for core features
 ❌ Use `any` type
-❌ Mix concerns across layers
-❌ Put business logic in API routes
+❌ Make breaking API changes without discussion
+❌ Add dependencies without consideration
+❌ Throw errors from evaluators (return {score: 0} instead)
+❌ Make real API calls in tests
 ❌ Commit broken code
-❌ Make destructive changes without confirmation
-❌ Bypass type safety
-❌ Leave TODOs without tracking
-❌ Assume you know the "best" approach without discussing
+
+## Testing Philosophy
+
+**Core Principle**: Test behavior, not implementation.
+
+**What to Test:**
+- ✅ Public API functions (experiment, Evaluator, Dataset)
+- ✅ Evaluator implementations
+- ✅ Dataset transformations
+- ✅ Utility functions (cost, stats, template)
+- ✅ Error handling and edge cases
+
+**What NOT to Test:**
+- ❌ Private implementation details
+- ❌ Third-party library behavior
+- ❌ Simple getters/setters
+
+**Current Coverage**: 138 tests covering P0/P1 features (17.2% overall, 80-100% for tested modules)
 
 ## Getting Help
 
-- **README.md**: Setup and getting started guide
-- **.memory/**: Project context and decisions
+- **README.md**: User-facing documentation
+- **INSTRUCTIONS.md**: Complete specification and requirements
+- **.memory/**: Project context, decisions, and progress
 - **Architecture Questions**: Review existing patterns in similar features
 - **Stuck?**: Ask the user for clarification or guidance
 
 ## Next Steps
 
-See `.memory/roadmap.md` for planned features and future work.
+See `.memory/roadmap.md` for planned features and P2-P4 work.
+
+**Current Status**: P0 (MVP) and P1 (Usable) are complete. P2 (Powerful) features next:
+- Similarity evaluator with embeddings
+- Multiple runs with statistical aggregation
+- CI mode with thresholds
+- Complete MCP implementation

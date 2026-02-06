@@ -1,247 +1,480 @@
 # Cobalt
 
-A TypeScript full-stack application built with Next.js, featuring a CQRS-inspired architecture and PostgreSQL database.
+**Cypress for AI agents** — A TypeScript testing framework for evaluating AI systems.
 
-## Features
+## Overview
 
-- **Full-Stack TypeScript** - End-to-end type safety from database to frontend
-- **CQRS Architecture** - Clean separation of commands and queries
-- **Monorepo Setup** - Turborepo with pnpm workspaces for efficient builds
-- **Modern Testing** - Vitest for fast, modern unit testing
-- **Database Migrations** - Prisma ORM with PostgreSQL
-- **Code Quality** - Biome for lightning-fast linting and formatting
-- **Developer Experience** - Hot reload, strict TypeScript, path aliases
+Cobalt is a testing and evaluation framework designed specifically for AI agents and LLM-powered applications. It provides:
 
-## Prerequisites
+- 🧪 **Experiment Runner** - Run your agent on datasets and track results
+- 📊 **Multiple Evaluators** - LLM judges, custom functions, exact matching, and more
+- 💰 **Cost Tracking** - Automatic token counting and cost estimation
+- 📁 **Dataset Support** - Load from JSON, JSONL, CSV, or define inline
+- 🔄 **Result History** - SQLite-based history with comparison tools
+- 🎯 **CLI Tools** - Full command-line interface for running experiments
+- 📈 **Dashboard** - Local web UI for visualizing results (coming soon)
+- 🔌 **MCP Integration** - Model Context Protocol server for Claude Code
 
-- **Node.js** 20.0.0 or higher
-- **pnpm** 8.0.0 or higher
-- **Docker** and **Docker Compose** (for PostgreSQL)
+## Installation
+
+```bash
+npm install cobalt
+# or
+pnpm add cobalt
+```
 
 ## Quick Start
 
-### 1. Install Dependencies
+### 1. Initialize a new project
 
 ```bash
-pnpm install
+npx cobalt init
 ```
 
-### 2. Set Up Environment
+This creates:
+- `experiments/` - Folder for your experiment files
+- `cobalt.config.ts` - Configuration file
+- `.cobalt/` - Local storage for results and cache
+
+### 2. Create your first experiment
+
+Create `experiments/my-agent.cobalt.ts`:
+
+```typescript
+import { experiment, Evaluator, Dataset } from 'cobalt'
+
+// Define evaluators
+const evaluators = [
+  new Evaluator({
+    name: 'relevance',
+    type: 'llm-judge',
+    prompt: 'Rate from 0 to 1 how relevant the output is to the input query.',
+    model: 'gpt-4o-mini',
+    provider: 'openai'
+  }),
+  new Evaluator({
+    name: 'exact-match',
+    type: 'exact-match',
+    field: 'expectedOutput'
+  })
+]
+
+// Load dataset
+const dataset = Dataset.fromJSON('./datasets/qa-pairs.json')
+
+// Run experiment
+export default experiment('qa-agent', dataset, async ({ item }) => {
+  // Call your agent here
+  const response = await myAgent.run(item.input)
+
+  return {
+    output: response.text,
+    metadata: {
+      model: 'gpt-4o',
+      tokens: response.usage.totalTokens
+    }
+  }
+}, {
+  evaluators,
+  concurrency: 5,
+  timeout: 30000,
+  tags: ['v1', 'gpt-4o']
+})
+```
+
+### 3. Run the experiment
 
 ```bash
-cp apps/web/.env.example apps/web/.env.local
+npx cobalt run experiments/my-agent.cobalt.ts
 ```
 
-Edit `apps/web/.env.local` if you need to change database credentials.
+## Core Concepts
 
-### 3. Start PostgreSQL
+### Experiments
+
+An experiment runs your agent on a dataset and evaluates the outputs. Each run:
+1. Loads items from a dataset
+2. Executes your agent function for each item
+3. Evaluates outputs using configured evaluators
+4. Saves results to `.cobalt/results/`
+5. Stores history in `.cobalt/history.db`
+
+### Evaluators
+
+Evaluators score your agent's outputs. Cobalt supports multiple types:
+
+#### LLM Judge
+Uses another LLM to evaluate outputs:
+
+```typescript
+new Evaluator({
+  name: 'relevance',
+  type: 'llm-judge',
+  prompt: 'Rate from 0 to 1 how relevant this is.',
+  model: 'gpt-4o-mini',
+  provider: 'openai' // or 'anthropic'
+})
+```
+
+#### Custom Function
+Write your own evaluation logic:
+
+```typescript
+new Evaluator({
+  name: 'length-check',
+  type: 'function',
+  fn: ({ output }) => {
+    const wordCount = output.split(' ').length
+    return {
+      score: wordCount <= 100 ? 1 : 0,
+      reason: `Output has ${wordCount} words`
+    }
+  }
+})
+```
+
+#### Exact Match
+Compare output to expected value:
+
+```typescript
+new Evaluator({
+  name: 'correct-answer',
+  type: 'exact-match',
+  field: 'expectedOutput',
+  caseSensitive: false
+})
+```
+
+### Datasets
+
+Load datasets from multiple formats:
+
+```typescript
+// From JSON array
+const dataset = Dataset.fromJSON('./data.json')
+
+// From JSONL (line-delimited JSON)
+const dataset = Dataset.fromJSONL('./data.jsonl')
+
+// From CSV
+const dataset = Dataset.fromCSV('./data.csv')
+
+// Inline
+const dataset = new Dataset({
+  items: [
+    { input: 'Question 1', expectedOutput: 'Answer 1' },
+    { input: 'Question 2', expectedOutput: 'Answer 2' }
+  ]
+})
+```
+
+Transform datasets:
+
+```typescript
+dataset
+  .filter(item => item.category === 'important')
+  .sample(10)  // Random sample
+  .slice(0, 5)  // First 5 items
+  .map(item => ({ ...item, priority: 'high' }))
+```
+
+## CLI Commands
+
+### \`cobalt run\`
+
+Run an experiment:
 
 ```bash
-docker-compose up -d
+# Run a specific experiment
+npx cobalt run experiments/my-agent.cobalt.ts
+
+# Filter by experiment name pattern
+npx cobalt run --filter "gpt-4*"
+
+# Filter by tags
+npx cobalt run --filter "v2"
 ```
 
-### 4. Run Database Migrations
+### \`cobalt init\`
+
+Initialize a new Cobalt project:
 
 ```bash
-pnpm db:migrate
+npx cobalt init
 ```
 
-When prompted for a migration name, press Enter to accept the default.
+Creates project structure and configuration files.
 
-### 5. Start Development Server
+### \`cobalt history\`
+
+View past experiment runs:
 
 ```bash
-pnpm dev
+npx cobalt history
 ```
 
-The application will be available at:
-- **Frontend**: http://localhost:3000
-- **Health Check**: http://localhost:3000/api/health
-- **Status Endpoint**: http://localhost:3000/api/status
+Shows run ID, name, timestamp, scores, and cost.
+
+### \`cobalt compare\`
+
+Compare two experiment runs:
+
+```bash
+npx cobalt compare <run-id-1> <run-id-2>
+```
+
+Shows side-by-side comparison of scores and evaluator results.
+
+### \`cobalt serve\`
+
+Start the dashboard server:
+
+```bash
+npx cobalt serve
+```
+
+Launches web UI at http://localhost:4000 for visualizing results.
+
+### \`cobalt clean\`
+
+Clean up old cache and results:
+
+```bash
+# Remove cache older than 30 days
+npx cobalt clean --cache --days 30
+
+# Remove results older than 90 days
+npx cobalt clean --results --days 90
+```
+
+### \`cobalt mcp\`
+
+Start MCP (Model Context Protocol) server for Claude Code integration:
+
+```bash
+npx cobalt mcp
+```
+
+Enables Claude to run experiments, view results, and compare runs.
+
+## Configuration
+
+Create \`cobalt.config.ts\` in your project root:
+
+```typescript
+import { defineConfig } from 'cobalt'
+
+export default defineConfig({
+  // Default evaluators (can be overridden per experiment)
+  evaluators: [
+    {
+      name: 'relevance',
+      type: 'llm-judge',
+      prompt: 'Rate relevance from 0 to 1',
+      model: 'gpt-4o-mini'
+    }
+  ],
+
+  // Execution settings
+  concurrency: 5,
+  timeout: 30000,
+
+  // API keys (or use environment variables)
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+
+  // Storage paths
+  resultsDir: '.cobalt/results',
+  cacheDir: '.cobalt/cache',
+  historyDb: '.cobalt/history.db'
+})
+```
+
+## Environment Variables
+
+```bash
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
 
 ## Project Structure
 
 ```
-cobalt/
-├── apps/
-│   └── web/                    # Main Next.js application
-│       ├── app/                # Next.js App Router
-│       │   ├── api/            # API routes (thin controllers)
-│       │   ├── layout.tsx      # Root layout
-│       │   └── page.tsx        # Homepage
-│       ├── src/                # Backend CQRS layers
-│       │   ├── controllers/    # Request handlers
-│       │   ├── commands/       # Write operations (future)
-│       │   ├── queries/        # Read operations
-│       │   ├── services/       # Business logic
-│       │   ├── repositories/   # Data access layer
-│       │   └── lib/            # Utilities (errors, logger)
-│       └── tests/              # Unit and integration tests
-├── packages/
-│   ├── db/                     # Prisma database package
-│   │   └── prisma/
-│   │       └── schema.prisma   # Database schema
-│   ├── types/                  # Shared TypeScript types
-│   ├── sdk/                    # SDK placeholder (future)
-│   └── tsconfig/               # Shared TS configs
-├── .memory/                    # Project documentation
-├── docker-compose.yml          # PostgreSQL setup
-└── turbo.json                  # Turborepo config
+your-project/
+├── experiments/           # Your experiment files
+│   ├── qa-agent.cobalt.ts
+│   └── summarizer.cobalt.ts
+├── datasets/             # Your datasets
+│   ├── questions.json
+│   └── articles.jsonl
+├── cobalt.config.ts      # Configuration
+└── .cobalt/              # Generated by Cobalt
+    ├── results/          # JSON results per run
+    ├── cache/            # LLM response cache
+    └── history.db        # SQLite history database
 ```
 
-## Architecture
+## Features
 
-### CQRS Flow
+### Cost Tracking
 
+Cobalt automatically tracks token usage and estimates costs:
+
+```typescript
+// After running an experiment
+console.log(\`Total cost: \${result.cost}\`)
+console.log(\`Total tokens: \${result.totalTokens}\`)
 ```
-API Route → Controller → Query/Command → Service → Repository → Prisma → PostgreSQL
+
+Supports pricing for:
+- OpenAI (GPT-4o, GPT-4o-mini, GPT-4 Turbo, etc.)
+- Anthropic (Claude Opus, Sonnet, Haiku)
+
+### Result Caching
+
+LLM judge responses are cached to avoid redundant API calls:
+
+```typescript
+// Cache is based on:
+// - Evaluator prompt
+// - Model
+// - Input/output content
+// Results are automatically reused across runs
 ```
 
-**Example Flow** (GET `/api/status`):
-1. **API Route** ([apps/web/app/api/status/route.ts](apps/web/app/api/status/route.ts)) - Handles HTTP request
-2. **Controller** ([apps/web/src/controllers/StatusController.ts](apps/web/src/controllers/StatusController.ts)) - Delegates to query
-3. **Query** ([apps/web/src/queries/GetStatusQuery.ts](apps/web/src/queries/GetStatusQuery.ts)) - Orchestrates operation
-4. **Service** ([apps/web/src/services/StatusService.ts](apps/web/src/services/StatusService.ts)) - Business logic
-5. **Repository** ([apps/web/src/repositories/StatusRepository.ts](apps/web/src/repositories/StatusRepository.ts)) - Data access
-6. **Prisma** - ORM layer to PostgreSQL
+### Statistics
 
-### Layer Responsibilities
+Results include statistical summaries:
 
-- **Controllers**: Thin layer that delegates to commands/queries
-- **Commands**: Write operations (create, update, delete) - mutate state
-- **Queries**: Read operations - never mutate state
-- **Services**: Reusable business logic shared across operations
-- **Repositories**: Abstract database operations, one per entity/aggregate
+```json
+{
+  "statistics": {
+    "relevance": {
+      "avg": 0.85,
+      "min": 0.70,
+      "max": 0.95,
+      "p50": 0.85,
+      "p95": 0.93
+    }
+  }
+}
+```
 
-## Development Commands
+### Progress Tracking
 
-### Development
+Monitor experiment progress in real-time:
+
+```typescript
+experiment('test', dataset, runner, {
+  evaluators,
+  onProgress: (current, total) => {
+    console.log(\`Progress: \${current}/\${total}\`)
+  }
+})
+```
+
+## Development
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm 8+
+
+### Setup
 
 ```bash
-# Start dev server (Next.js)
-pnpm dev
+# Install dependencies
+pnpm install
 
-# Build all packages
+# Run tests
+pnpm test
+
+# Build
 pnpm build
+
+# Run in development
+pnpm dev
 ```
 
-### Testing
+### Running Tests
 
 ```bash
 # Run all tests
 pnpm test
 
-# Run tests in watch mode
+# Watch mode
 pnpm test:watch
 
-# Run tests with coverage
+# Coverage
 pnpm test:coverage
 ```
+
+Current test coverage: **138 tests** covering core functionality.
 
 ### Code Quality
 
 ```bash
-# Check linting and formatting
+# Lint and format
+pnpm check
+
+# Lint only
 pnpm lint
 
-# Format code
+# Format only
 pnpm format
-
-# Check and auto-fix issues
-pnpm check
 ```
 
-### Database
+## MCP Integration
+
+Cobalt provides a Model Context Protocol server for integration with Claude Code:
 
 ```bash
-# Generate Prisma client (after schema changes)
-pnpm db:generate
-
-# Create and apply migrations
-pnpm db:migrate
-
-# Open Prisma Studio (database GUI)
-pnpm db:studio
-
-# Stop PostgreSQL
-docker-compose down
-
-# Reset database (WARNING: deletes all data)
-docker-compose down -v
+# Start MCP server
+npx cobalt mcp
 ```
 
-## API Endpoints
+Available tools:
+- \`cobalt_run\` - Run experiments
+- \`cobalt_results\` - View experiment results
+- \`cobalt_compare\` - Compare two runs
 
-### GET `/api/health`
+Configure in your \`.mcp.json\`:
 
-Health check endpoint.
-
-**Response**:
 ```json
 {
-  "status": "ok",
-  "timestamp": "2026-02-05T12:00:00.000Z"
+  "mcpServers": {
+    "cobalt": {
+      "command": "npx",
+      "args": ["cobalt", "mcp"]
+    }
+  }
 }
 ```
 
-### GET `/api/status`
+## Roadmap
 
-System status endpoint (demonstrates full CQRS flow).
+- [x] Core experiment runner
+- [x] LLM judge, function, and exact-match evaluators
+- [x] Dataset loading (JSON, JSONL, CSV)
+- [x] CLI commands (run, init, history, compare)
+- [x] Cost tracking and caching
+- [x] SQLite history storage
+- [x] MCP server integration
+- [ ] Similarity evaluator (embeddings)
+- [ ] Multiple runs with aggregation
+- [ ] React dashboard UI
+- [ ] CI mode with thresholds
+- [ ] RAGAS integration
+- [ ] Remote datasets
+- [ ] GitHub Actions reporter
 
-**Response**:
-```json
-{
-  "status": "operational",
-  "message": "System initialized",
-  "timestamp": "2026-02-05T12:00:00.000Z"
-}
-```
+## Documentation
 
-## Tech Stack
-
-- **Framework**: [Next.js 15](https://nextjs.org/) - Full-stack React framework
-- **Database**: [PostgreSQL 16](https://www.postgresql.org/) - Relational database
-- **ORM**: [Prisma 5](https://www.prisma.io/) - Type-safe database toolkit
-- **Testing**: [Vitest 2](https://vitest.dev/) - Fast unit test framework
-- **Code Quality**: [Biome](https://biomejs.dev/) - Fast linter and formatter
-- **Monorepo**: [Turborepo](https://turbo.build/) - High-performance build system
-- **Package Manager**: [pnpm](https://pnpm.io/) - Fast, disk-efficient package manager
-- **Language**: [TypeScript 5](https://www.typescriptlang.org/) - Strict mode enabled
-
-## Testing
-
-Unit tests cover all CQRS layers:
-- ✅ Repositories (data access logic)
-- ✅ Services (business logic)
-- ✅ Queries (orchestration)
-
-Run tests with:
-```bash
-pnpm test
-```
-
-Tests use Vitest with mocked Prisma client for fast, isolated testing.
-
-## Memory System
-
-The [.memory/](.memory/) folder contains project documentation:
-- **decisions.md** - Technical decisions and reasoning
-- **analysis.md** - Codebase structure analysis
-- **progress.md** - Development progress journal
-- **roadmap.md** - Future plans and enhancements
-- **documentation.md** - Detailed API documentation
-
-## What's Next?
-
-This is a working shell with example code. The next steps are:
-
-1. **Define Your Domain** - Replace the example `SystemStatus` with your actual entities
-2. **Add Features** - Implement real business logic using the CQRS pattern
-3. **Authentication** - Add user management and auth
-4. **CI/CD** - Set up GitHub Actions for automated testing and deployment
-5. **SDK Development** - Build the TypeScript SDK in `/packages/sdk`
-
-See [.memory/roadmap.md](.memory/roadmap.md) for detailed next steps.
+See the \`.memory/\` folder for detailed project documentation:
+- [Technical decisions](.memory/decisions.md)
+- [Project structure](.memory/analysis.md)
+- [Development progress](.memory/progress.md)
+- [API documentation](.memory/documentation.md)
 
 ## License
 
@@ -249,4 +482,4 @@ ISC
 
 ## Contributing
 
-This is currently a bootstrapped project. Contribution guidelines will be added as the project matures.
+Contributions are welcome! Please read the contributing guidelines before submitting PRs.

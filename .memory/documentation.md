@@ -1,239 +1,1092 @@
-# API and Application Documentation
+# API Documentation
 
-## API Endpoints
+Complete reference for the Cobalt AI testing framework.
 
-### Health Check
+## Table of Contents
 
-**GET** `/api/health`
+1. [Core API](#core-api)
+2. [Evaluators](#evaluators)
+3. [Datasets](#datasets)
+4. [Configuration](#configuration)
+5. [CLI Commands](#cli-commands)
+6. [Types Reference](#types-reference)
 
-Simple health check endpoint to verify the API is running.
+---
 
-**Response**:
-```json
-{
-  "status": "ok",
-  "timestamp": "2026-02-05T12:00:00.000Z"
+## Core API
+
+### `experiment()`
+
+Main function to run an AI experiment.
+
+**Signature:**
+```typescript
+function experiment<T extends ExperimentItem = ExperimentItem>(
+  name: string,
+  dataset: Dataset<T>,
+  runner: ExperimentRunner<T>,
+  options: ExperimentOptions
+): Promise<ExperimentReport>
+```
+
+**Parameters:**
+
+- **name** (`string`) - Unique identifier for the experiment
+- **dataset** (`Dataset<T>`) - Dataset to run experiment on
+- **runner** (`ExperimentRunner<T>`) - Async function that executes your agent
+- **options** (`ExperimentOptions`) - Execution and evaluation options
+
+**Returns:** `Promise<ExperimentReport>` - Results including scores, statistics, and costs
+
+**Example:**
+```typescript
+import { experiment, Evaluator, Dataset } from 'cobalt'
+
+const evaluators = [
+  new Evaluator({
+    name: 'relevance',
+    type: 'llm-judge',
+    prompt: 'Rate from 0 to 1 how relevant the output is.',
+    model: 'gpt-4o-mini',
+    provider: 'openai'
+  })
+]
+
+const dataset = Dataset.fromJSON('./data.json')
+
+const report = await experiment('my-agent', dataset, async ({ item }) => {
+  const response = await myAgent.run(item.input)
+  return {
+    output: response.text,
+    metadata: {
+      model: 'gpt-4o',
+      tokens: response.usage.totalTokens
+    }
+  }
+}, {
+  evaluators,
+  concurrency: 5,
+  timeout: 30000,
+  tags: ['v1', 'gpt-4o']
+})
+
+console.log(`Average relevance: ${report.statistics.relevance.avg}`)
+console.log(`Total cost: ${report.estimatedCost}`)
+```
+
+---
+
+### `ExperimentRunner<T>`
+
+Function type for the experiment runner.
+
+**Signature:**
+```typescript
+type ExperimentRunner<T extends ExperimentItem> = (context: {
+  item: T
+  index: number
+  dataset: Dataset<T>
+}) => Promise<ExperimentResult>
+```
+
+**Context Properties:**
+
+- **item** - Current dataset item
+- **index** - Item index (0-based)
+- **dataset** - Full dataset (for context)
+
+**Returns:** `Promise<ExperimentResult>`
+```typescript
+interface ExperimentResult {
+  output: string | Record<string, any>
+  metadata?: Record<string, any>
 }
 ```
 
-**Status Codes**:
-- `200 OK` - Service is healthy
-
----
-
-### System Status
-
-**GET** `/api/status`
-
-Retrieves the current system status. This endpoint demonstrates the full CQRS architecture flow.
-
-**Response**:
-```json
-{
-  "status": "operational",
-  "message": "System initialized",
-  "timestamp": "2026-02-05T12:00:00.000Z"
+**Example:**
+```typescript
+const runner: ExperimentRunner = async ({ item, index }) => {
+  console.log(`Processing item ${index + 1}`)
+  
+  const response = await callMyAgent(item.input)
+  
+  return {
+    output: response.text,
+    metadata: {
+      model: response.model,
+      tokens: response.tokens,
+      latency: response.latency
+    }
+  }
 }
 ```
 
-**Status Codes**:
-- `200 OK` - Status retrieved successfully
-- `500 Internal Server Error` - Database or server error
+---
 
-**Error Response**:
-```json
-{
-  "error": "DATABASE_ERROR",
-  "message": "Failed to fetch system status",
-  "statusCode": 500
+### `ExperimentOptions`
+
+Configuration for experiment execution.
+
+**Type:**
+```typescript
+interface ExperimentOptions {
+  evaluators: Evaluator[]           // Required
+  runs?: number                     // Default: 1
+  concurrency?: number              // Default: 5
+  timeout?: number                  // Default: 30000 (ms)
+  tags?: string[]                   // Default: []
+  onProgress?: ProgressCallback     // Optional
 }
 ```
 
-**Architecture Flow**:
-1. API Route Handler (`/app/api/status/route.ts`)
-2. StatusController (`/src/controllers/StatusController.ts`)
-3. GetStatusQuery (`/src/queries/GetStatusQuery.ts`)
-4. StatusService (`/src/services/StatusService.ts`)
-5. StatusRepository (`/src/repositories/StatusRepository.ts`)
-6. Prisma Client → PostgreSQL
+**Properties:**
 
-**Business Logic**:
-- If no status exists in the database, creates a default "operational" status
-- Returns the most recently created status record
+- **evaluators** - Array of Evaluator instances
+- **runs** - Number of times to run each item (for non-determinism)
+- **concurrency** - Max parallel executions
+- **timeout** - Timeout per item in milliseconds
+- **tags** - Tags for filtering and organization
+- **onProgress** - Callback for progress updates
 
----
-
-## Frontend Pages
-
-### Home Page
-
-**URL**: `/`
-
-Landing page with links to API endpoints for easy testing.
-
-**Features**:
-- Project title and description
-- Links to health check and status endpoints
-- Opens endpoints in new tab for easy inspection
-
----
-
-## Database Schema
-
-### SystemStatus Table
-
-**Table Name**: `system_status`
-
-Stores system status records for the example CQRS flow.
-
-**Columns**:
-- `id` (String, Primary Key) - CUID identifier
-- `status` (String, default: "operational") - Current system status
-- `message` (String, nullable) - Optional status message
-- `createdAt` (DateTime) - Record creation timestamp
-- `updatedAt` (DateTime) - Last update timestamp
-
-**Indexes**:
-- Primary key on `id`
-- Implicitly ordered by `createdAt` for latest status retrieval
-
----
-
-## Development Workflow
-
-### Starting Development
-
-1. Start PostgreSQL:
-   ```bash
-   docker-compose up -d
-   ```
-
-2. Set up environment:
-   ```bash
-   cp apps/web/.env.example apps/web/.env.local
-   ```
-
-3. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-
-4. Run migrations:
-   ```bash
-   pnpm db:migrate
-   ```
-
-5. Start development server:
-   ```bash
-   pnpm dev
-   ```
-
-### Running Tests
-
-```bash
-# Run all tests
-pnpm test
-
-# Watch mode
-pnpm test:watch
-
-# With coverage
-pnpm test:coverage
-```
-
-### Code Quality
-
-```bash
-# Check formatting and linting
-pnpm lint
-
-# Format code
-pnpm format
-
-# Check and fix
-pnpm check
-```
-
-### Database Operations
-
-```bash
-# Generate Prisma client
-pnpm db:generate
-
-# Run migrations
-pnpm db:migrate
-
-# Open Prisma Studio
-pnpm db:studio
-```
-
-### Building for Production
-
-```bash
-# Build all packages
-pnpm build
-
-# Start production server (after build)
-cd apps/web && pnpm start
+**Example:**
+```typescript
+const options: ExperimentOptions = {
+  evaluators: [relevanceEval, accuracyEval],
+  concurrency: 10,
+  timeout: 60000,
+  tags: ['gpt-4o', 'production'],
+  onProgress: (current, total) => {
+    console.log(`Progress: ${current}/${total}`)
+  }
+}
 ```
 
 ---
 
-## Architecture Documentation
+### `ExperimentReport`
 
-### CQRS Pattern
+Result object returned from `experiment()`.
 
-The application follows a CQRS-inspired (Command Query Responsibility Segregation) architecture:
+**Type:**
+```typescript
+interface ExperimentReport {
+  id: string                                 // Unique run ID
+  name: string                               // Experiment name
+  timestamp: number                          // Unix timestamp
+  results: ExperimentItemResult[]            // Per-item results
+  statistics: Record<string, ScoreStats>     // Aggregated stats
+  totalItems: number                         // Items processed
+  successfulItems: number                    // Items without errors
+  failedItems: number                        // Items with errors
+  totalTokens: number                        // Total tokens used
+  estimatedCost: number                      // Estimated cost (USD)
+  duration: number                           // Total duration (ms)
+  tags: string[]                             // Experiment tags
+}
+```
 
-**Commands** (Write Operations):
-- Mutate state
-- Located in `/apps/web/src/commands/`
-- *Currently empty, placeholder for future write operations*
+**Example:**
+```typescript
+const report = await experiment(...)
 
-**Queries** (Read Operations):
-- Never mutate state
-- Located in `/apps/web/src/queries/`
-- Example: `GetStatusQuery`
+console.log(`Run ID: ${report.id}`)
+console.log(`Success rate: ${report.successfulItems}/${report.totalItems}`)
+console.log(`Average relevance: ${report.statistics.relevance.avg}`)
+console.log(`95th percentile: ${report.statistics.relevance.p95}`)
+console.log(`Estimated cost: $${report.estimatedCost.toFixed(2)}`)
+```
 
-**Services**:
-- Contain business logic
-- Can be shared across commands and queries
-- Example: `StatusService`
+---
 
-**Repositories**:
-- Abstract database operations
-- One repository per aggregate/entity
-- Example: `StatusRepository`
+## Evaluators
 
-**Benefits**:
-- Clear separation of concerns
-- Easier to test (each layer isolated)
-- Scalable architecture
-- Maintainable and understandable codebase
+### `Evaluator` Class
 
-### Package Structure
+Main class for creating evaluators.
 
-**@cobalt/web** - Main Next.js application
-- Frontend pages and components
-- API routes (thin layer)
-- Backend business logic (CQRS layers)
-- Tests
+**Constructor:**
+```typescript
+constructor(config: EvaluatorConfig)
+```
 
-**@cobalt/db** - Database package
-- Prisma schema and client
-- Migrations
-- Database singleton export
+**Methods:**
 
-**@cobalt/types** - Shared types
-- API request/response types
-- Domain models
-- Zod validation schemas
+#### `evaluate()`
 
-**@cobalt/sdk** - SDK placeholder
-- Future TypeScript SDK for API consumers
-- To be published to npm
+Evaluate a single output.
 
-**@cobalt/tsconfig** - TypeScript configs
-- Shared base configuration
-- Next.js-specific config
-- Node.js package config
+```typescript
+async evaluate(
+  context: EvaluationContext,
+  apiKey?: string,
+  overrideModel?: string
+): Promise<EvaluationResult>
+```
+
+**Parameters:**
+- **context** - Evaluation context (item, output, metadata)
+- **apiKey** - API key for LLM judges (optional if in config)
+- **overrideModel** - Override configured model (optional)
+
+**Returns:**
+```typescript
+interface EvaluationResult {
+  score: number      // 0 to 1
+  reason?: string    // Explanation
+}
+```
+
+---
+
+### Evaluator Types
+
+#### 1. LLM Judge
+
+Uses another LLM to evaluate outputs.
+
+**Config:**
+```typescript
+interface LLMJudgeEvaluatorConfig {
+  name: string
+  type: 'llm-judge'
+  prompt: string                    // Evaluation prompt
+  model: string                     // Model identifier
+  provider: 'openai' | 'anthropic'  // Provider
+}
+```
+
+**Example:**
+```typescript
+new Evaluator({
+  name: 'relevance',
+  type: 'llm-judge',
+  prompt: `Rate from 0 to 1 how relevant the output is to the input.
+  
+Input: {{input}}
+Output: {{output}}
+
+Return JSON: {"score": <number>, "reason": "<explanation>"}`,
+  model: 'gpt-4o-mini',
+  provider: 'openai'
+})
+```
+
+**Template Variables:**
+- `{{input}}` - Input from dataset item
+- `{{output}}` - Agent's output
+- Any top-level field from dataset item (e.g., `{{expectedOutput}}`)
+
+**Supported Models:**
+
+**OpenAI:**
+- `gpt-4o`
+- `gpt-4o-mini`
+- `gpt-4-turbo`
+- `gpt-4`
+- `gpt-3.5-turbo`
+
+**Anthropic:**
+- `claude-opus-4-6`
+- `claude-sonnet-4-5-20250929`
+- `claude-haiku-4-5-20251001`
+- `claude-3-5-sonnet-20241022`
+- `claude-3-5-haiku-20241022`
+
+---
+
+#### 2. Function Evaluator
+
+Custom JavaScript/TypeScript evaluation function.
+
+**Config:**
+```typescript
+interface FunctionEvaluatorConfig {
+  name: string
+  type: 'function'
+  fn: (context: EvaluationContext) => EvaluationResult | Promise<EvaluationResult>
+}
+```
+
+**Example:**
+```typescript
+new Evaluator({
+  name: 'word-count',
+  type: 'function',
+  fn: ({ output }) => {
+    const wordCount = output.split(/\s+/).length
+    const ideal = wordCount >= 50 && wordCount <= 100
+    
+    return {
+      score: ideal ? 1 : 0.5,
+      reason: `Output has ${wordCount} words (ideal: 50-100)`
+    }
+  }
+})
+```
+
+**Async Example:**
+```typescript
+new Evaluator({
+  name: 'toxicity-check',
+  type: 'function',
+  fn: async ({ output }) => {
+    const result = await toxicityAPI.check(output)
+    return {
+      score: 1 - result.toxicityScore,
+      reason: `Toxicity: ${result.toxicityScore.toFixed(2)}`
+    }
+  }
+})
+```
+
+**Requirements:**
+- Must return `{score: number, reason?: string}`
+- Score must be between 0 and 1 (enforced, throws if invalid)
+- Can be async or sync
+
+---
+
+#### 3. Exact Match Evaluator
+
+Compare output to expected value.
+
+**Config:**
+```typescript
+interface ExactMatchEvaluatorConfig {
+  name: string
+  type: 'exact-match'
+  field: string                    // Field in dataset to compare to
+  caseSensitive?: boolean          // Default: true
+  trim?: boolean                   // Default: true
+}
+```
+
+**Example:**
+```typescript
+new Evaluator({
+  name: 'correct-answer',
+  type: 'exact-match',
+  field: 'expectedOutput',
+  caseSensitive: false,
+  trim: true
+})
+```
+
+**Dataset item example:**
+```json
+{
+  "input": "What is 2+2?",
+  "expectedOutput": "4"
+}
+```
+
+If output is `"4"` → score = 1  
+If output is `"5"` → score = 0
+
+---
+
+#### 4. Similarity Evaluator (P2 - Not Implemented)
+
+Semantic similarity using embeddings.
+
+**Status:** Stubbed - throws error when used
+
+**Future Config:**
+```typescript
+interface SimilarityEvaluatorConfig {
+  name: string
+  type: 'similarity'
+  field: string                    // Field to compare to
+  threshold?: number               // Similarity threshold (default: 0.8)
+  provider?: 'openai' | 'cohere'   // Embedding provider
+}
+```
+
+---
+
+## Datasets
+
+### `Dataset` Class
+
+Manages dataset loading and transformations.
+
+**Constructor:**
+```typescript
+constructor(options: { items: ExperimentItem[] })
+```
+
+---
+
+### Static Loaders
+
+#### `Dataset.fromJSON()`
+
+Load from JSON file (array or object with `.items` property).
+
+**Signature:**
+```typescript
+static fromJSON<T extends ExperimentItem = ExperimentItem>(
+  filePath: string
+): Dataset<T>
+```
+
+**Example:**
+```typescript
+// data.json (array format)
+[
+  { "input": "Question 1", "expectedOutput": "Answer 1" },
+  { "input": "Question 2", "expectedOutput": "Answer 2" }
+]
+
+// or object format
+{
+  "items": [
+    { "input": "Question 1", "expectedOutput": "Answer 1" }
+  ]
+}
+
+const dataset = Dataset.fromJSON('./data.json')
+```
+
+---
+
+#### `Dataset.fromJSONL()`
+
+Load from JSONL (line-delimited JSON) file.
+
+**Signature:**
+```typescript
+static fromJSONL<T extends ExperimentItem = ExperimentItem>(
+  filePath: string
+): Dataset<T>
+```
+
+**Example:**
+```typescript
+// data.jsonl
+{"input": "Question 1", "expectedOutput": "Answer 1"}
+{"input": "Question 2", "expectedOutput": "Answer 2"}
+
+const dataset = Dataset.fromJSONL('./data.jsonl')
+```
+
+---
+
+#### `Dataset.fromCSV()`
+
+Load from CSV file with headers.
+
+**Signature:**
+```typescript
+static fromCSV<T extends ExperimentItem = ExperimentItem>(
+  filePath: string
+): Dataset<T>
+```
+
+**Example:**
+```typescript
+// data.csv
+input,expectedOutput
+"What is 2+2?",4
+"What is the capital of France?",Paris
+
+const dataset = Dataset.fromCSV('./data.csv')
+```
+
+**CSV Parsing:**
+- First row is treated as headers
+- Handles quoted values with commas
+- Trims whitespace
+
+---
+
+### Transformation Methods
+
+All transformation methods are **immutable** - they return new Dataset instances.
+
+#### `map()`
+
+Transform items.
+
+**Signature:**
+```typescript
+map<U extends ExperimentItem>(
+  fn: (item: T, index: number) => U
+): Dataset<U>
+```
+
+**Example:**
+```typescript
+const transformed = dataset.map(item => ({
+  ...item,
+  priority: 'high',
+  input: item.input.toLowerCase()
+}))
+```
+
+---
+
+#### `filter()`
+
+Filter items based on predicate.
+
+**Signature:**
+```typescript
+filter(predicate: (item: T, index: number) => boolean): Dataset<T>
+```
+
+**Example:**
+```typescript
+const important = dataset.filter(item => 
+  item.category === 'critical'
+)
+```
+
+---
+
+#### `sample()`
+
+Random sample of N items.
+
+**Signature:**
+```typescript
+sample(n: number): Dataset<T>
+```
+
+**Example:**
+```typescript
+const subset = dataset.sample(10)  // Random 10 items
+```
+
+**Note:** Uses simple random sampling (may include duplicates if n > dataset size)
+
+---
+
+#### `slice()`
+
+Get subset by index range.
+
+**Signature:**
+```typescript
+slice(start: number, end?: number): Dataset<T>
+```
+
+**Example:**
+```typescript
+const first5 = dataset.slice(0, 5)
+const from10 = dataset.slice(10)
+```
+
+---
+
+### Properties
+
+#### `length`
+
+Number of items in dataset.
+
+```typescript
+readonly length: number
+```
+
+**Example:**
+```typescript
+console.log(`Dataset has ${dataset.length} items`)
+```
+
+---
+
+#### `getItems()`
+
+Get all items as array.
+
+**Signature:**
+```typescript
+getItems(): T[]
+```
+
+**Example:**
+```typescript
+const items = dataset.getItems()
+console.log(`First item: ${JSON.stringify(items[0])}`)
+```
+
+---
+
+### Chaining Transformations
+
+Methods can be chained:
+
+```typescript
+const processedDataset = Dataset
+  .fromJSON('./data.json')
+  .filter(item => item.validated === true)
+  .map(item => ({ ...item, source: 'production' }))
+  .sample(100)
+  .slice(0, 50)
+```
+
+---
+
+## Configuration
+
+### `defineConfig()`
+
+Define Cobalt configuration.
+
+**Signature:**
+```typescript
+function defineConfig(config: CobaltConfig): CobaltConfig
+```
+
+**Type:**
+```typescript
+interface CobaltConfig {
+  evaluators?: EvaluatorConfig[]     // Default evaluators
+  concurrency?: number               // Default: 5
+  timeout?: number                   // Default: 30000
+  openaiApiKey?: string              // OpenAI API key
+  anthropicApiKey?: string           // Anthropic API key
+  resultsDir?: string                // Default: '.cobalt/results'
+  cacheDir?: string                  // Default: '.cobalt/cache'
+  historyDb?: string                 // Default: '.cobalt/history.db'
+}
+```
+
+**Example:**
+```typescript
+// cobalt.config.ts
+import { defineConfig } from 'cobalt'
+
+export default defineConfig({
+  evaluators: [
+    {
+      name: 'relevance',
+      type: 'llm-judge',
+      prompt: 'Rate from 0 to 1',
+      model: 'gpt-4o-mini',
+      provider: 'openai'
+    }
+  ],
+  concurrency: 10,
+  timeout: 60000,
+  openaiApiKey: process.env.OPENAI_API_KEY,
+  anthropicApiKey: process.env.ANTHROPIC_API_KEY
+})
+```
+
+---
+
+### `loadConfig()`
+
+Load configuration from file.
+
+**Signature:**
+```typescript
+async function loadConfig(cwd?: string): Promise<CobaltConfig>
+```
+
+**Behavior:**
+- Searches for `cobalt.config.ts` or `cobalt.config.js`
+- Searches current directory and parent directories
+- Returns defaults if no config file found
+
+**Example:**
+```typescript
+import { loadConfig } from 'cobalt'
+
+const config = await loadConfig()
+console.log(`Concurrency: ${config.concurrency}`)
+```
+
+---
+
+## CLI Commands
+
+### `cobalt run`
+
+Run an experiment file.
+
+**Usage:**
+```bash
+cobalt run <file> [options]
+```
+
+**Options:**
+- `--filter <pattern>` - Filter experiments by name or tag
+- `--config <path>` - Path to config file
+
+**Examples:**
+```bash
+# Run single experiment
+cobalt run experiments/my-agent.cobalt.ts
+
+# Filter by name pattern
+cobalt run experiments/ --filter "gpt-4*"
+
+# Filter by tag
+cobalt run experiments/ --filter "v2"
+```
+
+---
+
+### `cobalt init`
+
+Initialize new Cobalt project.
+
+**Usage:**
+```bash
+cobalt init [directory]
+```
+
+**Creates:**
+- `experiments/` - Example experiment files
+- `datasets/` - Example datasets
+- `cobalt.config.ts` - Configuration file
+- `.cobalt/` - Results directory
+
+**Example:**
+```bash
+cobalt init my-project
+cd my-project
+cobalt run experiments/example.cobalt.ts
+```
+
+---
+
+### `cobalt history`
+
+View past experiment runs.
+
+**Usage:**
+```bash
+cobalt history [options]
+```
+
+**Options:**
+- `--limit <n>` - Number of runs to show (default: 20)
+- `--name <pattern>` - Filter by experiment name
+- `--tag <tag>` - Filter by tag
+
+**Example:**
+```bash
+cobalt history
+cobalt history --limit 10
+cobalt history --tag "production"
+```
+
+**Output:**
+```
+ID       Name          Timestamp            Avg Score  Cost
+abc123   qa-agent      2026-02-05 10:30:00  0.85       $0.15
+def456   summarizer    2026-02-05 09:15:00  0.92       $0.23
+```
+
+---
+
+### `cobalt compare`
+
+Compare two experiment runs.
+
+**Usage:**
+```bash
+cobalt compare <run-id-1> <run-id-2>
+```
+
+**Example:**
+```bash
+cobalt compare abc123 def456
+```
+
+**Output:**
+```
+Comparison: abc123 vs def456
+
+Metric          Run 1    Run 2    Diff
+Relevance       0.85     0.92     +0.07
+Accuracy        0.78     0.81     +0.03
+Cost            $0.15    $0.23    +$0.08
+```
+
+---
+
+### `cobalt serve`
+
+Start dashboard server.
+
+**Usage:**
+```bash
+cobalt serve [options]
+```
+
+**Options:**
+- `--port <port>` - Port number (default: 4000)
+- `--host <host>` - Host (default: localhost)
+
+**Example:**
+```bash
+cobalt serve
+# Opens http://localhost:4000
+```
+
+**Status:** API backend only (no React UI yet)
+
+---
+
+### `cobalt clean`
+
+Clean old cache and results.
+
+**Usage:**
+```bash
+cobalt clean [options]
+```
+
+**Options:**
+- `--cache` - Clean LLM response cache
+- `--results` - Clean result files
+- `--days <n>` - Only clean items older than N days
+
+**Examples:**
+```bash
+# Clean cache older than 30 days
+cobalt clean --cache --days 30
+
+# Clean all results
+cobalt clean --results
+
+# Clean both
+cobalt clean --cache --results --days 90
+```
+
+---
+
+### `cobalt mcp`
+
+Start MCP server for Claude Code integration.
+
+**Usage:**
+```bash
+cobalt mcp
+```
+
+**Configuration:**
+
+Add to `.mcp.json`:
+```json
+{
+  "mcpServers": {
+    "cobalt": {
+      "command": "npx",
+      "args": ["cobalt", "mcp"]
+    }
+  }
+}
+```
+
+**Available Tools:**
+- `cobalt_run` - Run experiments
+- `cobalt_results` - View results
+- `cobalt_compare` - Compare runs
+
+---
+
+## Types Reference
+
+### Core Types
+
+```typescript
+// Experiment item (flexible)
+type ExperimentItem = Record<string, any>
+
+// Experiment result
+interface ExperimentResult {
+  output: string | Record<string, any>
+  metadata?: Record<string, any>
+}
+
+// Evaluation context
+interface EvaluationContext {
+  item: ExperimentItem
+  output: string | Record<string, any>
+  metadata?: Record<string, any>
+}
+
+// Evaluation result
+interface EvaluationResult {
+  score: number      // 0 to 1
+  reason?: string
+}
+
+// Statistics
+interface ScoreStats {
+  avg: number
+  min: number
+  max: number
+  p50: number        // Median
+  p95: number        // 95th percentile
+}
+```
+
+### Evaluator Config Types
+
+```typescript
+type EvaluatorType = 'llm-judge' | 'function' | 'exact-match' | 'similarity'
+
+type EvaluatorConfig = 
+  | LLMJudgeEvaluatorConfig
+  | FunctionEvaluatorConfig
+  | ExactMatchEvaluatorConfig
+  | SimilarityEvaluatorConfig
+
+interface LLMJudgeEvaluatorConfig {
+  name: string
+  type: 'llm-judge'
+  prompt: string
+  model: string
+  provider: 'openai' | 'anthropic'
+}
+
+interface FunctionEvaluatorConfig {
+  name: string
+  type: 'function'
+  fn: (context: EvaluationContext) => EvaluationResult | Promise<EvaluationResult>
+}
+
+interface ExactMatchEvaluatorConfig {
+  name: string
+  type: 'exact-match'
+  field: string
+  caseSensitive?: boolean
+  trim?: boolean
+}
+
+interface SimilarityEvaluatorConfig {
+  name: string
+  type: 'similarity'
+  field: string
+  threshold?: number
+  provider?: 'openai' | 'cohere'
+}
+```
+
+---
+
+## Utilities
+
+### Cost Estimation
+
+```typescript
+import { estimateCost, formatCost } from 'cobalt/utils/cost'
+
+const cost = estimateCost(
+  { input: 10000, output: 5000 },  // Token counts
+  'gpt-4o'                          // Model
+)
+
+console.log(formatCost(cost))  // "$0.15"
+```
+
+### Statistics
+
+```typescript
+import { calculateStats } from 'cobalt/utils/stats'
+
+const scores = [0.8, 0.9, 0.85, 0.75, 0.95]
+const stats = calculateStats(scores)
+
+console.log(stats)
+// {
+//   avg: 0.85,
+//   min: 0.75,
+//   max: 0.95,
+//   p50: 0.85,
+//   p95: 0.94
+// }
+```
+
+### Template Rendering
+
+```typescript
+import { renderTemplate } from 'cobalt/utils/template'
+
+const template = 'Input: {{input}}, Output: {{output}}'
+const context = {
+  input: 'Hello',
+  output: 'World'
+}
+
+const result = renderTemplate(template, context)
+// "Input: Hello, Output: World"
+```
+
+**Note:** Only supports top-level variables, not nested like `{{metadata.model}}`
+
+---
+
+## Environment Variables
+
+```bash
+# Required for LLM judge evaluators
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Optional: override default paths
+COBALT_RESULTS_DIR=.cobalt/results
+COBALT_CACHE_DIR=.cobalt/cache
+COBALT_HISTORY_DB=.cobalt/history.db
+```
+
+---
+
+## Error Handling
+
+### Evaluator Errors
+
+Evaluators return `{score: 0, reason: "error message"}` instead of throwing.
+
+**Example:**
+```typescript
+const result = await evaluator.evaluate(context)
+
+if (result.score === 0 && result.reason?.includes('error')) {
+  console.error(`Evaluation failed: ${result.reason}`)
+}
+```
+
+### Experiment Errors
+
+If an item throws during execution, it's recorded but doesn't stop the experiment.
+
+**Result:**
+```typescript
+{
+  item: { ... },
+  output: null,
+  error: "Error message",
+  scores: {}  // No evaluations run
+}
+```
+
+---
+
+## Best Practices
+
+1. **Use LLM judges for subjective qualities** (relevance, tone, clarity)
+2. **Use function evaluators for objective metrics** (length, format, regex)
+3. **Use exact match for deterministic outputs** (classification, structured data)
+4. **Start with small datasets** for iteration, then scale up
+5. **Tag experiments** for easy filtering and comparison
+6. **Monitor costs** - check `report.estimatedCost` after runs
+7. **Cache is your friend** - rerun experiments without new API costs
+8. **Use concurrency** for faster execution (default: 5 parallel)
+9. **Set timeouts** to prevent hanging on slow items
+
+---
+
+## Additional Resources
+
+- [GitHub Repository](https://github.com/user/cobalt) (placeholder)
+- [INSTRUCTIONS.md](../INSTRUCTIONS.md) - Full specification
+- [CLAUDE.md](../CLAUDE.md) - Development guide
+- [.memory/decisions.md](./decisions.md) - Technical decisions
