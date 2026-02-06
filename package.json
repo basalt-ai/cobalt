@@ -1,0 +1,29 @@
+{
+	"name": "cobalt",
+	"version": "1.0.0",
+	"private": true,
+	"description": "A TypeScript full-stack application with CQRS architecture",
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"test": "turbo test",
+		"test:watch": "turbo test:watch",
+		"test:coverage": "turbo test:coverage",
+		"lint": "turbo lint",
+		"format": "biome format --write .",
+		"format:check": "biome format .",
+		"check": "biome check --write .",
+		"db:migrate": "turbo db:migrate",
+		"db:generate": "turbo db:generate",
+		"db:studio": "pnpm --filter @cobalt/db prisma studio"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"turbo": "^2.3.3"
+	},
+	"engines": {
+		"node": ">=20.0.0",
+		"pnpm": ">=8.0.0"
+	},
+	"packageManager": "pnpm@8.15.4"
+}

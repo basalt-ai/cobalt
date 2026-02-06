@@ -1,0 +1,9 @@
+{
+	"extends": "@cobalt/tsconfig/node.json",
+	"compilerOptions": {
+		"outDir": "./dist",
+		"rootDir": "./src"
+	},
+	"include": ["src/**/*", "prisma/**/*"],
+	"exclude": ["node_modules", "dist"]
+}
