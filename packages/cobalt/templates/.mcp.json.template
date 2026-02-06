@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "cobalt": {
+      "command": "npx",
+      "args": ["cobalt", "mcp"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}

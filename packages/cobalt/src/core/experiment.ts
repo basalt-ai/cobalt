@@ -11,6 +11,7 @@ import { runExperiment } from './runner.js'
 import { calculateStats } from '../utils/stats.js'
 import { loadConfig, getApiKey } from './config.js'
 import { saveResult } from '../storage/results.js'
+import { HistoryDB } from '../storage/db.js'
 
 /**
  * Main experiment function
@@ -84,7 +85,7 @@ export async function experiment(
   const totalDurationMs = Date.now() - startTime
 
   // Calculate summary statistics
-  const summary = calculateSummary(results, totalDurationMs)
+  const summary = await calculateSummary(results, totalDurationMs, config.judge.model)
 
   // Build report
   const report: ExperimentReport = {
@@ -104,6 +105,12 @@ export async function experiment(
 
   console.log(`\nExperiment completed in ${(totalDurationMs / 1000).toFixed(2)}s`)
   console.log(`Average latency: ${summary.avgLatencyMs.toFixed(0)}ms`)
+
+  // Display cost if available
+  if (summary.estimatedCost !== undefined) {
+    const { formatCost } = await import('../utils/cost.js')
+    console.log(`Estimated cost: ${formatCost(summary.estimatedCost)}`)
+  }
 
   // Display summary scores
   console.log('\nScores:')
@@ -128,10 +135,19 @@ export async function experiment(
     console.error(`\n❌ ${errorItems.length} item(s) had errors`)
   }
 
-  // Save results
+  // Save results to JSON file
   const resultPath = await saveResult(report, config.outputDir)
   console.log(`\nResults saved to: ${resultPath}`)
   console.log(`Run ID: ${runId}`)
+
+  // Save to history database
+  try {
+    const db = new HistoryDB(`${config.outputDir}/history.db`)
+    db.insertRun(report)
+    db.close()
+  } catch (error) {
+    console.warn('Failed to save to history database:', error)
+  }
 
   return report
 }
@@ -139,7 +155,7 @@ export async function experiment(
 /**
  * Calculate summary statistics from results
  */
-function calculateSummary(results: ItemResult[], totalDurationMs: number) {
+async function calculateSummary(results: ItemResult[], totalDurationMs: number, model: string) {
   const totalItems = results.length
   const avgLatencyMs = results.reduce((sum, r) => sum + r.latencyMs, 0) / totalItems
 
@@ -160,12 +176,32 @@ function calculateSummary(results: ItemResult[], totalDurationMs: number) {
     scores[evaluator] = calculateStats(scoreList)
   }
 
-  // Calculate token usage (if available in metadata)
+  // Calculate token usage and cost (if available in metadata)
+  let totalInputTokens = 0
+  let totalOutputTokens = 0
   let totalTokens = 0
+
   for (const result of results) {
     if (result.output.metadata?.tokens) {
-      totalTokens += result.output.metadata.tokens
+      // Support both simple token count and detailed input/output breakdown
+      if (typeof result.output.metadata.tokens === 'number') {
+        totalTokens += result.output.metadata.tokens
+      } else if (result.output.metadata.tokens.input && result.output.metadata.tokens.output) {
+        totalInputTokens += result.output.metadata.tokens.input
+        totalOutputTokens += result.output.metadata.tokens.output
+        totalTokens += result.output.metadata.tokens.input + result.output.metadata.tokens.output
+      }
     }
+  }
+
+  // Calculate estimated cost
+  let estimatedCost: number | undefined
+  if (totalInputTokens > 0 || totalOutputTokens > 0) {
+    const { estimateCost } = await import('../utils/cost.js')
+    estimatedCost = estimateCost(
+      { input: totalInputTokens, output: totalOutputTokens },
+      model
+    )
   }
 
   return {
@@ -173,7 +209,7 @@ function calculateSummary(results: ItemResult[], totalDurationMs: number) {
     totalDurationMs,
     avgLatencyMs,
     totalTokens: totalTokens || undefined,
-    estimatedCost: undefined, // TODO: Calculate cost based on model and tokens
+    estimatedCost,
     scores
   }
 }

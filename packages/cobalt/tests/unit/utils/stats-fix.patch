@@ -1,0 +1,9 @@
+--- a/tests/unit/utils/stats.test.ts
++++ b/tests/unit/utils/stats.test.ts
+@@ -41,7 +41,7 @@ describe('calculateStats', () => {
+     expect(stats.avg).toBe(0.7)
+     expect(stats.min).toBe(0.5)
+     expect(stats.max).toBe(0.9)
+-    expect(stats.p50).toBe(0.5) // Lower middle value
++    expect(stats.p50).toBe(0.7) // Interpolated median
+   })

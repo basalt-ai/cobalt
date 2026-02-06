@@ -9,7 +9,12 @@ const main = defineCommand({
   },
   subCommands: {
     init: () => import('./commands/init.js').then(m => m.default),
-    run: () => import('./commands/run.js').then(m => m.default)
+    run: () => import('./commands/run.js').then(m => m.default),
+    serve: () => import('./commands/serve.js').then(m => m.default),
+    history: () => import('./commands/history.js').then(m => m.default),
+    compare: () => import('./commands/compare.js').then(m => m.default),
+    clean: () => import('./commands/clean.js').then(m => m.default),
+    mcp: () => import('./commands/mcp.js').then(m => m.default)
   }
 })
 
