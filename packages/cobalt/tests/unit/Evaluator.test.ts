@@ -120,7 +120,7 @@ describe('Evaluator', () => {
       expect(result.score).toBe(1)
     })
 
-    it('should return error result for similarity evaluator (P2 feature)', async () => {
+    it('should return error result for similarity evaluator without API key', async () => {
       const evaluator = new Evaluator({
         name: 'semantic',
         type: 'similarity',
@@ -131,7 +131,7 @@ describe('Evaluator', () => {
 
       // Errors are caught and returned as score: 0
       expect(result.score).toBe(0)
-      expect(result.reason).toContain('not yet implemented')
+      expect(result.reason).toContain('OpenAI API key is required')
     })
 
     it('should return error result for unknown evaluator type', async () => {

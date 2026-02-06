@@ -106,13 +106,37 @@ export interface ItemEvaluation {
   reason?: string
 }
 
-export interface ItemResult {
-  index: number
-  input: ExperimentItem
+export interface RunAggregation {
+  mean: number
+  stddev: number
+  min: number
+  max: number
+  p50: number
+  p95: number
+  scores: number[]
+}
+
+export interface SingleRun {
   output: ExperimentResult
   latencyMs: number
   evaluations: Record<string, ItemEvaluation>
   error?: string
+}
+
+export interface ItemResult {
+  index: number
+  input: ExperimentItem
+  // Flat fields for backward compatibility (when runs=1) and easy access
+  output: ExperimentResult
+  latencyMs: number
+  evaluations: Record<string, ItemEvaluation>
+  error?: string
+  // Multiple runs support (NEW)
+  runs: SingleRun[]
+  aggregated?: {
+    avgLatencyMs: number
+    evaluations: Record<string, RunAggregation>
+  }
 }
 
 export interface ExperimentSummary {

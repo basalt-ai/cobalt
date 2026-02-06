@@ -1,4 +1,4 @@
-import type { ScoreStats } from '../types/index.js'
+import type { ScoreStats, RunAggregation } from '../types/index.js'
 
 /**
  * Calculate statistical metrics for an array of scores
@@ -43,4 +43,53 @@ function percentile(sortedScores: number[], p: number): number {
   }
 
   return sortedScores[lower] * (1 - weight) + sortedScores[upper] * weight
+}
+
+/**
+ * Calculate standard deviation for an array of numbers
+ * @param values - Array of numerical values
+ * @param mean - Optional pre-calculated mean (for efficiency)
+ * @returns Standard deviation
+ */
+export function standardDeviation(values: number[], mean?: number): number {
+  if (values.length === 0) return 0
+  if (values.length === 1) return 0
+
+  const avg = mean !== undefined ? mean : values.reduce((acc, val) => acc + val, 0) / values.length
+  const squareDiffs = values.map(value => Math.pow(value - avg, 2))
+  const avgSquareDiff = squareDiffs.reduce((acc, diff) => acc + diff, 0) / values.length
+
+  return Math.sqrt(avgSquareDiff)
+}
+
+/**
+ * Calculate comprehensive statistics for multiple runs
+ * @param scores - Array of scores from multiple runs
+ * @returns Run aggregation statistics
+ */
+export function calculateRunStats(scores: number[]): RunAggregation {
+  if (scores.length === 0) {
+    return {
+      mean: 0,
+      stddev: 0,
+      min: 0,
+      max: 0,
+      p50: 0,
+      p95: 0,
+      scores: []
+    }
+  }
+
+  const sorted = [...scores].sort((a, b) => a - b)
+  const mean = scores.reduce((acc, score) => acc + score, 0) / scores.length
+
+  return {
+    mean,
+    stddev: standardDeviation(scores, mean),
+    min: sorted[0],
+    max: sorted[sorted.length - 1],
+    p50: percentile(sorted, 50),
+    p95: percentile(sorted, 95),
+    scores: [...scores]  // copy for reference
+  }
 }

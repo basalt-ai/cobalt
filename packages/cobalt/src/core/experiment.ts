@@ -64,10 +64,19 @@ export async function experiment(
 
   // Progress callback
   let lastProgressLog = 0
-  const onProgress = (completed: number, total: number) => {
+  const onProgress = (info: import('./runner.js').ProgressInfo) => {
     const now = Date.now()
-    if (now - lastProgressLog > 1000 || completed === total) {
-      console.log(`Progress: ${completed}/${total} items completed`)
+    if (now - lastProgressLog > 1000 || info.completedExecutions === info.totalExecutions) {
+      if (runs > 1) {
+        // Hybrid progress for multiple runs
+        console.log(
+          `Progress: ${info.completedExecutions}/${info.totalExecutions} completed | ` +
+          `Item ${info.itemIndex + 1}/${info.totalItems} (run ${info.runIndex + 1}/${info.totalRuns})`
+        )
+      } else {
+        // Simple progress for single run
+        console.log(`Progress: ${info.completedExecutions}/${info.totalExecutions} items completed`)
+      }
       lastProgressLog = now
     }
   }
@@ -79,13 +88,14 @@ export async function experiment(
     evaluators,
     apiKey,
     model: config.judge.model,
+    runs,
     onProgress
   })
 
   const totalDurationMs = Date.now() - startTime
 
   // Calculate summary statistics
-  const summary = await calculateSummary(results, totalDurationMs, config.judge.model)
+  const summary = await calculateSummary(results, totalDurationMs, config.judge.model, runs)
 
   // Build report
   const report: ExperimentReport = {
@@ -155,7 +165,7 @@ export async function experiment(
 /**
  * Calculate summary statistics from results
  */
-async function calculateSummary(results: ItemResult[], totalDurationMs: number, model: string) {
+async function calculateSummary(results: ItemResult[], totalDurationMs: number, model: string, runs: number = 1) {
   const totalItems = results.length
   const avgLatencyMs = results.reduce((sum, r) => sum + r.latencyMs, 0) / totalItems
 
@@ -163,11 +173,24 @@ async function calculateSummary(results: ItemResult[], totalDurationMs: number, 
   const scoresByEvaluator: Record<string, number[]> = {}
 
   for (const result of results) {
-    for (const [evaluatorName, evaluation] of Object.entries(result.evaluations)) {
-      if (!scoresByEvaluator[evaluatorName]) {
-        scoresByEvaluator[evaluatorName] = []
+    if (runs === 1) {
+      // Single run: use flat evaluations field (backward compatible)
+      for (const [evaluatorName, evaluation] of Object.entries(result.evaluations)) {
+        if (!scoresByEvaluator[evaluatorName]) {
+          scoresByEvaluator[evaluatorName] = []
+        }
+        scoresByEvaluator[evaluatorName].push(evaluation.score)
       }
-      scoresByEvaluator[evaluatorName].push(evaluation.score)
+    } else {
+      // Multiple runs: collect from all runs
+      for (const run of result.runs) {
+        for (const [evaluatorName, evaluation] of Object.entries(run.evaluations)) {
+          if (!scoresByEvaluator[evaluatorName]) {
+            scoresByEvaluator[evaluatorName] = []
+          }
+          scoresByEvaluator[evaluatorName].push(evaluation.score)
+        }
+      }
     }
   }
 

@@ -4,12 +4,14 @@ import type {
   EvalResult,
   LLMJudgeEvaluatorConfig,
   FunctionEvaluatorConfig,
-  ExactMatchEvaluatorConfig
+  ExactMatchEvaluatorConfig,
+  SimilarityEvaluatorConfig
 } from '../types/index.js'
 
 import { evaluateLLMJudge } from '../evaluators/llm-judge.js'
 import { evaluateFunction } from '../evaluators/function.js'
 import { evaluateExactMatch } from '../evaluators/exact-match.js'
+import { evaluateSimilarity } from '../evaluators/similarity.js'
 
 /**
  * Evaluator class for scoring agent outputs
@@ -61,8 +63,11 @@ export class Evaluator {
           )
 
         case 'similarity':
-          // Placeholder for P2 implementation
-          throw new Error('Similarity evaluator not yet implemented (P2 feature)')
+          return await evaluateSimilarity(
+            this.config as SimilarityEvaluatorConfig,
+            context,
+            apiKey
+          )
 
         default:
           throw new Error(`Unknown evaluator type: ${(this.config as any).type}`)

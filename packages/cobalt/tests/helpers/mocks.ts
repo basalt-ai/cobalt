@@ -95,6 +95,26 @@ export function mockFileSystem(files: Record<string, string>) {
 }
 
 /**
+ * Mock OpenAI embeddings response
+ */
+export function createMockEmbeddingResponse(embedding: number[]) {
+  return {
+    data: [
+      {
+        embedding,
+        index: 0,
+        object: 'embedding'
+      }
+    ],
+    model: 'text-embedding-3-small',
+    usage: {
+      prompt_tokens: 10,
+      total_tokens: 10
+    }
+  }
+}
+
+/**
  * Create a temporary test directory path
  */
 export function getTempTestDir() {

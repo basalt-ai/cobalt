@@ -731,3 +731,153 @@ When making technical decisions:
 3. **Present to user** - Get approval for impactful decisions
 4. **Record here** - Document decision, rationale, and consequences
 5. **Update affected docs** - Keep analysis.md, progress.md, etc. in sync
+
+---
+
+## P2 (Powerful) Feature Decisions
+
+### AD-015: Similarity Evaluator - OpenAI-Only for v1
+**Date**: 2026-02-06  
+**Status**: Accepted  
+**Alternatives Considered**: Multi-provider (Cohere, Voyage), OpenAI + local fallback
+
+**Decision**: Use OpenAI embeddings API exclusively for similarity evaluator in v1.
+
+**Rationale**:
+- Simple, proven integration
+- Consistent with existing LLM judge pattern (OpenAI + Anthropic)
+- text-embedding-3-small is cost-effective ($0.02/1M tokens)
+- Can add more providers in P3 without breaking changes
+- Reduces complexity and testing burden
+
+**Consequences**:
+- ✅ Simple implementation (~120 LOC)
+- ✅ Reliable, proven API
+- ✅ Good pricing
+- ✅ Easy to test with mocks
+- ❌ Requires OpenAI API key
+- ❌ No offline capability
+- ⏭️ Can add Cohere, Voyage, local models in P3
+
+**Implementation**: `src/evaluators/similarity.ts` using OpenAI SDK
+
+---
+
+### AD-016: Multiple Runs - Store All Individual Results
+**Date**: 2026-02-06  
+**Status**: Accepted  
+**Alternatives Considered**: Store only aggregates, hybrid (configurable)
+
+**Decision**: Store all individual run results in the `runs[]` array.
+
+**Rationale**:
+- Storage is cheap, transparency is valuable
+- Enables debugging non-determinism
+- Can re-analyze results later without re-running
+- Users can see individual outliers
+- Aggregated stats are computed and stored separately
+
+**Consequences**:
+- ✅ Full transparency into all runs
+- ✅ Can debug outliers and failures
+- ✅ Re-analyzable without re-running expensive LLM calls
+- ✅ No information loss
+- ❌ Larger result JSON files (N×items×runs)
+- ❌ More data to parse in dashboard
+- ⏭️ Dashboard can add "compact view" toggle in P4
+
+**Implementation**: `ItemResult` type extended with `runs: SingleRun[]` array
+
+---
+
+### AD-017: Multiple Runs - Sequential Per Item, Parallel Across Items
+**Date**: 2026-02-06  
+**Status**: Accepted  
+**Alternatives Considered**: Fully parallel (all runs), grouped rounds (run 1, then run 2)
+
+**Decision**: Execute runs sequentially for each item, but process items in parallel.
+
+**Pattern**:
+```
+Item 1: Run 1 → Run 2 → Run 3  (sequential)
+Item 2: Run 1 → Run 2 → Run 3  (sequential)  } parallel
+Item 3: Run 1 → Run 2 → Run 3  (sequential)
+```
+
+**Rationale**:
+- Balanced parallelism (maximizes throughput)
+- Simpler progress tracking
+- Keeps each item's runs together (better for debugging)
+- Intuitive: "Item 3/10 (run 2/5)"
+- Respects concurrency setting
+
+**Consequences**:
+- ✅ Good throughput
+- ✅ Clear progress reporting
+- ✅ Each item's runs are temporally close
+- ✅ Easy to implement and test
+- ❌ Not maximum possible parallelism
+- ℹ️ With concurrency=5, items=10, runs=3: up to 5 items executing simultaneously
+
+**Implementation**: `runExperiment()` in `src/core/runner.ts`
+
+---
+
+### AD-018: Multiple Runs - Hybrid Progress Reporting
+**Date**: 2026-02-06  
+**Status**: Accepted  
+**Alternatives Considered**: Total count only, per-item breakdown only
+
+**Decision**: Show both total progress AND current item/run position.
+
+**Format**:
+- Single run: `Progress: 7/10 items completed`
+- Multiple runs: `Progress: 15/50 completed | Item 3/10 (run 2/5)`
+
+**Rationale**:
+- Users need both perspectives for long experiments
+- Total progress shows overall completion %
+- Current position helps estimate time remaining
+- Clear granularity for debugging
+- Only ~10 chars longer than simple format
+
+**Consequences**:
+- ✅ Best visibility into progress
+- ✅ Helps estimate remaining time
+- ✅ Easy to track which item is currently running
+- ❌ Slightly longer terminal output
+- ℹ️ Progress logged max once per second (throttled)
+
+**Implementation**: `onProgress` callback in `experiment.ts`
+
+---
+
+### AD-019: Multiple Runs - Comprehensive Statistics (mean, stddev, min, max, p50, p95)
+**Date**: 2026-02-06  
+**Status**: Accepted  
+**Alternatives Considered**: Basic (mean, stddev only), with confidence intervals
+
+**Decision**: Calculate comprehensive statistics matching existing `ScoreStats` structure.
+
+**Metrics**: mean, stddev, min, max, p50 (median), p95
+
+**Rationale**:
+- Consistent with existing single-run score reporting
+- Full picture of distribution
+- Percentiles more robust than mean for skewed distributions
+- Standard deviation shows variance (non-determinism level)
+- P95 identifies outliers
+- Sufficient for most use cases
+
+**Consequences**:
+- ✅ Comprehensive view of score distribution
+- ✅ Consistent API across single/multiple runs
+- ✅ Standard metrics familiar to users
+- ✅ Identifies high-variance evaluators
+- ⏭️ Can add confidence intervals in P3 (CI mode)
+- ℹ️ When runs=5, items=10: stats aggregate 50 scores per evaluator
+
+**Implementation**: `calculateRunStats()` in `src/utils/stats.ts`
+
+---
+

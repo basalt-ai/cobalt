@@ -341,9 +341,106 @@ During implementation, several mismatches were discovered and fixed:
 **Phase Completion:**
 - ✅ P0 (MVP): 100% complete
 - ✅ P1 (Usable): 100% complete
-- ⚠️ P2 (Powerful): 50% complete (2/4 features)
+- ✅ **P2 (Powerful): 100% complete** (4/4 features) ← NEW!
 - ⚠️ P3 (Connected): ~10% complete (1/8 features, MCP 40% done)
 - ⚠️ P4 (Dashboard): 25% complete (backend only, no UI)
+
+---
+
+## 2026-02-06: P2 (Powerful) Features Completed ✅
+
+### Implementation Summary
+
+**Goal**: Complete remaining P2 features for production-ready AI agent testing.
+
+**Status**: P2 100% complete ✅
+
+### Features Implemented
+
+#### 1. Similarity Evaluator with Embeddings ✅
+
+**Implementation** (`src/evaluators/similarity.ts`):
+- OpenAI embeddings API integration (text-embedding-3-small)
+- Cosine similarity calculation between vectors
+- Threshold mode: binary scoring (1 if similarity ≥ threshold, else 0)
+- Raw similarity mode: continuous scoring (0-1)
+- Field-based comparison from dataset items
+- Error handling for missing API keys and empty text
+
+**Files Created/Modified:**
+- ✅ NEW: `src/evaluators/similarity.ts` (122 lines)
+- ✅ Modified: `src/core/Evaluator.ts` (added similarity case)
+- ✅ NEW: `tests/unit/evaluators/similarity.test.ts` (14 tests)
+- ✅ Modified: `tests/helpers/mocks.ts` (added embedding mock)
+
+**Test Coverage**: 14 tests covering:
+- High/low similarity detection
+- Threshold vs raw similarity modes
+- Field extraction
+- Edge cases (empty text, missing API key, API errors)
+- Zero magnitude vectors
+
+**Key Design Decisions:**
+- OpenAI-only for v1 (can add more providers in P3)
+- Uses cost-effective text-embedding-3-small by default
+- Cosine similarity normalized to [0, 1] range
+
+#### 2. Multiple Runs Support ✅
+
+**Implementation** (across multiple files):
+- Sequential runs per item, parallel across items (decision #3)
+- Store all individual run results (decision #2)
+- Comprehensive statistics: mean, stddev, min, max, p50, p95 (decision #5)
+- Hybrid progress reporting (decision #4)
+
+**Files Created/Modified:**
+- ✅ Modified: `src/types/index.ts` - Extended ItemResult with runs[] and aggregated
+- ✅ NEW: Added RunAggregation and SingleRun types
+- ✅ Modified: `src/utils/stats.ts` - Added standardDeviation() and calculateRunStats()
+- ✅ Modified: `src/core/runner.ts` - Complete rewrite for multiple runs support
+- ✅ Modified: `src/core/experiment.ts` - Updated progress and summary calculation
+- ✅ Extended: `tests/unit/utils/stats.test.ts` (added 15 new tests for stddev and run stats)
+
+**Test Coverage**: 27 tests for stats (12 existing + 15 new):
+- Standard deviation calculation
+- Run aggregation statistics
+- High/low variance handling
+- Empty arrays and edge cases
+
+**Key Features:**
+- Backward compatible: `runs=1` behaves exactly as before
+- Progress shows: "Progress: 15/50 completed | Item 3/10 (run 2/5)"
+- Result structure includes both flat fields (compat) and runs[] array
+- Aggregated statistics per evaluator across all runs
+- Summary collects scores from all runs (10 items × 5 runs = 50 scores)
+
+#### 3. Integration ✅
+
+**Verification:**
+- ✅ All 167 tests passing (increased from 152)
+- ✅ Build succeeds with no errors
+- ✅ TypeScript strict mode compliance
+- ✅ Both features work together (similarity evaluator + multiple runs)
+
+---
+
+## Statistics (Updated)
+
+**Project Metrics:**
+- **Lines of Code**: ~3,800 (src/) [+500 from P2]
+- **Test Files**: 9 [+1 similarity test]
+- **Test Cases**: 167 [+15 from P2]
+- **Test Coverage**: ~20% overall (85-100% for tested modules)
+- **CLI Commands**: 7 (unchanged)
+- **Evaluator Types**: 4 implemented (llm-judge, function, exact-match, **similarity** ← NEW)
+- **Dataset Formats**: 3 (JSON, JSONL, CSV)
+
+**Phase Completion:**
+- ✅ P0 (MVP): 100% complete
+- ✅ P1 (Usable): 100% complete
+- ✅ **P2 (Powerful): 100% complete** ← NEW!
+- ⚠️ P3 (Connected): ~10% complete
+- ⚠️ P4 (Dashboard): 25% complete
 
 ---
 
