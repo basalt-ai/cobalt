@@ -58,4 +58,4 @@ next-env.d.ts
 *.db-journal
 
 # Other
-_archive/
+_archive/*
