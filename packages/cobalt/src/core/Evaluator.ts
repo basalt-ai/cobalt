@@ -8,6 +8,7 @@ import type {
   SimilarityEvaluatorConfig
 } from '../types/index.js'
 
+import { registry } from './EvaluatorRegistry.js'
 import { evaluateLLMJudge } from '../evaluators/llm-judge.js'
 import { evaluateFunction } from '../evaluators/function.js'
 import { evaluateExactMatch } from '../evaluators/exact-match.js'
@@ -41,6 +42,14 @@ export class Evaluator {
     model?: string
   ): Promise<EvalResult> {
     try {
+      // Try registry first (supports custom plugins)
+      if (registry.has(this.config.type)) {
+        const handler = registry.get(this.config.type)!
+        return await handler(this.config, context, apiKey)
+      }
+
+      // Fallback to built-in evaluators (backward compatibility)
+      // This switch statement will be deprecated in v1.0 and removed in v2.0
       switch (this.config.type) {
         case 'llm-judge':
           return await evaluateLLMJudge(

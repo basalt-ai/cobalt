@@ -1,4 +1,5 @@
 import type { FunctionEvaluatorConfig, EvalContext, EvalResult } from '../types/index.js'
+import { registry } from '../core/EvaluatorRegistry.js'
 
 /**
  * Evaluate using custom function
@@ -27,3 +28,6 @@ export async function evaluateFunction(
     throw new Error(`Function evaluation failed: ${error instanceof Error ? error.message : String(error)}`)
   }
 }
+
+// Register with global registry
+registry.register('function', evaluateFunction)

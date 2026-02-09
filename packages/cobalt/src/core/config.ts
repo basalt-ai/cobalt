@@ -26,7 +26,9 @@ const DEFAULT_CONFIG: CobaltConfig = {
   cache: {
     enabled: true,
     ttl: '7d'
-  }
+  },
+  ciMode: false,
+  plugins: []
 }
 
 /**

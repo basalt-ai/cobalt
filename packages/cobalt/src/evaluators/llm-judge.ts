@@ -2,6 +2,7 @@ import OpenAI from 'openai'
 import Anthropic from '@anthropic-ai/sdk'
 import type { LLMJudgeEvaluatorConfig, EvalContext, EvalResult } from '../types/index.js'
 import { renderTemplate } from '../utils/template.js'
+import { registry } from '../core/EvaluatorRegistry.js'
 
 /**
  * Evaluate using LLM as judge
@@ -162,3 +163,6 @@ function parseEvalResult(content: string): EvalResult {
     throw new Error('LLM returned invalid JSON format')
   }
 }
+
+// Register with global registry
+registry.register('llm-judge', evaluateLLMJudge)

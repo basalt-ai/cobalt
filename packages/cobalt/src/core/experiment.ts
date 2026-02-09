@@ -3,7 +3,8 @@ import type {
   ExperimentOptions,
   ExperimentReport,
   RunnerFunction,
-  ItemResult
+  ItemResult,
+  CIResult
 } from '../types/index.js'
 import { Dataset } from '../datasets/Dataset.js'
 import { Evaluator } from './Evaluator.js'
@@ -12,6 +13,8 @@ import { calculateStats } from '../utils/stats.js'
 import { loadConfig, getApiKey } from './config.js'
 import { saveResult } from '../storage/results.js'
 import { HistoryDB } from '../storage/db.js'
+import { validateThresholds } from './ci.js'
+import { loadPlugins } from './plugin-loader.js'
 
 /**
  * Main experiment function
@@ -32,8 +35,10 @@ export async function experiment(
   // Load configuration
   const config = await loadConfig()
 
-  // Get API key for LLM judge evaluators
-  const apiKey = getApiKey(config)
+  // Load custom evaluator plugins if configured
+  if (config.plugins && config.plugins.length > 0) {
+    await loadPlugins(config.plugins)
+  }
 
   // Merge options with config defaults
   const runs = options.runs || 1
@@ -42,8 +47,14 @@ export async function experiment(
   const tags = options.tags || []
   const experimentName = options.name || name
 
-  // Create evaluator instances
-  const evaluators = options.evaluators.map(evalConfig => new Evaluator(evalConfig))
+  // Create evaluator instances (handle both Evaluator instances and configs)
+  const evaluators = options.evaluators.map(evalConfig =>
+    evalConfig instanceof Evaluator ? evalConfig : new Evaluator(evalConfig)
+  )
+
+  // Get API key only if needed (for LLM judge or similarity evaluators)
+  const needsApiKey = evaluators.some(e => e.type === 'llm-judge' || e.type === 'similarity')
+  const apiKey = needsApiKey ? getApiKey(config) : undefined
 
   // Generate unique run ID
   const runId = generateRunId()
@@ -113,6 +124,21 @@ export async function experiment(
     items: results
   }
 
+  // CI Mode: Validate thresholds if configured
+  let ciStatus: CIResult | undefined
+  if (options.thresholds) {
+    ciStatus = validateThresholds(report, options.thresholds)
+    report.ciStatus = ciStatus
+
+    console.log(`\nCI Status: ${ciStatus.passed ? 'PASSED ✓' : 'FAILED ✗'}`)
+    if (!ciStatus.passed) {
+      console.error('Threshold violations:')
+      for (const violation of ciStatus.violations) {
+        console.error(`  ✗ ${violation.message}`)
+      }
+    }
+  }
+
   console.log(`\nExperiment completed in ${(totalDurationMs / 1000).toFixed(2)}s`)
   console.log(`Average latency: ${summary.avgLatencyMs.toFixed(0)}ms`)
 
@@ -157,6 +183,14 @@ export async function experiment(
     db.close()
   } catch (error) {
     console.warn('Failed to save to history database:', error)
+  }
+
+  // CLI/MCP integration - allow result capture via global callback
+  if (typeof (global as any).__cobaltCLIResultCallback === 'function') {
+    (global as any).__cobaltCLIResultCallback(report)
+  }
+  if (typeof (global as any).__cobaltMCPResultCallback === 'function') {
+    (global as any).__cobaltMCPResultCallback(report)
   }
 
   return report

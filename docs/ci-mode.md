@@ -1,0 +1,508 @@
+# CI/CD Integration
+
+Cobalt integrates seamlessly into CI/CD pipelines with threshold-based quality gates and exit codes.
+
+## Overview
+
+CI Mode enables:
+- **Automated Quality Gates**: Fail builds if experiments don't meet quality thresholds
+- **Regression Detection**: Catch performance degradations before deployment
+- **Continuous Monitoring**: Track AI quality metrics over time
+- **Team Alignment**: Enforce minimum quality standards across the team
+
+## Quick Start
+
+### 1. Define Thresholds
+
+In `cobalt.config.ts`:
+
+```typescript
+export default defineConfig({
+  ciMode: true,
+  thresholds: {
+    'relevance': { avg: 0.7, p95: 0.5 },
+    'accuracy': { avg: 0.8, min: 0.6 },
+    'fluency': { passRate: 0.9, minScore: 0.7 }
+  }
+})
+```
+
+### 2. Run in CI
+
+```bash
+# Exit code 0 if all thresholds pass
+# Exit code 1 if any threshold fails
+pnpm cobalt run experiments/
+```
+
+### 3. Add to CI Pipeline
+
+```yaml
+# GitHub Actions
+name: AI Quality Check
+on: [pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: pnpm/action-setup@v2
+      - run: pnpm install
+      - run: pnpm cobalt run experiments/
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+```
+
+## Threshold Configuration
+
+### Score Thresholds
+
+Evaluate statistical metrics of experiment scores:
+
+```typescript
+thresholds: {
+  'evaluator-name': {
+    avg?: number,   // Average score must be >= this
+    min?: number,   // Minimum score must be >= this
+    max?: number,   // Maximum score must be <= this (rarely used)
+    p50?: number,   // Median score must be >= this
+    p95?: number    // 95th percentile must be >= this
+  }
+}
+```
+
+**Example:**
+
+```typescript
+thresholds: {
+  'relevance': {
+    avg: 0.8,   // Average relevance >= 0.8
+    min: 0.5,   // No scores below 0.5
+    p50: 0.85,  // Median >= 0.85
+    p95: 0.75   // 95% of scores >= 0.75
+  }
+}
+```
+
+### Pass Rate Thresholds
+
+Require a percentage of items to pass:
+
+```typescript
+thresholds: {
+  'evaluator-name': {
+    passRate: number,    // % of items that must score >= minScore
+    minScore?: number    // Minimum passing score (default: 0.5)
+  }
+}
+```
+
+**Example:**
+
+```typescript
+thresholds: {
+  'accuracy': {
+    passRate: 0.9,    // 90% of items must pass
+    minScore: 0.7     // Passing score = 0.7
+  }
+}
+// Fails if fewer than 9 out of 10 items score >= 0.7
+```
+
+### Combined Thresholds
+
+Use both score and pass rate thresholds:
+
+```typescript
+thresholds: {
+  'quality': {
+    avg: 0.8,         // Overall average must be high
+    passRate: 0.95,   // AND 95% of items must pass
+    minScore: 0.6     // With a score of at least 0.6
+  }
+}
+```
+
+## CI Mode Behavior
+
+### Exit Codes
+
+```bash
+# Success (exit 0)
+pnpm cobalt run experiments/
+# ✓ All thresholds passed
+
+# Failure (exit 1)
+pnpm cobalt run experiments/
+# ✗ CI Mode: 2 experiment(s) failed threshold checks
+#   relevance: avg score 0.650 < threshold 0.700
+#   accuracy: pass rate 85.0% (17/20) < threshold 90.0%
+```
+
+### Output Format
+
+**Passing Run:**
+
+```
+Experiment: my-agent-test
+Items: 20/20 completed
+Duration: 15.3s
+
+Scores:
+  relevance: 0.85 (min: 0.70, max: 0.95)
+  accuracy: 0.92 (min: 0.80, max: 1.00)
+
+CI Status: PASSED ✓
+```
+
+**Failing Run:**
+
+```
+Experiment: my-agent-test
+Items: 20/20 completed
+Duration: 15.3s
+
+Scores:
+  relevance: 0.65 (min: 0.40, max: 0.85)
+  accuracy: 0.92 (min: 0.80, max: 1.00)
+
+CI Status: FAILED ✗
+  ✗ relevance: avg score 0.650 < threshold 0.700
+```
+
+## CI Pipeline Examples
+
+### GitHub Actions
+
+```yaml
+name: AI Quality Gates
+
+on:
+  pull_request:
+    paths:
+      - 'agents/**'
+      - 'experiments/**'
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - run: pnpm install
+
+      - name: Run AI Tests
+        run: pnpm cobalt run experiments/
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Upload Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cobalt-results
+          path: .cobalt/results/
+```
+
+### GitLab CI
+
+```yaml
+ai-quality-check:
+  image: node:20
+  before_script:
+    - npm install -g pnpm
+    - pnpm install
+  script:
+    - pnpm cobalt run experiments/
+  artifacts:
+    when: always
+    paths:
+      - .cobalt/results/
+  only:
+    - merge_requests
+```
+
+### CircleCI
+
+```yaml
+version: 2.1
+
+jobs:
+  quality-check:
+    docker:
+      - image: cimg/node:20.0
+    steps:
+      - checkout
+      - run: npm install -g pnpm
+      - run: pnpm install
+      - run: pnpm cobalt run experiments/
+      - store_artifacts:
+          path: .cobalt/results
+
+workflows:
+  test:
+    jobs:
+      - quality-check
+```
+
+### Jenkins
+
+```groovy
+pipeline {
+  agent any
+
+  environment {
+    OPENAI_API_KEY = credentials('openai-api-key')
+  }
+
+  stages {
+    stage('Install') {
+      steps {
+        sh 'npm install -g pnpm'
+        sh 'pnpm install'
+      }
+    }
+
+    stage('AI Quality Check') {
+      steps {
+        sh 'pnpm cobalt run experiments/'
+      }
+    }
+
+    stage('Archive Results') {
+      steps {
+        archiveArtifacts artifacts: '.cobalt/results/**'
+      }
+    }
+  }
+}
+```
+
+## Advanced Patterns
+
+### Environment-Specific Thresholds
+
+```typescript
+// cobalt.config.ts
+export default defineConfig({
+  ciMode: process.env.CI === 'true',
+  thresholds: process.env.CI
+    ? {
+        // Strict thresholds for CI
+        relevance: { avg: 0.8, min: 0.6 },
+        accuracy: { avg: 0.85, passRate: 0.95 }
+      }
+    : {
+        // Looser thresholds for local dev
+        relevance: { avg: 0.6 },
+        accuracy: { avg: 0.7 }
+      }
+})
+```
+
+### Per-Branch Thresholds
+
+```typescript
+// Different standards for main vs feature branches
+const isMainBranch = process.env.GITHUB_REF === 'refs/heads/main'
+
+export default defineConfig({
+  thresholds: isMainBranch
+    ? { quality: { avg: 0.9 } }  // High bar for main
+    : { quality: { avg: 0.7 } }  // Lower for features
+})
+```
+
+### Selective CI Mode
+
+Run specific experiments in CI:
+
+```bash
+# Only run critical experiments
+pnpm cobalt run experiments/critical/*.cobalt.ts
+```
+
+```typescript
+// cobalt.config.ts
+export default defineConfig({
+  testDir: process.env.CI
+    ? 'experiments/critical'  // CI: only critical tests
+    : 'experiments'            // Local: all tests
+})
+```
+
+### Progressive Rollout
+
+Gradually increase thresholds:
+
+```typescript
+const currentWeek = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000))
+const baseThreshold = 0.7
+const weeklyIncrease = 0.02
+
+export default defineConfig({
+  thresholds: {
+    quality: {
+      avg: baseThreshold + (currentWeek * weeklyIncrease)
+    }
+  }
+})
+```
+
+## Monitoring and Alerts
+
+### Store Results in Database
+
+```typescript
+// After experiment runs
+import { HistoryDB } from 'cobalt'
+
+const db = new HistoryDB('.cobalt/history.db')
+const runs = db.getRuns({ since: new Date(Date.now() - 86400000) })
+
+// Check for declining trends
+const avgScores = runs.map(r => r.avgScores.quality)
+const trend = calculateTrend(avgScores)
+
+if (trend < -0.05) {
+  // Alert: quality declining
+  sendSlackAlert('Quality scores declining!')
+}
+```
+
+### Integration with Monitoring Tools
+
+```typescript
+// Send metrics to Datadog, New Relic, etc.
+import { experiment } from 'cobalt'
+
+const report = await experiment(/* ... */)
+
+await fetch('https://api.datadoghq.com/api/v1/metrics', {
+  method: 'POST',
+  headers: { 'DD-API-KEY': process.env.DATADOG_API_KEY },
+  body: JSON.stringify({
+    series: [{
+      metric: 'cobalt.quality.score',
+      points: [[Date.now() / 1000, report.summary.scores.quality.avg]]
+    }]
+  })
+})
+```
+
+### Slack Notifications
+
+```bash
+# .github/workflows/ai-tests.yml
+- name: Notify Slack on Failure
+  if: failure()
+  run: |
+    curl -X POST ${{ secrets.SLACK_WEBHOOK }} \
+      -H 'Content-Type: application/json' \
+      -d '{"text":"AI quality check failed! Check the logs."}'
+```
+
+## Best Practices
+
+### ✅ DO
+
+- **Start conservative**: Begin with achievable thresholds and tighten gradually
+- **Use p95 for consistency**: Catch outliers while allowing some variance
+- **Monitor trends**: Track scores over time, not just pass/fail
+- **Test thresholds locally**: Validate thresholds work before enforcing in CI
+- **Document reasoning**: Explain why each threshold matters
+
+### ❌ DON'T
+
+- **Don't set thresholds too high**: 0.9+ is very strict, hard to maintain
+- **Don't use max thresholds**: Rarely useful, can block legitimate improvements
+- **Don't ignore failures**: Investigate why thresholds fail
+- **Don't change thresholds for every failure**: Fix the agent, not the threshold
+- **Don't block on flaky evaluators**: Some metrics have natural variance
+
+## Troubleshooting
+
+### Flaky Tests
+
+**Problem**: Tests occasionally fail in CI but pass locally
+
+**Solutions**:
+
+1. **Use pass rate thresholds** instead of min thresholds
+   ```typescript
+   thresholds: {
+     quality: { passRate: 0.9 } // Allow 10% variance
+   }
+   ```
+
+2. **Increase test coverage** to reduce variance
+   ```typescript
+   runs: 3  // Run each item 3 times and aggregate
+   ```
+
+3. **Use percentiles** instead of min/max
+   ```typescript
+   thresholds: {
+     quality: { p95: 0.7 }  // 95% of scores above 0.7
+   }
+   ```
+
+### Threshold Too Strict
+
+**Problem**: Agent quality is good but fails CI
+
+**Solution**: Analyze actual scores and adjust:
+
+```bash
+# Check recent scores
+pnpm cobalt history --limit 10
+
+# View detailed results
+pnpm cobalt results <run-id>
+
+# Adjust threshold based on data
+thresholds: {
+  quality: { avg: 0.75 }  # Was 0.8, now 0.75
+}
+```
+
+### API Rate Limits in CI
+
+**Problem**: Hitting OpenAI rate limits during CI runs
+
+**Solutions**:
+
+1. **Reduce concurrency**:
+   ```typescript
+   concurrency: process.env.CI ? 2 : 5
+   ```
+
+2. **Use caching**:
+   ```typescript
+   cache: {
+     enabled: true,
+     ttl: 86400000  // 24 hours
+   }
+   ```
+
+3. **Split test runs**:
+   ```bash
+   pnpm cobalt run experiments/batch1/
+   pnpm cobalt run experiments/batch2/
+   ```
+
+## Resources
+
+- **Example Configs**: `examples/ci-config/`
+- **API Reference**: `docs/api.md`
+- **Dashboard**: Use `pnpm cobalt serve` to visualize trends

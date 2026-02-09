@@ -5,6 +5,7 @@ import { defineCommand } from 'citty'
 import { createJiti } from 'jiti'
 import pc from 'picocolors'
 import { loadConfig } from '../../core/config.js'
+import type { ExperimentReport } from '../../types/index.js'
 
 export default defineCommand({
   meta: {
@@ -73,19 +74,44 @@ export default defineCommand({
         interopDefault: true
       })
 
-      for (const file of files) {
-        try {
-          console.log(pc.bold(`Running: ${file}\n`))
+      // Collect experiment reports for CI mode checking
+      const reports: ExperimentReport[] = []
 
-          // Import and execute the file
-          // The experiment() call inside the file will execute automatically
-          await jiti.import(file, { default: true })
+      // Set up global callback to capture experiment reports
+      ;(global as any).__cobaltCLIResultCallback = (report: ExperimentReport) => {
+        reports.push(report)
+      }
 
-          console.log('')
-        } catch (error) {
-          console.error(pc.red(`\n❌ Error running ${file}:`), error)
-          console.log('')
+      try {
+        for (const file of files) {
+          try {
+            console.log(pc.bold(`Running: ${file}\n`))
+
+            // Import and execute the file
+            // The experiment() call inside the file will execute automatically
+            await jiti.import(file, { default: true })
+
+            console.log('')
+          } catch (error) {
+            console.error(pc.red(`\n❌ Error running ${file}:`), error)
+            console.log('')
+          }
         }
+      } finally {
+        // Clean up global callback
+        delete (global as any).__cobaltCLIResultCallback
+      }
+
+      // Check for CI mode failures
+      const ciFailures = reports.filter(r => r.ciStatus && !r.ciStatus.passed)
+
+      if (ciFailures.length > 0) {
+        console.log(pc.red(pc.bold(`\n❌ CI Mode: ${ciFailures.length} experiment(s) failed threshold checks\n`)))
+        for (const report of ciFailures) {
+          console.log(pc.red(`   ${report.name}: ${report.ciStatus!.summary}`))
+        }
+        console.log('')
+        process.exit(1)
       }
 
       console.log(pc.green(pc.bold('\n✅ All experiments completed!\n')))

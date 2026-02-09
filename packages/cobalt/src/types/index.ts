@@ -16,7 +16,12 @@ export interface DatasetConfig<T = ExperimentItem> {
 // Evaluator Types
 // ============================================================================
 
-export type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'exact-match'
+export type EvaluatorType =
+	| 'llm-judge'
+	| 'function'
+	| 'similarity'
+	| 'exact-match'
+	| 'autoevals'
 
 export interface EvalContext {
   item: ExperimentItem
@@ -52,16 +57,35 @@ export interface SimilarityEvaluatorConfig extends BaseEvaluatorConfig {
 }
 
 export interface ExactMatchEvaluatorConfig extends BaseEvaluatorConfig {
-  type: 'exact-match'
-  field: string
-  caseSensitive?: boolean
+	type: 'exact-match'
+	field: string
+	caseSensitive?: boolean
+}
+
+export interface AutoevalsEvaluatorConfig extends BaseEvaluatorConfig {
+	type: 'autoevals'
+	evaluatorType:
+		| 'Levenshtein'
+		| 'Factuality'
+		| 'ContextRecall'
+		| 'ContextPrecision'
+		| 'AnswerRelevancy'
+		| 'Json'
+		| 'Battle'
+		| 'Humor'
+		| 'Embedding'
+		| 'ClosedQA'
+		| 'Security'
+	options?: Record<string, any>
+	expectedField?: string
 }
 
 export type EvaluatorConfig =
-  | LLMJudgeEvaluatorConfig
-  | FunctionEvaluatorConfig
-  | SimilarityEvaluatorConfig
-  | ExactMatchEvaluatorConfig
+	| LLMJudgeEvaluatorConfig
+	| FunctionEvaluatorConfig
+	| SimilarityEvaluatorConfig
+	| ExactMatchEvaluatorConfig
+	| AutoevalsEvaluatorConfig
 
 // ============================================================================
 // Experiment Types
@@ -87,6 +111,7 @@ export interface ExperimentOptions {
   timeout?: number // default: 30_000
   tags?: string[]
   name?: string // override experiment name
+  thresholds?: ThresholdConfig // CI mode thresholds
 }
 
 // ============================================================================
@@ -161,6 +186,7 @@ export interface ExperimentReport {
   }
   summary: ExperimentSummary
   items: ItemResult[]
+  ciStatus?: CIResult // CI mode threshold validation result
 }
 
 // ============================================================================
@@ -194,6 +220,9 @@ export interface CobaltConfig {
   dashboard: DashboardConfig
   cache: CacheConfig
   env?: Record<string, string>
+  ciMode?: boolean // Enable CI mode with threshold checking
+  thresholds?: ThresholdConfig // Default thresholds for CI mode
+  plugins?: string[] // Paths to custom evaluator plugins
 }
 
 // ============================================================================
@@ -216,3 +245,33 @@ export interface ResultSummary {
   totalItems: number
   durationMs: number
 }
+
+// ============================================================================
+// CI Mode Types
+// ============================================================================
+
+export interface ThresholdViolation {
+  evaluator: string
+  metric: string
+  expected: number
+  actual: number
+  message: string
+}
+
+export interface CIResult {
+  passed: boolean
+  violations: ThresholdViolation[]
+  summary: string
+}
+
+export interface ThresholdMetric {
+  avg?: number
+  min?: number
+  max?: number
+  p50?: number
+  p95?: number
+  passRate?: number  // Percentage of items that must pass (0-1)
+  minScore?: number  // Minimum score required (used with passRate)
+}
+
+export type ThresholdConfig = Record<string, ThresholdMetric>

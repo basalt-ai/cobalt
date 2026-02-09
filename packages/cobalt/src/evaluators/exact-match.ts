@@ -1,4 +1,5 @@
 import type { ExactMatchEvaluatorConfig, EvalContext, EvalResult } from '../types/index.js'
+import { registry } from '../core/EvaluatorRegistry.js'
 
 /**
  * Evaluate using exact string match
@@ -36,3 +37,6 @@ export function evaluateExactMatch(
       : `Output "${actualStr}" does not match expected "${expectedStr}"`
   }
 }
+
+// Register with global registry
+registry.register('exact-match', evaluateExactMatch)

@@ -2,6 +2,7 @@ import { createJiti } from 'jiti'
 import { loadConfig } from '../../core/config.js'
 import { resolve } from 'node:path'
 import { existsSync } from 'node:fs'
+import type { ExperimentReport } from '../../types/index.js'
 
 /**
  * MCP Tool: cobalt_run
@@ -30,6 +31,12 @@ export const cobaltRunTool = {
 }
 
 export async function handleCobaltRun(args: any) {
+  // Set up result capture via global callback
+  const capturedReports: ExperimentReport[] = []
+  ;(global as any).__cobaltMCPResultCallback = (report: ExperimentReport) => {
+    capturedReports.push(report)
+  }
+
   try {
     const config = await loadConfig()
 
@@ -52,22 +59,24 @@ export async function handleCobaltRun(args: any) {
       interopDefault: true
     })
 
-    const results: any[] = []
-
     for (const file of files) {
       // Import and execute - the experiment() call will run automatically
-      // We need to capture the result somehow
+      // Results will be captured via the global callback
       await jiti.import(file, { default: true })
     }
+
+    // Verify we captured results
+    if (capturedReports.length === 0) {
+      throw new Error('No experiment reports captured - did the file call experiment()?')
+    }
+
+    // Return full experiment results
+    const result = capturedReports.length === 1 ? capturedReports[0] : capturedReports
 
     return {
       content: [{
         type: 'text',
-        text: JSON.stringify({
-          success: true,
-          message: 'Experiments completed',
-          files: files.length
-        }, null, 2)
+        text: JSON.stringify(result, null, 2)
       }]
     }
   } catch (error) {
@@ -81,5 +90,8 @@ export async function handleCobaltRun(args: any) {
       }],
       isError: true
     }
+  } finally {
+    // Clean up global callback
+    delete (global as any).__cobaltMCPResultCallback
   }
 }

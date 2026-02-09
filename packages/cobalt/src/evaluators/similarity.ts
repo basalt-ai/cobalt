@@ -1,5 +1,6 @@
 import OpenAI from 'openai'
 import type { SimilarityEvaluatorConfig, EvalContext, EvalResult } from '../types/index.js'
+import { registry } from '../core/EvaluatorRegistry.js'
 
 /**
  * Evaluate using semantic similarity (embeddings + cosine similarity)
@@ -125,3 +126,6 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 	// it's usually positive, so we clamp to [0, 1]
 	return Math.max(0, Math.min(1, cosineSim))
 }
+
+// Register with global registry
+registry.register('similarity', evaluateSimilarity)

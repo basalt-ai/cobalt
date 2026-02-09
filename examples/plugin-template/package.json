@@ -1,0 +1,27 @@
+{
+	"name": "cobalt-plugin-template",
+	"version": "1.0.0",
+	"description": "Template for creating Cobalt evaluator plugins",
+	"type": "module",
+	"main": "src/index.ts",
+	"scripts": {
+		"test": "echo \"Add tests for your plugin\" && exit 0"
+	},
+	"peerDependencies": {
+		"cobalt": ">=0.1.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.7.0"
+	},
+	"dependencies": {
+		"@types/node": "^22.10.5"
+	},
+	"keywords": [
+		"cobalt",
+		"evaluator",
+		"plugin",
+		"ai-testing"
+	],
+	"author": "",
+	"license": "MIT"
+}

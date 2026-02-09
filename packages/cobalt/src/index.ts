@@ -13,6 +13,13 @@ export { Dataset } from './datasets/Dataset.js'
 // Configuration
 export { defineConfig, loadConfig } from './core/config.js'
 
+// Register built-in evaluators (side-effect imports)
+import './evaluators/llm-judge.js'
+import './evaluators/function.js'
+import './evaluators/exact-match.js'
+import './evaluators/similarity.js'
+import './evaluators/adapters/autoevals.js'
+
 // Types
 export type {
   // Config
@@ -25,15 +32,16 @@ export type {
   ExperimentItem,
   DatasetConfig,
 
-  // Evaluator
-  EvaluatorType,
-  EvaluatorConfig,
-  LLMJudgeEvaluatorConfig,
-  FunctionEvaluatorConfig,
-  SimilarityEvaluatorConfig,
-  ExactMatchEvaluatorConfig,
-  EvalContext,
-  EvalResult,
+	// Evaluator
+	EvaluatorType,
+	EvaluatorConfig,
+	LLMJudgeEvaluatorConfig,
+	FunctionEvaluatorConfig,
+	SimilarityEvaluatorConfig,
+	ExactMatchEvaluatorConfig,
+	AutoevalsEvaluatorConfig,
+	EvalContext,
+	EvalResult,
 
   // Experiment
   ExperimentResult,
