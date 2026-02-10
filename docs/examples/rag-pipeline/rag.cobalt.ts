@@ -1,14 +1,12 @@
-import { experiment, Evaluator, Dataset } from 'cobalt'
-import { answerWithRAG, type Document } from './rag-agent.js'
-import { readFileSync } from 'fs'
+import { readFileSync } from 'fs';
+import { Dataset, Evaluator, experiment } from 'cobalt';
+import { type Document, answerWithRAG } from './rag-agent.js';
 
 // Load knowledge base
-const knowledgeBase: Document[] = JSON.parse(
-	readFileSync('./knowledge-base.json', 'utf-8')
-)
+const knowledgeBase: Document[] = JSON.parse(readFileSync('./knowledge-base.json', 'utf-8'));
 
 // Load queries
-const dataset = Dataset.fromJSON('./queries.json')
+const dataset = Dataset.fromJSON('./queries.json');
 
 const evaluators = [
 	// Evaluator 1: Context Relevance
@@ -29,7 +27,7 @@ Rate relevance from 0.0 to 1.0:
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
+		provider: 'openai',
 	}),
 
 	// Evaluator 2: Answer Faithfulness
@@ -50,7 +48,7 @@ Rate faithfulness from 0.0 to 1.0:
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
+		provider: 'openai',
 	}),
 
 	// Evaluator 3: Answer Relevance
@@ -69,29 +67,29 @@ Rate relevance from 0.0 to 1.0:
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
-	})
-]
+		provider: 'openai',
+	}),
+];
 
 experiment(
 	'rag-test',
 	dataset,
 	async ({ item }) => {
-		const response = await answerWithRAG(item.query, knowledgeBase)
+		const response = await answerWithRAG(item.query, knowledgeBase);
 
 		return {
 			output: response.answer,
 			metadata: {
 				context: response.retrievedDocs.map((d) => d.content).join('\n---\n'),
 				numDocs: response.retrievedDocs.length,
-				tokens: response.tokens
-			}
-		}
+				tokens: response.tokens,
+			},
+		};
 	},
 	{
 		evaluators,
 		concurrency: 2,
 		timeout: 45000,
-		tags: ['rag', 'retrieval', 'example']
-	}
-)
+		tags: ['rag', 'retrieval', 'example'],
+	},
+);

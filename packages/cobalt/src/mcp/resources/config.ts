@@ -1,4 +1,4 @@
-import { loadConfig } from '../../core/config.js'
+import { loadConfig } from '../../core/config.js';
 
 /**
  * MCP Resource: cobalt://config
@@ -8,25 +8,25 @@ export const cobaltConfigResource = {
 	uri: 'cobalt://config',
 	name: 'Cobalt Configuration',
 	description: 'Current cobalt.config.ts parsed configuration',
-	mimeType: 'application/json'
-}
+	mimeType: 'application/json',
+};
 
 /**
  * Handle cobalt://config resource request
  */
 export async function handleCobaltConfig() {
 	try {
-		const config = await loadConfig()
+		const config = await loadConfig();
 
 		return {
 			contents: [
 				{
 					uri: 'cobalt://config',
 					mimeType: 'application/json',
-					text: JSON.stringify(config, null, 2)
-				}
-			]
-		}
+					text: JSON.stringify(config, null, 2),
+				},
+			],
+		};
 	} catch (error) {
 		return {
 			contents: [
@@ -35,14 +35,13 @@ export async function handleCobaltConfig() {
 					mimeType: 'application/json',
 					text: JSON.stringify(
 						{
-							error:
-								error instanceof Error ? error.message : 'Failed to load config'
+							error: error instanceof Error ? error.message : 'Failed to load config',
 						},
 						null,
-						2
-					)
-				}
-			]
-		}
+						2,
+					),
+				},
+			],
+		};
 	}
 }

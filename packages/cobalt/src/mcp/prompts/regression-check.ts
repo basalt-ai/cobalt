@@ -5,28 +5,27 @@
 
 export const cobaltRegressionCheckPrompt = {
 	name: 'regression-check',
-	description:
-		'Compare two experiment runs and identify regressions or improvements',
+	description: 'Compare two experiment runs and identify regressions or improvements',
 	arguments: [
 		{
 			name: 'baselineRunId',
 			description: 'Run ID of the baseline (earlier) run',
-			required: true
+			required: true,
 		},
 		{
 			name: 'currentRunId',
 			description: 'Run ID of the current (later) run to compare',
-			required: true
-		}
-	]
-}
+			required: true,
+		},
+	],
+};
 
 /**
  * Get the prompt message for regression checking
  */
 export function getCobaltRegressionCheckPrompt(args: {
-	baselineRunId?: string
-	currentRunId?: string
+	baselineRunId?: string;
+	currentRunId?: string;
 }) {
 	return {
 		messages: [
@@ -63,9 +62,9 @@ Provide a structured report with:
 - Detailed regression list (if any)
 - Root cause hypotheses for regressions
 
-Be precise with numbers. Use percentages and absolute differences.`
-				}
-			}
-		]
-	}
+Be precise with numbers. Use percentages and absolute differences.`,
+				},
+			},
+		],
+	};
 }

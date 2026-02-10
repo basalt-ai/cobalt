@@ -3,7 +3,7 @@
  * Creates evaluator configurations tailored to the agent type
  */
 
-import type { AgentAnalysis } from './generate-dataset.js'
+import type { AgentAnalysis } from './generate-dataset.js';
 
 export function getGenerateEvaluatorsPrompt(analysis: AgentAnalysis): string {
 	return `Based on this agent analysis:
@@ -38,5 +38,5 @@ Return a JSON array of evaluator configurations:
   }
 ]
 
-Select 2-4 evaluators that best test the agent's quality. Prioritize coverage of key behaviors.`
+Select 2-4 evaluators that best test the agent's quality. Prioritize coverage of key behaviors.`;
 }

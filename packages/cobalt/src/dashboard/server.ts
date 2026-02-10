@@ -1,31 +1,31 @@
-import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
-import { getRuns, getRunDetail } from './api/runs.js'
-import { compareRuns } from './api/compare.js'
-import { getTrends } from './api/trends.js'
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { Hono } from 'hono';
+import { compareRuns } from './api/compare.js';
+import { getRunDetail, getRuns } from './api/runs.js';
+import { getTrends } from './api/trends.js';
 
 /**
  * Start the Cobalt dashboard server
  * @param port - Port to listen on
  * @param open - Whether to open browser automatically
  */
-export async function startDashboard(port: number = 4000, open: boolean = true): Promise<void> {
-  const app = new Hono()
+export async function startDashboard(port = 4000, open = true): Promise<void> {
+	const app = new Hono();
 
-  // API routes
-  app.get('/api/runs', getRuns)
-  app.get('/api/runs/:id', getRunDetail)
-  app.get('/api/compare', compareRuns)
-  app.get('/api/trends', getTrends)
+	// API routes
+	app.get('/api/runs', getRuns);
+	app.get('/api/runs/:id', getRunDetail);
+	app.get('/api/compare', compareRuns);
+	app.get('/api/trends', getTrends);
 
-  // Health check
-  app.get('/api/health', (c) => c.json({ status: 'ok' }))
+	// Health check
+	app.get('/api/health', (c) => c.json({ status: 'ok' }));
 
-  // Serve static dashboard files (will be added in dashboard frontend implementation)
-  // For now, serve a simple HTML page
-  app.get('/', (c) => {
-    return c.html(`
+	// Serve static dashboard files (will be added in dashboard frontend implementation)
+	// For now, serve a simple HTML page
+	app.get('/', (c) => {
+		return c.html(`
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -78,25 +78,25 @@ curl http://localhost:${port}/api/compare?a=abc123&b=def456
         </pre>
       </body>
       </html>
-    `)
-  })
+    `);
+	});
 
-  // Start server
-  console.log(`\n🔷 Cobalt Dashboard`)
-  console.log(`   Server: http://localhost:${port}`)
-  console.log(`   API: http://localhost:${port}/api`)
-  console.log('')
+	// Start server
+	console.log('\n🔷 Cobalt Dashboard');
+	console.log(`   Server: http://localhost:${port}`);
+	console.log(`   API: http://localhost:${port}/api`);
+	console.log('');
 
-  serve({
-    fetch: app.fetch,
-    port
-  })
+	serve({
+		fetch: app.fetch,
+		port,
+	});
 
-  // Open browser if requested
-  if (open) {
-    const { exec } = await import('node:child_process')
-    const command = process.platform === 'darwin' ? 'open' :
-                   process.platform === 'win32' ? 'start' : 'xdg-open'
-    exec(`${command} http://localhost:${port}`)
-  }
+	// Open browser if requested
+	if (open) {
+		const { exec } = await import('node:child_process');
+		const command =
+			process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+		exec(`${command} http://localhost:${port}`);
+	}
 }

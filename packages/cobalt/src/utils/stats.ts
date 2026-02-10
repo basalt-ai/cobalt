@@ -1,4 +1,4 @@
-import type { ScoreStats, RunAggregation } from '../types/index.js'
+import type { RunAggregation, ScoreStats } from '../types/index.js';
 
 /**
  * Calculate statistical metrics for an array of scores
@@ -6,20 +6,20 @@ import type { ScoreStats, RunAggregation } from '../types/index.js'
  * @returns Statistical metrics (avg, min, max, p50, p95)
  */
 export function calculateStats(scores: number[]): ScoreStats {
-  if (scores.length === 0) {
-    return { avg: 0, min: 0, max: 0, p50: 0, p95: 0 }
-  }
+	if (scores.length === 0) {
+		return { avg: 0, min: 0, max: 0, p50: 0, p95: 0 };
+	}
 
-  const sorted = [...scores].sort((a, b) => a - b)
-  const sum = scores.reduce((acc, score) => acc + score, 0)
+	const sorted = [...scores].sort((a, b) => a - b);
+	const sum = scores.reduce((acc, score) => acc + score, 0);
 
-  return {
-    avg: sum / scores.length,
-    min: sorted[0],
-    max: sorted[sorted.length - 1],
-    p50: percentile(sorted, 50),
-    p95: percentile(sorted, 95)
-  }
+	return {
+		avg: sum / scores.length,
+		min: sorted[0],
+		max: sorted[sorted.length - 1],
+		p50: percentile(sorted, 50),
+		p95: percentile(sorted, 95),
+	};
 }
 
 /**
@@ -29,20 +29,20 @@ export function calculateStats(scores: number[]): ScoreStats {
  * @returns Percentile value
  */
 function percentile(sortedScores: number[], p: number): number {
-  if (sortedScores.length === 0) return 0
-  if (p <= 0) return sortedScores[0]
-  if (p >= 100) return sortedScores[sortedScores.length - 1]
+	if (sortedScores.length === 0) return 0;
+	if (p <= 0) return sortedScores[0];
+	if (p >= 100) return sortedScores[sortedScores.length - 1];
 
-  const index = (p / 100) * (sortedScores.length - 1)
-  const lower = Math.floor(index)
-  const upper = Math.ceil(index)
-  const weight = index - lower
+	const index = (p / 100) * (sortedScores.length - 1);
+	const lower = Math.floor(index);
+	const upper = Math.ceil(index);
+	const weight = index - lower;
 
-  if (lower === upper) {
-    return sortedScores[lower]
-  }
+	if (lower === upper) {
+		return sortedScores[lower];
+	}
 
-  return sortedScores[lower] * (1 - weight) + sortedScores[upper] * weight
+	return sortedScores[lower] * (1 - weight) + sortedScores[upper] * weight;
 }
 
 /**
@@ -52,14 +52,14 @@ function percentile(sortedScores: number[], p: number): number {
  * @returns Standard deviation
  */
 export function standardDeviation(values: number[], mean?: number): number {
-  if (values.length === 0) return 0
-  if (values.length === 1) return 0
+	if (values.length === 0) return 0;
+	if (values.length === 1) return 0;
 
-  const avg = mean !== undefined ? mean : values.reduce((acc, val) => acc + val, 0) / values.length
-  const squareDiffs = values.map(value => Math.pow(value - avg, 2))
-  const avgSquareDiff = squareDiffs.reduce((acc, diff) => acc + diff, 0) / values.length
+	const avg = mean !== undefined ? mean : values.reduce((acc, val) => acc + val, 0) / values.length;
+	const squareDiffs = values.map((value) => (value - avg) ** 2);
+	const avgSquareDiff = squareDiffs.reduce((acc, diff) => acc + diff, 0) / values.length;
 
-  return Math.sqrt(avgSquareDiff)
+	return Math.sqrt(avgSquareDiff);
 }
 
 /**
@@ -68,28 +68,28 @@ export function standardDeviation(values: number[], mean?: number): number {
  * @returns Run aggregation statistics
  */
 export function calculateRunStats(scores: number[]): RunAggregation {
-  if (scores.length === 0) {
-    return {
-      mean: 0,
-      stddev: 0,
-      min: 0,
-      max: 0,
-      p50: 0,
-      p95: 0,
-      scores: []
-    }
-  }
+	if (scores.length === 0) {
+		return {
+			mean: 0,
+			stddev: 0,
+			min: 0,
+			max: 0,
+			p50: 0,
+			p95: 0,
+			scores: [],
+		};
+	}
 
-  const sorted = [...scores].sort((a, b) => a - b)
-  const mean = scores.reduce((acc, score) => acc + score, 0) / scores.length
+	const sorted = [...scores].sort((a, b) => a - b);
+	const mean = scores.reduce((acc, score) => acc + score, 0) / scores.length;
 
-  return {
-    mean,
-    stddev: standardDeviation(scores, mean),
-    min: sorted[0],
-    max: sorted[sorted.length - 1],
-    p50: percentile(sorted, 50),
-    p95: percentile(sorted, 95),
-    scores: [...scores]  // copy for reference
-  }
+	return {
+		mean,
+		stddev: standardDeviation(scores, mean),
+		min: sorted[0],
+		max: sorted[sorted.length - 1],
+		p50: percentile(sorted, 50),
+		p95: percentile(sorted, 95),
+		scores: [...scores], // copy for reference
+	};
 }

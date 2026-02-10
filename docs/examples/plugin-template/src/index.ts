@@ -11,7 +11,7 @@
  * - Specialized scoring algorithms
  */
 
-import type { PluginDefinition } from 'cobalt'
+import type { PluginDefinition } from 'cobalt';
 
 /**
  * STEP 1: Define your plugin
@@ -55,21 +55,19 @@ const plugin: PluginDefinition = {
 				//   - output: The agent's output for this item
 				//   - metadata: Optional additional context
 
-				const keywords = config.keywords || []
-				const output = String(context.output).toLowerCase()
+				const keywords = config.keywords || [];
+				const output = String(context.output).toLowerCase();
 
 				// Count matching keywords
-				const matches = keywords.filter((kw: string) =>
-					output.includes(kw.toLowerCase())
-				)
+				const matches = keywords.filter((kw: string) => output.includes(kw.toLowerCase()));
 
-				const score = Math.min(1, matches.length / keywords.length)
+				const score = Math.min(1, matches.length / keywords.length);
 
 				return {
 					score, // Must be between 0 and 1
-					reason: `Matched ${matches.length}/${keywords.length} keywords: ${matches.join(', ')}`
-				}
-			}
+					reason: `Matched ${matches.length}/${keywords.length} keywords: ${matches.join(', ')}`,
+				};
+			},
 		},
 
 		/**
@@ -87,15 +85,15 @@ const plugin: PluginDefinition = {
 				if (!apiKey) {
 					return {
 						score: 0,
-						reason: 'API key required for LLM evaluation'
-					}
+						reason: 'API key required for LLM evaluation',
+					};
 				}
 
 				try {
 					// Example: Call OpenAI API
 					// In real implementation, use OpenAI SDK or your preferred LLM
-					const { default: OpenAI } = await import('openai')
-					const client = new OpenAI({ apiKey })
+					const { default: OpenAI } = await import('openai');
+					const client = new OpenAI({ apiKey });
 
 					const prompt = `
 Evaluate this output on a scale of 0-1 for ${config.criteria || 'quality'}.
@@ -104,29 +102,27 @@ Input: ${JSON.stringify(context.item.input)}
 Output: ${context.output}
 
 Respond with JSON: { "score": <0-1>, "reasoning": "<explanation>" }
-`
+`;
 
 					const response = await client.chat.completions.create({
 						model: config.model || 'gpt-4o-mini',
 						messages: [{ role: 'user', content: prompt }],
-						response_format: { type: 'json_object' }
-					})
+						response_format: { type: 'json_object' },
+					});
 
-					const result = JSON.parse(
-						response.choices[0].message.content || '{}'
-					)
+					const result = JSON.parse(response.choices[0].message.content || '{}');
 
 					return {
 						score: result.score || 0,
-						reason: result.reasoning || 'No reasoning provided'
-					}
+						reason: result.reasoning || 'No reasoning provided',
+					};
 				} catch (error) {
 					return {
 						score: 0,
-						reason: `LLM evaluation error: ${error instanceof Error ? error.message : 'Unknown error'}`
-					}
+						reason: `LLM evaluation error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+					};
 				}
-			}
+			},
 		},
 
 		/**
@@ -146,23 +142,23 @@ Respond with JSON: { "score": <0-1>, "reasoning": "<explanation>" }
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
 							output: context.output,
-							input: context.item.input
-						})
-					})
+							input: context.item.input,
+						}),
+					});
 
-					const data = await response.json()
+					const data = await response.json();
 
 					return {
 						score: data.score || 0,
-						reason: data.message || 'External validation complete'
-					}
+						reason: data.message || 'External validation complete',
+					};
 				} catch (error) {
 					return {
 						score: 0,
-						reason: `API error: ${error instanceof Error ? error.message : 'Unknown error'}`
-					}
+						reason: `API error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+					};
 				}
-			}
+			},
 		},
 
 		/**
@@ -173,51 +169,51 @@ Respond with JSON: { "score": <0-1>, "reasoning": "<explanation>" }
 		 */
 		(() => {
 			// Closure to maintain state
-			const cache = new Map<string, number>()
-			let callCount = 0
+			const cache = new Map<string, number>();
+			let callCount = 0;
 
 			return {
 				type: 'cached-evaluator',
 				name: 'Cached Evaluator',
 				evaluate: async (config, context) => {
-					callCount++
+					callCount++;
 
 					const cacheKey = JSON.stringify({
 						output: context.output,
-						input: context.item.input
-					})
+						input: context.item.input,
+					});
 
 					// Check cache
 					if (cache.has(cacheKey)) {
 						return {
 							score: cache.get(cacheKey)!,
-							reason: `Cached result (${callCount} total calls)`
-						}
+							reason: `Cached result (${callCount} total calls)`,
+						};
 					}
 
 					// Expensive computation here
-					await new Promise((resolve) => setTimeout(resolve, 100))
-					const score = Math.random() // Replace with actual logic
+					await new Promise((resolve) => setTimeout(resolve, 100));
+					const score = Math.random(); // Replace with actual logic
 
 					// Cache result
-					cache.set(cacheKey, score)
+					cache.set(cacheKey, score);
 
 					return {
 						score,
-						reason: `Computed (${cache.size} cached results)`
-					}
-				}
-			}
-		})()
-	]
-}
+						reason: `Computed (${cache.size} cached results)`,
+					};
+				},
+			};
+		})(),
+	],
+};
 
 /**
  * STEP 2: Export your plugin
  *
  * The plugin must be the default export.
  */
-export default plugin
+export default plugin;
 
 /**
  * STEP 3: Use your plugin in experiments

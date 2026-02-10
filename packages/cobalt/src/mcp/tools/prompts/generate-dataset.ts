@@ -4,18 +4,15 @@
  */
 
 export interface AgentAnalysis {
-	purpose: string
-	inputSchema: any
-	outputSchema: any
-	keyBehaviors: string[]
-	edgeCases: string[]
-	dependencies: string[]
+	purpose: string;
+	inputSchema: any;
+	outputSchema: any;
+	keyBehaviors: string[];
+	edgeCases: string[];
+	dependencies: string[];
 }
 
-export function getGenerateDatasetPrompt(
-	analysis: AgentAnalysis,
-	datasetSize: number
-): string {
+export function getGenerateDatasetPrompt(analysis: AgentAnalysis, datasetSize: number): string {
 	return `Based on this agent analysis:
 
 ${JSON.stringify(analysis, null, 2)}
@@ -43,5 +40,5 @@ Return as a JSON array:
   }
 ]
 
-Make test cases realistic and diverse. Test different aspects of the agent's behavior.`
+Make test cases realistic and diverse. Test different aspects of the agent's behavior.`;
 }

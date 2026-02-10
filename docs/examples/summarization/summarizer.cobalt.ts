@@ -1,8 +1,8 @@
-import { experiment, Evaluator, Dataset } from 'cobalt'
-import { summarize } from './summarizer.js'
+import { Dataset, Evaluator, experiment } from 'cobalt';
+import { summarize } from './summarizer.js';
 
 // Load dataset from JSONL file (one JSON object per line)
-const dataset = Dataset.fromJSONL('./articles.jsonl')
+const dataset = Dataset.fromJSONL('./articles.jsonl');
 
 // Define evaluators
 const evaluators = [
@@ -35,7 +35,7 @@ Respond with JSON:
   "reason": "<explanation focusing on accuracy>"
 }`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
+		provider: 'openai',
 	}),
 
 	// Evaluator 2: Conciseness - Is length appropriate?
@@ -43,27 +43,27 @@ Respond with JSON:
 		name: 'conciseness',
 		type: 'function',
 		fn: ({ output }) => {
-			const wordCount = String(output).split(/\s+/).length
-			const targetMin = 75
-			const targetMax = 125
+			const wordCount = String(output).split(/\s+/).length;
+			const targetMin = 75;
+			const targetMax = 125;
 
-			let score = 1.0
-			let reason = `${wordCount} words (target: ${targetMin}-${targetMax})`
+			let score = 1.0;
+			let reason = `${wordCount} words (target: ${targetMin}-${targetMax})`;
 
 			if (wordCount < targetMin) {
 				// Too short
-				score = Math.max(0, wordCount / targetMin)
-				reason += ' - too short'
+				score = Math.max(0, wordCount / targetMin);
+				reason += ' - too short';
 			} else if (wordCount > targetMax) {
 				// Too long
-				score = Math.max(0, 1 - (wordCount - targetMax) / 100)
-				reason += ' - too long'
+				score = Math.max(0, 1 - (wordCount - targetMax) / 100);
+				reason += ' - too long';
 			} else {
-				reason += ' - perfect length'
+				reason += ' - perfect length';
 			}
 
-			return { score, reason }
-		}
+			return { score, reason };
+		},
 	}),
 
 	// Evaluator 3: Clarity - Is it readable?
@@ -93,9 +93,9 @@ Respond with JSON:
   "reason": "<explanation focusing on clarity>"
 }`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
-	})
-]
+		provider: 'openai',
+	}),
+];
 
 // Run the experiment
 experiment(
@@ -103,7 +103,7 @@ experiment(
 	dataset,
 	async ({ item }) => {
 		// Summarize the article
-		const response = await summarize(item.title, item.content, 100)
+		const response = await summarize(item.title, item.content, 100);
 
 		// Return summary and metadata
 		return {
@@ -113,14 +113,14 @@ experiment(
 				tokens: response.tokens,
 				duration: response.duration,
 				articleLength: item.content.split(/\s+/).length,
-				summaryLength: response.summary.split(/\s+/).length
-			}
-		}
+				summaryLength: response.summary.split(/\s+/).length,
+			},
+		};
 	},
 	{
 		evaluators,
 		concurrency: 2, // Limit concurrency for longer requests
 		timeout: 45000, // 45 second timeout
-		tags: ['summarization', 'gpt-4o-mini', 'example']
-	}
-)
+		tags: ['summarization', 'gpt-4o-mini', 'example'],
+	},
+);

@@ -1,11 +1,11 @@
-import OpenAI from 'openai'
-import { readFileSync, writeFileSync, existsSync } from 'node:fs'
-import { resolve, dirname, basename, join } from 'node:path'
-import { loadConfig, getApiKey } from '../../core/config.js'
-import { renderTemplate } from '../../utils/template.js'
-import { getAnalyzeAgentPrompt } from './prompts/analyze-agent.js'
-import { getGenerateDatasetPrompt } from './prompts/generate-dataset.js'
-import { getGenerateEvaluatorsPrompt } from './prompts/generate-evaluators.js'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
+import OpenAI from 'openai';
+import { getApiKey, loadConfig } from '../../core/config.js';
+import { renderTemplate } from '../../utils/template.js';
+import { getAnalyzeAgentPrompt } from './prompts/analyze-agent.js';
+import { getGenerateDatasetPrompt } from './prompts/generate-dataset.js';
+import { getGenerateEvaluatorsPrompt } from './prompts/generate-evaluators.js';
 
 /**
  * MCP Tool: cobalt_generate
@@ -20,43 +20,43 @@ export const cobaltGenerateTool = {
 		properties: {
 			agentFile: {
 				type: 'string',
-				description: 'Path to agent source code file (TypeScript or JavaScript)'
+				description: 'Path to agent source code file (TypeScript or JavaScript)',
 			},
 			outputFile: {
 				type: 'string',
 				description:
-					'Output path for generated experiment file (optional, defaults to <agentFile>.cobalt.ts)'
+					'Output path for generated experiment file (optional, defaults to <agentFile>.cobalt.ts)',
 			},
 			datasetSize: {
 				type: 'number',
-				description: 'Number of test cases to generate (default: 10)'
-			}
+				description: 'Number of test cases to generate (default: 10)',
+			},
 		},
-		required: ['agentFile']
-	}
-}
+		required: ['agentFile'],
+	},
+};
 
 interface AgentAnalysis {
-	purpose: string
-	inputSchema: any
-	outputSchema: any
-	keyBehaviors: string[]
-	edgeCases: string[]
-	dependencies: string[]
+	purpose: string;
+	inputSchema: any;
+	outputSchema: any;
+	keyBehaviors: string[];
+	edgeCases: string[];
+	dependencies: string[];
 }
 
 interface DatasetItem {
-	input: any
-	expectedOutput: any
-	category: string
-	description: string
+	input: any;
+	expectedOutput: any;
+	category: string;
+	description: string;
 }
 
 interface EvaluatorSpec {
-	name: string
-	type: string
-	config: any
-	reasoning: string
+	name: string;
+	type: string;
+	config: any;
+	reasoning: string;
 }
 
 /**
@@ -64,111 +64,102 @@ interface EvaluatorSpec {
  */
 export async function handleCobaltGenerate(args: any) {
 	try {
-		const config = await loadConfig()
-		const apiKey = getApiKey(config)
+		const config = await loadConfig();
+		const apiKey = getApiKey(config);
 
 		// Resolve file paths
-		const agentFilePath = resolve(process.cwd(), args.agentFile)
+		const agentFilePath = resolve(process.cwd(), args.agentFile);
 		if (!existsSync(agentFilePath)) {
-			throw new Error(`Agent file not found: ${args.agentFile}`)
+			throw new Error(`Agent file not found: ${args.agentFile}`);
 		}
 
-		const datasetSize = args.datasetSize || 10
+		const datasetSize = args.datasetSize || 10;
 
 		// Determine output path
 		const outputFile =
 			args.outputFile ||
-			join(
-				dirname(agentFilePath),
-				`${basename(agentFilePath, '.ts')}.cobalt.ts`
-			)
-		const outputPath = resolve(process.cwd(), outputFile)
+			join(dirname(agentFilePath), `${basename(agentFilePath, '.ts')}.cobalt.ts`);
+		const outputPath = resolve(process.cwd(), outputFile);
 
 		// Read agent source code
-		const sourceCode = readFileSync(agentFilePath, 'utf-8')
+		const sourceCode = readFileSync(agentFilePath, 'utf-8');
 
 		// Initialize OpenAI client (using judge config for consistency)
-		const model = config.judge?.model || 'gpt-4o-mini'
-		const client = new OpenAI({ apiKey })
+		const model = config.judge?.model || 'gpt-4o-mini';
+		const client = new OpenAI({ apiKey });
 
 		// Step 1: Analyze agent code
-		console.error('Analyzing agent code...')
-		const analysisPrompt = getAnalyzeAgentPrompt(sourceCode)
+		console.error('Analyzing agent code...');
+		const analysisPrompt = getAnalyzeAgentPrompt(sourceCode);
 		const analysisResponse = await client.chat.completions.create({
 			model,
 			messages: [
 				{
 					role: 'system',
-					content:
-						'You are an expert at analyzing code. Always respond with valid JSON.'
+					content: 'You are an expert at analyzing code. Always respond with valid JSON.',
 				},
-				{ role: 'user', content: analysisPrompt }
+				{ role: 'user', content: analysisPrompt },
 			],
 			response_format: { type: 'json_object' },
-			temperature: 0.3
-		})
+			temperature: 0.3,
+		});
 
-		const analysis: AgentAnalysis = JSON.parse(
-			analysisResponse.choices[0].message.content || '{}'
-		)
+		const analysis: AgentAnalysis = JSON.parse(analysisResponse.choices[0].message.content || '{}');
 
 		// Step 2: Generate dataset
-		console.error(`Generating ${datasetSize} test cases...`)
-		const datasetPrompt = getGenerateDatasetPrompt(analysis, datasetSize)
+		console.error(`Generating ${datasetSize} test cases...`);
+		const datasetPrompt = getGenerateDatasetPrompt(analysis, datasetSize);
 		const datasetResponse = await client.chat.completions.create({
 			model,
 			messages: [
 				{
 					role: 'system',
 					content:
-						'You are an expert at creating test datasets. Always respond with valid JSON arrays.'
+						'You are an expert at creating test datasets. Always respond with valid JSON arrays.',
 				},
-				{ role: 'user', content: datasetPrompt }
+				{ role: 'user', content: datasetPrompt },
 			],
 			response_format: { type: 'json_object' },
-			temperature: 0.7
-		})
+			temperature: 0.7,
+		});
 
-		const datasetResult = JSON.parse(
-			datasetResponse.choices[0].message.content || '{"items": []}'
-		)
-		const dataset: DatasetItem[] = datasetResult.items || datasetResult
+		const datasetResult = JSON.parse(datasetResponse.choices[0].message.content || '{"items": []}');
+		const dataset: DatasetItem[] = datasetResult.items || datasetResult;
 
 		// Step 3: Generate evaluators
-		console.error('Generating appropriate evaluators...')
-		const evaluatorsPrompt = getGenerateEvaluatorsPrompt(analysis)
+		console.error('Generating appropriate evaluators...');
+		const evaluatorsPrompt = getGenerateEvaluatorsPrompt(analysis);
 		const evaluatorsResponse = await client.chat.completions.create({
 			model,
 			messages: [
 				{
 					role: 'system',
 					content:
-						'You are an expert at testing strategies. Always respond with valid JSON arrays.'
+						'You are an expert at testing strategies. Always respond with valid JSON arrays.',
 				},
-				{ role: 'user', content: evaluatorsPrompt }
+				{ role: 'user', content: evaluatorsPrompt },
 			],
 			response_format: { type: 'json_object' },
-			temperature: 0.5
-		})
+			temperature: 0.5,
+		});
 
 		const evaluatorsResult = JSON.parse(
-			evaluatorsResponse.choices[0].message.content || '{"evaluators": []}'
-		)
-		const evaluators: EvaluatorSpec[] =
-			evaluatorsResult.evaluators || evaluatorsResult
+			evaluatorsResponse.choices[0].message.content || '{"evaluators": []}',
+		);
+		const evaluators: EvaluatorSpec[] = evaluatorsResult.evaluators || evaluatorsResult;
 
 		// Step 4: Generate experiment file
-		console.error('Generating experiment file...')
+		console.error('Generating experiment file...');
 		const experimentContent = generateExperimentFile({
 			agentFilePath,
 			analysis,
 			dataset,
 			evaluators,
-			datasetSize
-		})
+			datasetSize,
+		});
 
 		// Step 5: Write to disk
-		writeFileSync(outputPath, experimentContent, 'utf-8')
+		writeFileSync(outputPath, experimentContent, 'utf-8');
 
 		// Step 6: Return result with preview
 		return {
@@ -185,17 +176,17 @@ export async function handleCobaltGenerate(args: any) {
 								evaluators: evaluators.map((e) => ({
 									name: e.name,
 									type: e.type,
-									reasoning: e.reasoning
-								}))
+									reasoning: e.reasoning,
+								})),
 							},
-							preview: experimentContent.split('\n').slice(0, 50).join('\n')
+							preview: experimentContent.split('\n').slice(0, 50).join('\n'),
 						},
 						null,
-						2
-					)
-				}
-			]
-		}
+						2,
+					),
+				},
+			],
+		};
 	} catch (error) {
 		return {
 			content: [
@@ -204,15 +195,15 @@ export async function handleCobaltGenerate(args: any) {
 					text: JSON.stringify(
 						{
 							success: false,
-							error: error instanceof Error ? error.message : String(error)
+							error: error instanceof Error ? error.message : String(error),
 						},
 						null,
-						2
-					)
-				}
+						2,
+					),
+				},
 			],
-			isError: true
-		}
+			isError: true,
+		};
 	}
 }
 
@@ -220,40 +211,36 @@ export async function handleCobaltGenerate(args: any) {
  * Generate experiment file content from template
  */
 function generateExperimentFile(params: {
-	agentFilePath: string
-	analysis: AgentAnalysis
-	dataset: DatasetItem[]
-	evaluators: EvaluatorSpec[]
-	datasetSize: number
+	agentFilePath: string;
+	analysis: AgentAnalysis;
+	dataset: DatasetItem[];
+	evaluators: EvaluatorSpec[];
+	datasetSize: number;
 }): string {
-	const { agentFilePath, analysis, dataset, evaluators } = params
+	const { agentFilePath, analysis, dataset, evaluators } = params;
 
 	// Build evaluator imports and instances
 	const evaluatorCode = evaluators
 		.map((ev, i) => {
-			const configStr = JSON.stringify(
-				{ name: ev.name, type: ev.type, ...ev.config },
-				null,
-				2
-			)
+			const configStr = JSON.stringify({ name: ev.name, type: ev.type, ...ev.config }, null, 2)
 				.split('\n')
 				.map((line, idx) => (idx === 0 ? line : `  ${line}`))
-				.join('\n')
+				.join('\n');
 
-			return `  new Evaluator(${configStr})`
+			return `  new Evaluator(${configStr})`;
 		})
-		.join(',\n')
+		.join(',\n');
 
 	// Build dataset items
 	const datasetItems = dataset
 		.map((item) => {
 			const itemStr = JSON.stringify(item, null, 2)
 				.split('\n')
-				.map((line, idx) => (idx === 0 ? line : '    ' + line))
-				.join('\n')
-			return `    ${itemStr}`
+				.map((line, idx) => (idx === 0 ? line : `    ${line}`))
+				.join('\n');
+			return `    ${itemStr}`;
 		})
-		.join(',\n')
+		.join(',\n');
 
 	// Generate experiment file
 	return `/**
@@ -294,5 +281,5 @@ ${evaluatorCode}
     concurrency: 5
   }
 )
-`
+`;
 }

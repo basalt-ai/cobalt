@@ -1,82 +1,78 @@
 {
-  "name": "cobalt",
-  "version": "0.1.0",
-  "description": "Cypress for AI agents — test, evaluate, and track your AI experiments",
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "cobalt": "./dist/cli.mjs"
-  },
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "files": [
-    "dist",
-    "templates",
-    "README.md"
-  ],
-  "keywords": [
-    "ai",
-    "testing",
-    "evaluation",
-    "llm",
-    "agents",
-    "benchmark",
-    "llm-judge",
-    "ai-testing",
-    "agent-testing"
-  ],
-  "engines": {
-    "node": ">=18"
-  },
-  "scripts": {
-    "build": "pnpm build:lib",
-    "build:lib": "tsup",
-    "dev": "tsup --watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "lint": "biome check .",
-    "format": "biome format --write .",
-    "check": "biome check --write ."
-  },
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.30.0",
-    "@hono/node-server": "^1.19.9",
-    "@modelcontextprotocol/sdk": "^1.26.0",
-    "autoevals": "^0.0.131",
-    "better-sqlite3": "^12.6.2",
-    "citty": "^0.1.6",
-    "defu": "^6.1.4",
-    "hono": "^4.11.7",
-    "jiti": "^2.4.2",
-    "openai": "^4.77.3",
-    "ora": "^8.1.1",
-    "p-limit": "^6.1.0",
-    "p-map": "^7.0.3",
-    "pathe": "^1.1.2",
-    "picocolors": "^1.1.1",
-    "zod": "^3.24.1"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@cobalt/tsconfig": "workspace:*",
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/node": "^22.10.5",
-    "@vitest/coverage-v8": "^2.1.8",
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/basalt-ai/cobalt.git"
-  },
-  "license": "MIT"
+	"name": "cobalt",
+	"version": "0.1.0",
+	"description": "Cypress for AI agents — test, evaluate, and track your AI experiments",
+	"type": "module",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.mjs",
+	"types": "./dist/index.d.ts",
+	"bin": {
+		"cobalt": "./dist/cli.mjs"
+	},
+	"exports": {
+		".": {
+			"import": "./dist/index.mjs",
+			"require": "./dist/index.cjs",
+			"types": "./dist/index.d.ts"
+		}
+	},
+	"files": ["dist", "templates", "README.md"],
+	"keywords": [
+		"ai",
+		"testing",
+		"evaluation",
+		"llm",
+		"agents",
+		"benchmark",
+		"llm-judge",
+		"ai-testing",
+		"agent-testing"
+	],
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"build": "pnpm build:lib",
+		"build:lib": "tsup",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
+		"lint": "biome check .",
+		"format": "biome format --write .",
+		"check": "biome check --write ."
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.30.0",
+		"@hono/node-server": "^1.19.9",
+		"@modelcontextprotocol/sdk": "^1.26.0",
+		"autoevals": "^0.0.131",
+		"better-sqlite3": "^12.6.2",
+		"citty": "^0.1.6",
+		"defu": "^6.1.4",
+		"hono": "^4.11.7",
+		"jiti": "^2.4.2",
+		"openai": "^4.77.3",
+		"ora": "^8.1.1",
+		"p-limit": "^6.1.0",
+		"p-map": "^7.0.3",
+		"pathe": "^1.1.2",
+		"picocolors": "^1.1.1",
+		"zod": "^3.24.1"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@cobalt/tsconfig": "workspace:*",
+		"@types/better-sqlite3": "^7.6.13",
+		"@types/node": "^22.10.5",
+		"@vitest/coverage-v8": "^2.1.8",
+		"tsup": "^8.3.5",
+		"typescript": "^5.7.2",
+		"vitest": "^2.1.8"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/basalt-ai/cobalt.git"
+	},
+	"license": "MIT"
 }

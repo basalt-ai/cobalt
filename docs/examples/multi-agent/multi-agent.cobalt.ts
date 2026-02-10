@@ -1,8 +1,8 @@
-import { experiment, Evaluator, Dataset } from 'cobalt'
-import { runWorkflow } from './agents.js'
+import { Dataset, Evaluator, experiment } from 'cobalt';
+import { runWorkflow } from './agents.js';
 
 // Load topics to research
-const dataset = Dataset.fromJSON('./topics.json')
+const dataset = Dataset.fromJSON('./topics.json');
 
 const evaluators = [
 	// Evaluator 1: Completeness
@@ -24,7 +24,7 @@ Rate completeness from 0.0 to 1.0:
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
+		provider: 'openai',
 	}),
 
 	// Evaluator 2: Quality
@@ -49,7 +49,7 @@ Check for:
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
+		provider: 'openai',
 	}),
 
 	// Evaluator 3: Workflow Consistency
@@ -80,16 +80,16 @@ Check if:
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
-	})
-]
+		provider: 'openai',
+	}),
+];
 
 experiment(
 	'multi-agent-test',
 	dataset,
 	async ({ item }) => {
 		// Run the complete workflow
-		const result = await runWorkflow(item.topic)
+		const result = await runWorkflow(item.topic);
 
 		// Return final output with intermediate results in metadata
 		return {
@@ -97,14 +97,14 @@ experiment(
 			metadata: {
 				research: result.research,
 				article: result.article,
-				tokens: result.tokens
-			}
-		}
+				tokens: result.tokens,
+			},
+		};
 	},
 	{
 		evaluators,
 		concurrency: 1, // Sequential to avoid rate limits
 		timeout: 60000, // 60 second timeout (3 agents)
-		tags: ['multi-agent', 'workflow', 'example']
-	}
-)
+		tags: ['multi-agent', 'workflow', 'example'],
+	},
+);
