@@ -28,7 +28,9 @@ export async function fetchLangSmithDataset(
 	const apiKey = options?.apiKey || process.env.LANGSMITH_API_KEY;
 
 	if (!apiKey) {
-		throw new Error('LangSmith API key is required. Set LANGSMITH_API_KEY in environment or config.');
+		throw new Error(
+			'LangSmith API key is required. Set LANGSMITH_API_KEY in environment or config.',
+		);
 	}
 
 	try {

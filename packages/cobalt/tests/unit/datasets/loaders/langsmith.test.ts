@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchLangSmithDataset } from '../../../../src/datasets/loaders/langsmith.js';
 
 // Mock global fetch
@@ -8,7 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchLangSmithDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		delete process.env.LANGSMITH_API_KEY;
+		process.env.LANGSMITH_API_KEY = undefined;
 	});
 
 	describe('authentication', () => {
@@ -203,17 +203,17 @@ describe('fetchLangSmithDataset', () => {
 					text: async () => 'Internal Server Error',
 				});
 
-			await expect(
-				fetchLangSmithDataset('test-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('LangSmith API error 500');
+			await expect(fetchLangSmithDataset('test-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'LangSmith API error 500',
+			);
 		});
 
 		it('should throw on network error', async () => {
 			mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-			await expect(
-				fetchLangSmithDataset('test-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('Failed to fetch LangSmith dataset');
+			await expect(fetchLangSmithDataset('test-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'Failed to fetch LangSmith dataset',
+			);
 		});
 
 		it('should throw if examples response is not an array', async () => {
@@ -229,9 +229,9 @@ describe('fetchLangSmithDataset', () => {
 					json: async () => ({ data: 'not an array' }),
 				});
 
-			await expect(
-				fetchLangSmithDataset('test-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('LangSmith API response is not an array');
+			await expect(fetchLangSmithDataset('test-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'LangSmith API response is not an array',
+			);
 		});
 	});
 });

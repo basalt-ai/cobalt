@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchRemoteDataset } from '../../../../src/datasets/loaders/remote.js';
 
 // Mock global fetch
@@ -183,7 +183,9 @@ invalid json line
 		it('should throw on network error', async () => {
 			mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-			await expect(fetchRemoteDataset('https://example.com/dataset.json')).rejects.toThrow('Network error');
+			await expect(fetchRemoteDataset('https://example.com/dataset.json')).rejects.toThrow(
+				'Network error',
+			);
 		});
 
 		it('should throw on non-http protocol', async () => {

@@ -63,7 +63,8 @@ export async function fetchBasaltDataset(
 
 			// Map input
 			if (item.input !== undefined) {
-				transformed.input = typeof item.input === 'string' ? item.input : JSON.stringify(item.input);
+				transformed.input =
+					typeof item.input === 'string' ? item.input : JSON.stringify(item.input);
 			}
 
 			// Map output (Basalt uses "output" field)

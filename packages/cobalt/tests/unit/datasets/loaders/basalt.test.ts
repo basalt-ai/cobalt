@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchBasaltDataset } from '../../../../src/datasets/loaders/basalt.js';
 
 // Mock global fetch
@@ -8,7 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchBasaltDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		delete process.env.BASALT_API_KEY;
+		process.env.BASALT_API_KEY = undefined;
 	});
 
 	describe('authentication', () => {
@@ -55,9 +55,7 @@ describe('fetchBasaltDataset', () => {
 		});
 
 		it('should throw error if no API key provided', async () => {
-			await expect(fetchBasaltDataset('dataset-123')).rejects.toThrow(
-				'Basalt API key is required',
-			);
+			await expect(fetchBasaltDataset('dataset-123')).rejects.toThrow('Basalt API key is required');
 		});
 	});
 
@@ -182,9 +180,9 @@ describe('fetchBasaltDataset', () => {
 				text: async () => 'Dataset not found',
 			});
 
-			await expect(
-				fetchBasaltDataset('missing-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('Basalt API error 404');
+			await expect(fetchBasaltDataset('missing-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'Basalt API error 404',
+			);
 		});
 
 		it('should throw on HTTP 401 (unauthorized)', async () => {
@@ -194,17 +192,17 @@ describe('fetchBasaltDataset', () => {
 				text: async () => 'Unauthorized',
 			});
 
-			await expect(
-				fetchBasaltDataset('dataset-123', { apiKey: 'invalid-key' }),
-			).rejects.toThrow('Basalt API error 401');
+			await expect(fetchBasaltDataset('dataset-123', { apiKey: 'invalid-key' })).rejects.toThrow(
+				'Basalt API error 401',
+			);
 		});
 
 		it('should throw on network error', async () => {
 			mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-			await expect(
-				fetchBasaltDataset('dataset-123', { apiKey: 'test-key' }),
-			).rejects.toThrow('Failed to fetch Basalt dataset');
+			await expect(fetchBasaltDataset('dataset-123', { apiKey: 'test-key' })).rejects.toThrow(
+				'Failed to fetch Basalt dataset',
+			);
 		});
 
 		it('should throw if response is not an array', async () => {
@@ -216,9 +214,9 @@ describe('fetchBasaltDataset', () => {
 				json: async () => mockData,
 			});
 
-			await expect(
-				fetchBasaltDataset('dataset-123', { apiKey: 'test-key' }),
-			).rejects.toThrow('Basalt API response is not an array');
+			await expect(fetchBasaltDataset('dataset-123', { apiKey: 'test-key' })).rejects.toThrow(
+				'Basalt API response is not an array',
+			);
 		});
 	});
 });

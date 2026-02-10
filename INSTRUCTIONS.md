@@ -542,13 +542,13 @@ The dashboard frontend is in a separate `dashboard-ui/` folder (React app), buil
 - [ ] `cobalt history` CLI
 
 ### P3 - Connected
-- [ ] Remote dataset (Langfuse, Langsmith, Brainstrust, Basalt)
-- [ ] Built-in RAGAS-style evaluator
-- [ ] Native integration with RAGAS, DeepEval, AutoEval etc..
-- [ ] MCP implementation (see bellow)
-- [ ] CI mode (`cobalt run --ci` — exit code based on thresholds)
+- [x] Remote dataset (Langfuse, Langsmith, Brainstrust, Basalt)
+- [x] Built-in RAGAS-style evaluator (via Autoevals)
+- [x] Native integration with RAGAS, DeepEval, AutoEval etc.. (Autoevals complete)
+- [x] MCP implementation (see bellow)
+- [x] CI mode (`cobalt run --ci` — exit code based on thresholds)
 - [ ] GitHub Actions reporter
-- [ ] Plugin system for custom evaluators
+- [x] Plugin system for custom evaluators
 - [ ] Webhooks (notify an external service after a run)
 
 ### P4 — Dashboard

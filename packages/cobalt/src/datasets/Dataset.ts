@@ -1,11 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { DatasetConfig, ExperimentItem } from '../types/index.js';
-import { fetchRemoteDataset } from './loaders/remote.js';
+import { fetchBasaltDataset } from './loaders/basalt.js';
+import { fetchBraintrustDataset } from './loaders/braintrust.js';
 import { fetchLangfuseDataset } from './loaders/langfuse.js';
 import { fetchLangSmithDataset } from './loaders/langsmith.js';
-import { fetchBraintrustDataset } from './loaders/braintrust.js';
-import { fetchBasaltDataset } from './loaders/basalt.js';
+import { fetchRemoteDataset } from './loaders/remote.js';
 
 /**
  * Dataset class for managing experiment data

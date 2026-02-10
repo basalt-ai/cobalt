@@ -11,7 +11,9 @@ export async function fetchRemoteDataset(url: string): Promise<ExperimentItem[]>
 		// Validate URL
 		const parsedUrl = new URL(url);
 		if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-			throw new Error(`Unsupported protocol: ${parsedUrl.protocol}. Only HTTP and HTTPS are supported.`);
+			throw new Error(
+				`Unsupported protocol: ${parsedUrl.protocol}. Only HTTP and HTTPS are supported.`,
+			);
 		}
 
 		// Fetch dataset

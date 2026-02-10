@@ -31,7 +31,9 @@ export async function fetchBraintrustDataset(
 	const apiKey = options?.apiKey || process.env.BRAINTRUST_API_KEY;
 
 	if (!apiKey) {
-		throw new Error('Braintrust API key is required. Set BRAINTRUST_API_KEY in environment or config.');
+		throw new Error(
+			'Braintrust API key is required. Set BRAINTRUST_API_KEY in environment or config.',
+		);
 	}
 
 	try {
@@ -70,7 +72,8 @@ export async function fetchBraintrustDataset(
 
 			// Map input
 			if (record.input !== undefined) {
-				transformed.input = typeof record.input === 'string' ? record.input : JSON.stringify(record.input);
+				transformed.input =
+					typeof record.input === 'string' ? record.input : JSON.stringify(record.input);
 			}
 
 			// Map expected output (Braintrust uses "expected" field)
@@ -112,6 +115,8 @@ export async function fetchBraintrustDataset(
 				`Failed to fetch Braintrust dataset "${projectName}/${datasetName}": ${error.message}`,
 			);
 		}
-		throw new Error(`Failed to fetch Braintrust dataset "${projectName}/${datasetName}": Unknown error`);
+		throw new Error(
+			`Failed to fetch Braintrust dataset "${projectName}/${datasetName}": Unknown error`,
+		);
 	}
 }

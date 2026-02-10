@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchLangfuseDataset } from '../../../../src/datasets/loaders/langfuse.js';
 
 // Mock global fetch
@@ -8,17 +8,15 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchLangfuseDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		delete process.env.LANGFUSE_API_KEY;
-		delete process.env.LANGFUSE_PUBLIC_KEY;
-		delete process.env.LANGFUSE_SECRET_KEY;
+		process.env.LANGFUSE_API_KEY = undefined;
+		process.env.LANGFUSE_PUBLIC_KEY = undefined;
+		process.env.LANGFUSE_SECRET_KEY = undefined;
 	});
 
 	describe('authentication', () => {
 		it('should use API key from options', async () => {
 			const mockData = {
-				data: [
-					{ id: '1', input: 'test input', expectedOutput: 'test output' },
-				],
+				data: [{ id: '1', input: 'test input', expectedOutput: 'test output' }],
 			};
 
 			mockFetch.mockResolvedValueOnce({
@@ -151,15 +149,15 @@ describe('fetchLangfuseDataset', () => {
 
 			const result = await fetchLangfuseDataset('test-dataset', { apiKey: 'test-key' });
 
-			expect(result[0].input).toBe(JSON.stringify({ question: 'What is AI?', context: 'technology' }));
+			expect(result[0].input).toBe(
+				JSON.stringify({ question: 'What is AI?', context: 'technology' }),
+			);
 			expect(result[0].expectedOutput).toBe(JSON.stringify({ answer: 'AI definition' }));
 		});
 
 		it('should support "items" array format', async () => {
 			const mockData = {
-				items: [
-					{ id: 'item-1', input: 'test', expectedOutput: 'output' },
-				],
+				items: [{ id: 'item-1', input: 'test', expectedOutput: 'output' }],
 			};
 
 			mockFetch.mockResolvedValueOnce({
@@ -174,9 +172,7 @@ describe('fetchLangfuseDataset', () => {
 		});
 
 		it('should support direct array format', async () => {
-			const mockData = [
-				{ id: 'item-1', input: 'test', expectedOutput: 'output' },
-			];
+			const mockData = [{ id: 'item-1', input: 'test', expectedOutput: 'output' }];
 
 			mockFetch.mockResolvedValueOnce({
 				ok: true,
@@ -217,9 +213,9 @@ describe('fetchLangfuseDataset', () => {
 				text: async () => 'Dataset not found',
 			});
 
-			await expect(
-				fetchLangfuseDataset('missing-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('Langfuse API error 404');
+			await expect(fetchLangfuseDataset('missing-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'Langfuse API error 404',
+			);
 		});
 
 		it('should throw on HTTP 401 (unauthorized)', async () => {
@@ -229,17 +225,17 @@ describe('fetchLangfuseDataset', () => {
 				text: async () => 'Unauthorized',
 			});
 
-			await expect(
-				fetchLangfuseDataset('test-dataset', { apiKey: 'invalid-key' }),
-			).rejects.toThrow('Langfuse API error 401');
+			await expect(fetchLangfuseDataset('test-dataset', { apiKey: 'invalid-key' })).rejects.toThrow(
+				'Langfuse API error 401',
+			);
 		});
 
 		it('should throw on network error', async () => {
 			mockFetch.mockRejectedValueOnce(new Error('Network error'));
 
-			await expect(
-				fetchLangfuseDataset('test-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('Failed to fetch Langfuse dataset');
+			await expect(fetchLangfuseDataset('test-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'Failed to fetch Langfuse dataset',
+			);
 		});
 
 		it('should throw if response is not an array', async () => {
@@ -251,9 +247,9 @@ describe('fetchLangfuseDataset', () => {
 				json: async () => mockData,
 			});
 
-			await expect(
-				fetchLangfuseDataset('test-dataset', { apiKey: 'test-key' }),
-			).rejects.toThrow('Langfuse API response is not an array');
+			await expect(fetchLangfuseDataset('test-dataset', { apiKey: 'test-key' })).rejects.toThrow(
+				'Langfuse API response is not an array',
+			);
 		});
 	});
 });

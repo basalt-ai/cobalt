@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fetchBraintrustDataset } from '../../../../src/datasets/loaders/braintrust.js';
 
 // Mock global fetch
@@ -8,7 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchBraintrustDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		delete process.env.BRAINTRUST_API_KEY;
+		process.env.BRAINTRUST_API_KEY = undefined;
 	});
 
 	describe('authentication', () => {
@@ -55,9 +55,9 @@ describe('fetchBraintrustDataset', () => {
 		});
 
 		it('should throw error if no API key provided', async () => {
-			await expect(
-				fetchBraintrustDataset('test-project', 'test-dataset'),
-			).rejects.toThrow('Braintrust API key is required');
+			await expect(fetchBraintrustDataset('test-project', 'test-dataset')).rejects.toThrow(
+				'Braintrust API key is required',
+			);
 		});
 	});
 

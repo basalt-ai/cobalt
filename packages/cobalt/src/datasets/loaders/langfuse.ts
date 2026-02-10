@@ -80,7 +80,8 @@ export async function fetchLangfuseDataset(
 
 			// Map Langfuse fields to Cobalt fields
 			if (item.input !== undefined) {
-				transformed.input = typeof item.input === 'string' ? item.input : JSON.stringify(item.input);
+				transformed.input =
+					typeof item.input === 'string' ? item.input : JSON.stringify(item.input);
 			}
 
 			if (item.expectedOutput !== undefined) {
