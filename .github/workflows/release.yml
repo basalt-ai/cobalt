@@ -15,6 +15,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
+          ref: main  # Checkout main branch, not the tag
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm
@@ -61,7 +62,7 @@ jobs:
             echo "No version changes to commit"
           else
             git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
-            git push
+            git push origin main
           fi
 
       - name: Install dependencies
