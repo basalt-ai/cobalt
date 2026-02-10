@@ -2,6 +2,10 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { DatasetConfig, ExperimentItem } from '../types/index.js';
 import { fetchRemoteDataset } from './loaders/remote.js';
+import { fetchLangfuseDataset } from './loaders/langfuse.js';
+import { fetchLangSmithDataset } from './loaders/langsmith.js';
+import { fetchBraintrustDataset } from './loaders/braintrust.js';
+import { fetchBasaltDataset } from './loaders/basalt.js';
 
 /**
  * Dataset class for managing experiment data
@@ -124,6 +128,102 @@ export class Dataset<T = ExperimentItem> {
 	 */
 	static async fromRemote<T = ExperimentItem>(url: string): Promise<Dataset<T>> {
 		const items = await fetchRemoteDataset(url);
+		return new Dataset<T>({ items: items as T[] });
+	}
+
+	/**
+	 * Load dataset from Langfuse
+	 * @param datasetName - Name of the dataset in Langfuse
+	 * @param options - Configuration options (apiKey, publicKey, secretKey, baseUrl)
+	 * @returns Promise resolving to Dataset instance
+	 * @example
+	 * ```ts
+	 * const dataset = await Dataset.fromLangfuse('my-dataset', {
+	 *   apiKey: process.env.LANGFUSE_API_KEY
+	 * })
+	 * ```
+	 */
+	static async fromLangfuse<T = ExperimentItem>(
+		datasetName: string,
+		options?: {
+			apiKey?: string;
+			publicKey?: string;
+			secretKey?: string;
+			baseUrl?: string;
+		},
+	): Promise<Dataset<T>> {
+		const items = await fetchLangfuseDataset(datasetName, options);
+		return new Dataset<T>({ items: items as T[] });
+	}
+
+	/**
+	 * Load dataset from LangSmith
+	 * @param datasetName - Name of the dataset in LangSmith
+	 * @param options - Configuration options (apiKey, baseUrl)
+	 * @returns Promise resolving to Dataset instance
+	 * @example
+	 * ```ts
+	 * const dataset = await Dataset.fromLangsmith('my-dataset', {
+	 *   apiKey: process.env.LANGSMITH_API_KEY
+	 * })
+	 * ```
+	 */
+	static async fromLangsmith<T = ExperimentItem>(
+		datasetName: string,
+		options?: {
+			apiKey?: string;
+			baseUrl?: string;
+		},
+	): Promise<Dataset<T>> {
+		const items = await fetchLangSmithDataset(datasetName, options);
+		return new Dataset<T>({ items: items as T[] });
+	}
+
+	/**
+	 * Load dataset from Braintrust
+	 * @param projectName - Name of the project in Braintrust
+	 * @param datasetName - Name of the dataset in Braintrust
+	 * @param options - Configuration options (apiKey, baseUrl)
+	 * @returns Promise resolving to Dataset instance
+	 * @example
+	 * ```ts
+	 * const dataset = await Dataset.fromBraintrust('my-project', 'my-dataset', {
+	 *   apiKey: process.env.BRAINTRUST_API_KEY
+	 * })
+	 * ```
+	 */
+	static async fromBraintrust<T = ExperimentItem>(
+		projectName: string,
+		datasetName: string,
+		options?: {
+			apiKey?: string;
+			baseUrl?: string;
+		},
+	): Promise<Dataset<T>> {
+		const items = await fetchBraintrustDataset(projectName, datasetName, options);
+		return new Dataset<T>({ items: items as T[] });
+	}
+
+	/**
+	 * Load dataset from Basalt
+	 * @param datasetId - ID of the dataset in Basalt
+	 * @param options - Configuration options (apiKey, baseUrl)
+	 * @returns Promise resolving to Dataset instance
+	 * @example
+	 * ```ts
+	 * const dataset = await Dataset.fromBasalt('dataset-123', {
+	 *   apiKey: process.env.BASALT_API_KEY
+	 * })
+	 * ```
+	 */
+	static async fromBasalt<T = ExperimentItem>(
+		datasetId: string,
+		options?: {
+			apiKey?: string;
+			baseUrl?: string;
+		},
+	): Promise<Dataset<T>> {
+		const items = await fetchBasaltDataset(datasetId, options);
 		return new Dataset<T>({ items: items as T[] });
 	}
 

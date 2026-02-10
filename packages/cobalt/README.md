@@ -179,19 +179,60 @@ input,expectedOutput
 
 #### Remote Datasets
 
-Load datasets from HTTP/HTTPS URLs:
+Load datasets from HTTP/HTTPS URLs or popular LLM observability platforms:
 
 ```typescript
 // From any HTTP/HTTPS URL (JSON or JSONL)
 const dataset = await Dataset.fromRemote('https://example.com/datasets/qa.json')
 
-// JSONL format also supported
-const dataset = await Dataset.fromRemote('https://example.com/datasets/eval.jsonl')
+// From Langfuse
+const dataset = await Dataset.fromLangfuse('my-dataset', {
+  apiKey: process.env.LANGFUSE_API_KEY
+})
+
+// From LangSmith
+const dataset = await Dataset.fromLangsmith('my-dataset', {
+  apiKey: process.env.LANGSMITH_API_KEY
+})
+
+// From Braintrust
+const dataset = await Dataset.fromBraintrust('my-project', 'my-dataset', {
+  apiKey: process.env.BRAINTRUST_API_KEY
+})
+
+// From Basalt
+const dataset = await Dataset.fromBasalt('dataset-123', {
+  apiKey: process.env.BASALT_API_KEY
+})
 ```
 
-**Supported formats:**
-- **JSON**: Array of items or object with `items` array property
-- **JSONL**: One JSON object per line (newline-delimited)
+**Supported platforms:**
+- **HTTP/HTTPS**: Generic JSON/JSONL datasets from any URL
+- **Langfuse**: LLM observability and dataset management
+- **LangSmith**: LangChain tracing and evaluation platform
+- **Braintrust**: AI evaluation and monitoring
+- **Basalt**: AI testing and evaluation
+
+**Configuration:**
+API keys can be set in environment variables or `cobalt.config.ts`:
+
+```typescript
+export default defineConfig({
+  langfuse: {
+    apiKey: process.env.LANGFUSE_API_KEY,
+    baseUrl: 'https://cloud.langfuse.com' // optional
+  },
+  langsmith: {
+    apiKey: process.env.LANGSMITH_API_KEY
+  },
+  braintrust: {
+    apiKey: process.env.BRAINTRUST_API_KEY
+  },
+  basalt: {
+    apiKey: process.env.BASALT_API_KEY
+  }
+})
+```
 
 **Note:** Remote datasets return a Promise, so use `await` or `.then()`.
 
