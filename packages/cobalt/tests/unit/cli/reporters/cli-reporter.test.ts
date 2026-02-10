@@ -62,9 +62,7 @@ describe('CLIReporter', () => {
 				totalExecutions: 10,
 			});
 
-			expect(consoleLogs.some((log) => log.includes('Progress: 5/10 items completed'))).toBe(
-				true,
-			);
+			expect(consoleLogs.some((log) => log.includes('Progress: 5/10 items completed'))).toBe(true);
 		});
 
 		it('should output progress for multiple runs', () => {
@@ -224,14 +222,11 @@ describe('CLIReporter', () => {
 
 			reporter.onComplete(report, '.cobalt/results/test-123.json');
 
-			expect(consoleLogs.some((log) => log.includes('Experiment completed in 5.50s'))).toBe(
-				true,
-			);
+			expect(consoleLogs.some((log) => log.includes('Experiment completed in 5.50s'))).toBe(true);
 			expect(consoleLogs.some((log) => log.includes('Average latency: 550ms'))).toBe(true);
 			expect(
-				consoleLogs.some(
-					(log) =>
-						log.includes('accuracy: avg=0.85 min=0.65 max=0.95 p50=0.85 p95=0.92'),
+				consoleLogs.some((log) =>
+					log.includes('accuracy: avg=0.85 min=0.65 max=0.95 p50=0.85 p95=0.92'),
 				),
 			).toBe(true);
 			expect(

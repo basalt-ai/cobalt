@@ -71,9 +71,7 @@ describe('GitHubActionsReporter', () => {
 					runs: 1,
 				});
 
-				expect(consoleLogs.some((log) => log.includes('::group::Cobalt Experiment:'))).toBe(
-					true,
-				);
+				expect(consoleLogs.some((log) => log.includes('::group::Cobalt Experiment:'))).toBe(true);
 			});
 		});
 
@@ -143,14 +141,10 @@ describe('GitHubActionsReporter', () => {
 				});
 
 				expect(
-					consoleLogs.some((log) =>
-						log.includes('::error title=Threshold Violation::accuracy:'),
-					),
+					consoleLogs.some((log) => log.includes('::error title=Threshold Violation::accuracy:')),
 				).toBe(true);
 				expect(
-					consoleLogs.some((log) =>
-						log.includes('::error title=Threshold Violation::relevance:'),
-					),
+					consoleLogs.some((log) => log.includes('::error title=Threshold Violation::relevance:')),
 				).toBe(true);
 			});
 		});
@@ -466,9 +460,7 @@ describe('GitHubActionsReporter', () => {
 				reporter.onError(new Error('Test error'), 'Loading dataset');
 
 				expect(
-					consoleLogs.some((log) =>
-						log.includes('::error title=Loading dataset::Test error'),
-					),
+					consoleLogs.some((log) => log.includes('::error title=Loading dataset::Test error')),
 				).toBe(true);
 
 				const summary = readFileSync(summaryFile, 'utf-8');
