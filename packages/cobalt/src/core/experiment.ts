@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { createReporters } from '../cli/reporters/index.js';
 import type { Dataset } from '../datasets/Dataset.js';
 import { HistoryDB } from '../storage/db.js';
 import { saveResult } from '../storage/results.js';
@@ -66,31 +67,28 @@ export async function experiment(
 		throw new Error('Dataset is empty');
 	}
 
-	console.log(`\nRunning experiment: ${experimentName}`);
-	console.log(`Dataset: ${items.length} items`);
-	console.log(`Evaluators: ${evaluators.map((e) => e.name).join(', ')}`);
-	console.log(`Concurrency: ${concurrency} | Timeout: ${timeout}ms\n`);
+	// Create reporters from config
+	const reporters = createReporters(config.reporters);
+
+	// Notify reporters of experiment start
+	const startInfo = {
+		name: experimentName,
+		datasetSize: items.length,
+		evaluators: evaluators.map((e) => e.name),
+		concurrency,
+		timeout,
+		runs,
+	};
+	for (const reporter of reporters) {
+		reporter.onStart(startInfo);
+	}
 
 	const startTime = Date.now();
 
 	// Progress callback
-	let lastProgressLog = 0;
 	const onProgress = (info: import('./runner.js').ProgressInfo) => {
-		const now = Date.now();
-		if (now - lastProgressLog > 1000 || info.completedExecutions === info.totalExecutions) {
-			if (runs > 1) {
-				// Hybrid progress for multiple runs
-				console.log(
-					`Progress: ${info.completedExecutions}/${info.totalExecutions} completed | ` +
-						`Item ${info.itemIndex + 1}/${info.totalItems} (run ${info.runIndex + 1}/${info.totalRuns})`,
-				);
-			} else {
-				// Simple progress for single run
-				console.log(
-					`Progress: ${info.completedExecutions}/${info.totalExecutions} items completed`,
-				);
-			}
-			lastProgressLog = now;
+		for (const reporter of reporters) {
+			reporter.onProgress(info);
 		}
 	};
 
@@ -132,51 +130,18 @@ export async function experiment(
 		ciStatus = validateThresholds(report, options.thresholds);
 		report.ciStatus = ciStatus;
 
-		console.log(`\nCI Status: ${ciStatus.passed ? 'PASSED ✓' : 'FAILED ✗'}`);
-		if (!ciStatus.passed) {
-			console.error('Threshold violations:');
-			for (const violation of ciStatus.violations) {
-				console.error(`  ✗ ${violation.message}`);
-			}
+		for (const reporter of reporters) {
+			reporter.onCIStatus(ciStatus);
 		}
-	}
-
-	console.log(`\nExperiment completed in ${(totalDurationMs / 1000).toFixed(2)}s`);
-	console.log(`Average latency: ${summary.avgLatencyMs.toFixed(0)}ms`);
-
-	// Display cost if available
-	if (summary.estimatedCost !== undefined) {
-		const { formatCost } = await import('../utils/cost.js');
-		console.log(`Estimated cost: ${formatCost(summary.estimatedCost)}`);
-	}
-
-	// Display summary scores
-	console.log('\nScores:');
-	for (const [evaluator, stats] of Object.entries(summary.scores)) {
-		console.log(
-			`  ${evaluator}: avg=${stats.avg.toFixed(2)} min=${stats.min.toFixed(2)} ` +
-				`max=${stats.max.toFixed(2)} p50=${stats.p50.toFixed(2)} p95=${stats.p95.toFixed(2)}`,
-		);
-	}
-
-	// Warn about low scores
-	const lowScoreItems = results.filter((r) =>
-		Object.values(r.evaluations).some((e) => e.score < 0.5),
-	);
-	if (lowScoreItems.length > 0) {
-		console.warn(`\n⚠ ${lowScoreItems.length} item(s) scored below 0.5`);
-	}
-
-	// Warn about errors
-	const errorItems = results.filter((r) => r.error);
-	if (errorItems.length > 0) {
-		console.error(`\n❌ ${errorItems.length} item(s) had errors`);
 	}
 
 	// Save results to JSON file
 	const resultPath = await saveResult(report, config.outputDir);
-	console.log(`\nResults saved to: ${resultPath}`);
-	console.log(`Run ID: ${runId}`);
+
+	// Notify reporters of completion
+	for (const reporter of reporters) {
+		reporter.onComplete(report, resultPath);
+	}
 
 	// Save to history database
 	try {
@@ -184,7 +149,7 @@ export async function experiment(
 		db.insertRun(report);
 		db.close();
 	} catch (error) {
-		console.warn('Failed to save to history database:', error);
+		// Silently fail for history database errors (not critical)
 	}
 
 	// CLI/MCP integration - allow result capture via global callback

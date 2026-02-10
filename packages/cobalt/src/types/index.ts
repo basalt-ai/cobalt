@@ -204,6 +204,8 @@ export interface CacheConfig {
 	ttl: string;
 }
 
+export type ReporterType = 'cli' | 'json' | 'github-actions';
+
 export interface LangfuseConfig {
 	apiKey?: string;
 	publicKey?: string;
@@ -233,7 +235,7 @@ export interface CobaltConfig {
 	outputDir: string;
 	concurrency: number;
 	timeout: number;
-	reporters: string[];
+	reporters: ReporterType[];
 	dashboard: DashboardConfig;
 	cache: CacheConfig;
 	env?: Record<string, string>;
