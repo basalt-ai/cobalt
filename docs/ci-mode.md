@@ -288,6 +288,134 @@ pipeline {
 }
 ```
 
+## GitHub Actions Reporter
+
+Cobalt includes a specialized reporter for GitHub Actions that provides rich, actionable output in your CI runs.
+
+### Features
+
+**Automatic Activation**: The reporter activates when `GITHUB_ACTIONS=true` is detected (set automatically by GitHub Actions).
+
+**Annotations**: Errors and warnings appear inline in your PR:
+- `::error::` for threshold violations and execution errors
+- `::warning::` for low scores and quality concerns
+- `::notice::` for progress and completion messages
+
+**Step Summary**: Rich markdown summary appears in your workflow run:
+- Experiment configuration and duration
+- Score tables with statistical metrics
+- Cost estimation and token usage
+- Warnings for low-scoring items
+- Links to detailed result files
+
+### Configuration
+
+Enable the GitHub Actions reporter in your config:
+
+```typescript
+// cobalt.config.ts
+export default defineConfig({
+  reporters: ['cli', 'github-actions']  // Enable both CLI and GitHub Actions output
+})
+```
+
+Or use it exclusively in CI:
+
+```typescript
+export default defineConfig({
+  reporters: process.env.CI
+    ? ['github-actions']  // GitHub Actions only in CI
+    : ['cli']             // CLI for local development
+})
+```
+
+### Example Workflow with Reporter
+
+```yaml
+name: AI Quality Check
+
+on:
+  pull_request:
+    paths:
+      - 'agents/**'
+      - 'experiments/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - run: npm install
+
+      - name: Run Cobalt experiments
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npx cobalt run
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cobalt-results
+          path: .cobalt/results/
+```
+
+### Output Examples
+
+**Threshold Violation Annotation**:
+```
+::error title=Threshold Violation::accuracy: average score 0.65 below threshold 0.80
+```
+
+**Low Score Warning**:
+```
+::warning title=Low Scores::5 items scored below 0.5
+```
+
+**Step Summary Markdown**:
+```markdown
+## 🔷 Cobalt Experiment
+
+**Experiment:** my-agent-test
+**Dataset:** 50 items
+**Evaluators:** relevance, accuracy
+
+### 📊 Results
+
+- **Duration:** 45.2s
+- **Average Latency:** 904ms
+- **Estimated Cost:** $0.15
+- **Total Tokens:** 12,500
+
+### Scores
+
+| Evaluator | Avg | Min | Max | P50 | P95 |
+|-----------|-----|-----|-----|-----|-----|
+| relevance | 0.85 | 0.65 | 0.98 | 0.87 | 0.92 |
+| accuracy  | 0.78 | 0.45 | 0.95 | 0.80 | 0.90 |
+
+⚠️ 3 item(s) scored below 0.5
+
+**Results:** `.cobalt/results/abc123.json`
+**Run ID:** `abc123`
+
+---
+🤖 Generated with [Cobalt](https://github.com/basalt-ai/cobalt)
+```
+
+### Benefits
+
+1. **Inline Feedback**: Errors and warnings appear directly in PR files view
+2. **Quick Triage**: Step summary provides at-a-glance quality metrics
+3. **Historical Tracking**: Workflow run history shows quality trends
+4. **Team Visibility**: Non-technical team members can understand AI quality
+5. **Artifact Links**: Easy access to detailed result files
+
 ## Advanced Patterns
 
 ### Environment-Specific Thresholds
