@@ -8,7 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchBraintrustDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		process.env.BRAINTRUST_API_KEY = undefined;
+		delete process.env.BRAINTRUST_API_KEY;
 	});
 
 	describe('authentication', () => {

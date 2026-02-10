@@ -8,9 +8,9 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchLangfuseDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		process.env.LANGFUSE_API_KEY = undefined;
-		process.env.LANGFUSE_PUBLIC_KEY = undefined;
-		process.env.LANGFUSE_SECRET_KEY = undefined;
+		delete process.env.LANGFUSE_API_KEY;
+		delete process.env.LANGFUSE_PUBLIC_KEY;
+		delete process.env.LANGFUSE_SECRET_KEY;
 	});
 
 	describe('authentication', () => {

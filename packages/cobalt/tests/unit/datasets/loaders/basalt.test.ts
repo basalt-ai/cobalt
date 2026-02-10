@@ -8,7 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchBasaltDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
-		process.env.BASALT_API_KEY = undefined;
+		delete process.env.BASALT_API_KEY;
 	});
 
 	describe('authentication', () => {
