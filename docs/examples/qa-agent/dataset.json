@@ -1,102 +1,102 @@
 [
-  {
-    "input": "What is the capital of France?",
-    "expectedOutput": "Paris",
-    "category": "geography"
-  },
-  {
-    "input": "Who wrote '1984'?",
-    "expectedOutput": "George Orwell",
-    "category": "literature"
-  },
-  {
-    "input": "What is the speed of light in meters per second?",
-    "expectedOutput": "299,792,458",
-    "category": "science"
-  },
-  {
-    "input": "What year did World War II end?",
-    "expectedOutput": "1945",
-    "category": "history"
-  },
-  {
-    "input": "What is the largest planet in our solar system?",
-    "expectedOutput": "Jupiter",
-    "category": "science"
-  },
-  {
-    "input": "Who painted the Mona Lisa?",
-    "expectedOutput": "Leonardo da Vinci",
-    "category": "art"
-  },
-  {
-    "input": "What is the chemical symbol for gold?",
-    "expectedOutput": "Au",
-    "category": "science"
-  },
-  {
-    "input": "What is the capital of Japan?",
-    "expectedOutput": "Tokyo",
-    "category": "geography"
-  },
-  {
-    "input": "How many continents are there?",
-    "expectedOutput": "7",
-    "category": "geography"
-  },
-  {
-    "input": "Who was the first President of the United States?",
-    "expectedOutput": "George Washington",
-    "category": "history"
-  },
-  {
-    "input": "What is the square root of 144?",
-    "expectedOutput": "12",
-    "category": "mathematics"
-  },
-  {
-    "input": "What is the largest ocean on Earth?",
-    "expectedOutput": "Pacific Ocean",
-    "category": "geography"
-  },
-  {
-    "input": "Who discovered penicillin?",
-    "expectedOutput": "Alexander Fleming",
-    "category": "science"
-  },
-  {
-    "input": "What is the boiling point of water in Celsius?",
-    "expectedOutput": "100",
-    "category": "science"
-  },
-  {
-    "input": "Who wrote 'Romeo and Juliet'?",
-    "expectedOutput": "William Shakespeare",
-    "category": "literature"
-  },
-  {
-    "input": "What is the smallest prime number?",
-    "expectedOutput": "2",
-    "category": "mathematics"
-  },
-  {
-    "input": "What year did man first land on the moon?",
-    "expectedOutput": "1969",
-    "category": "history"
-  },
-  {
-    "input": "What is the capital of Australia?",
-    "expectedOutput": "Canberra",
-    "category": "geography"
-  },
-  {
-    "input": "How many sides does a hexagon have?",
-    "expectedOutput": "6",
-    "category": "mathematics"
-  },
-  {
-    "input": "What is the hardest natural substance on Earth?",
-    "expectedOutput": "Diamond",
-    "category": "science"
-  }
+	{
+		"input": "What is the capital of France?",
+		"expectedOutput": "Paris",
+		"category": "geography"
+	},
+	{
+		"input": "Who wrote '1984'?",
+		"expectedOutput": "George Orwell",
+		"category": "literature"
+	},
+	{
+		"input": "What is the speed of light in meters per second?",
+		"expectedOutput": "299,792,458",
+		"category": "science"
+	},
+	{
+		"input": "What year did World War II end?",
+		"expectedOutput": "1945",
+		"category": "history"
+	},
+	{
+		"input": "What is the largest planet in our solar system?",
+		"expectedOutput": "Jupiter",
+		"category": "science"
+	},
+	{
+		"input": "Who painted the Mona Lisa?",
+		"expectedOutput": "Leonardo da Vinci",
+		"category": "art"
+	},
+	{
+		"input": "What is the chemical symbol for gold?",
+		"expectedOutput": "Au",
+		"category": "science"
+	},
+	{
+		"input": "What is the capital of Japan?",
+		"expectedOutput": "Tokyo",
+		"category": "geography"
+	},
+	{
+		"input": "How many continents are there?",
+		"expectedOutput": "7",
+		"category": "geography"
+	},
+	{
+		"input": "Who was the first President of the United States?",
+		"expectedOutput": "George Washington",
+		"category": "history"
+	},
+	{
+		"input": "What is the square root of 144?",
+		"expectedOutput": "12",
+		"category": "mathematics"
+	},
+	{
+		"input": "What is the largest ocean on Earth?",
+		"expectedOutput": "Pacific Ocean",
+		"category": "geography"
+	},
+	{
+		"input": "Who discovered penicillin?",
+		"expectedOutput": "Alexander Fleming",
+		"category": "science"
+	},
+	{
+		"input": "What is the boiling point of water in Celsius?",
+		"expectedOutput": "100",
+		"category": "science"
+	},
+	{
+		"input": "Who wrote 'Romeo and Juliet'?",
+		"expectedOutput": "William Shakespeare",
+		"category": "literature"
+	},
+	{
+		"input": "What is the smallest prime number?",
+		"expectedOutput": "2",
+		"category": "mathematics"
+	},
+	{
+		"input": "What year did man first land on the moon?",
+		"expectedOutput": "1969",
+		"category": "history"
+	},
+	{
+		"input": "What is the capital of Australia?",
+		"expectedOutput": "Canberra",
+		"category": "geography"
+	},
+	{
+		"input": "How many sides does a hexagon have?",
+		"expectedOutput": "6",
+		"category": "mathematics"
+	},
+	{
+		"input": "What is the hardest natural substance on Earth?",
+		"expectedOutput": "Diamond",
+		"category": "science"
+	}
 ]

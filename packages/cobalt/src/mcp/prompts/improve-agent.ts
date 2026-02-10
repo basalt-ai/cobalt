@@ -5,16 +5,15 @@
 
 export const cobaltImproveAgentPrompt = {
 	name: 'improve-agent',
-	description:
-		'Analyze experiment failures and suggest specific improvements to the agent code',
+	description: 'Analyze experiment failures and suggest specific improvements to the agent code',
 	arguments: [
 		{
 			name: 'runId',
 			description: 'Run ID from experiment results to analyze',
-			required: true
-		}
-	]
-}
+			required: true,
+		},
+	],
+};
 
 /**
  * Get the prompt message for improving an agent based on experiment results
@@ -22,7 +21,7 @@ export const cobaltImproveAgentPrompt = {
 export function getCobaltImproveAgentPrompt(args: { runId?: string }) {
 	const runIdInstruction = args.runId
 		? `Use cobalt_results to load run ID: ${args.runId}`
-		: 'First, use cobalt://latest-results to find the most recent run, then use cobalt_results to load it'
+		: 'First, use cobalt://latest-results to find the most recent run, then use cobalt_results to load it';
 
 	return {
 		messages: [
@@ -51,9 +50,9 @@ Provide a structured analysis with:
 - Top 3 improvement suggestions with code examples
 - Expected impact on scores
 
-Be specific and technical. Focus on code-level improvements, not high-level advice.`
-				}
-			}
-		]
-	}
+Be specific and technical. Focus on code-level improvements, not high-level advice.`,
+				},
+			},
+		],
+	};
 }

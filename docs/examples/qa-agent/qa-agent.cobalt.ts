@@ -1,8 +1,8 @@
-import { experiment, Evaluator, Dataset } from 'cobalt'
-import { answerQuestion } from './agent.js'
+import { Dataset, Evaluator, experiment } from 'cobalt';
+import { answerQuestion } from './agent.js';
 
 // Load dataset from JSON file
-const dataset = Dataset.fromJSON('./dataset.json')
+const dataset = Dataset.fromJSON('./dataset.json');
 
 // Define evaluators
 const evaluators = [
@@ -11,17 +11,17 @@ const evaluators = [
 		name: 'contains-answer',
 		type: 'function',
 		fn: ({ item, output }) => {
-			const normalizedOutput = String(output).toLowerCase()
-			const normalizedExpected = String(item.expectedOutput).toLowerCase()
-			const contains = normalizedOutput.includes(normalizedExpected)
+			const normalizedOutput = String(output).toLowerCase();
+			const normalizedExpected = String(item.expectedOutput).toLowerCase();
+			const contains = normalizedOutput.includes(normalizedExpected);
 
 			return {
 				score: contains ? 1 : 0,
 				reason: contains
 					? `Output contains expected answer "${item.expectedOutput}"`
-					: `Expected "${item.expectedOutput}" not found in output`
-			}
-		}
+					: `Expected "${item.expectedOutput}" not found in output`,
+			};
+		},
 	}),
 
 	// Evaluator 2: Check response length (should be concise)
@@ -29,16 +29,15 @@ const evaluators = [
 		name: 'conciseness',
 		type: 'function',
 		fn: ({ output }) => {
-			const wordCount = String(output).split(/\s+/).length
-			const maxWords = 50
-			const score =
-				wordCount <= maxWords ? 1 : Math.max(0, 1 - (wordCount - maxWords) / 50)
+			const wordCount = String(output).split(/\s+/).length;
+			const maxWords = 50;
+			const score = wordCount <= maxWords ? 1 : Math.max(0, 1 - (wordCount - maxWords) / 50);
 
 			return {
 				score,
-				reason: `${wordCount} words (target: ≤${maxWords})`
-			}
-		}
+				reason: `${wordCount} words (target: ≤${maxWords})`,
+			};
+		},
 	}),
 
 	// Evaluator 3: LLM Judge for factual accuracy
@@ -63,9 +62,9 @@ Respond with JSON:
   "reason": "<explanation of your rating>"
 }`,
 		model: 'gpt-4o-mini',
-		provider: 'openai'
-	})
-]
+		provider: 'openai',
+	}),
+];
 
 // Run the experiment
 experiment(
@@ -73,7 +72,7 @@ experiment(
 	dataset,
 	async ({ item }) => {
 		// Call our Q&A agent
-		const response = await answerQuestion(item.input)
+		const response = await answerQuestion(item.input);
 
 		// Return output and metadata
 		return {
@@ -82,14 +81,14 @@ experiment(
 				model: response.model,
 				tokens: response.tokens,
 				duration: response.duration,
-				category: item.category
-			}
-		}
+				category: item.category,
+			},
+		};
 	},
 	{
 		evaluators,
 		concurrency: 3, // Run 3 questions at a time
 		timeout: 30000, // 30 second timeout per question
-		tags: ['qa', 'gpt-4o-mini', 'example']
-	}
-)
+		tags: ['qa', 'gpt-4o-mini', 'example'],
+	},
+);

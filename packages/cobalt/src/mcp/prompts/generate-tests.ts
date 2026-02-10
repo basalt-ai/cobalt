@@ -11,27 +11,26 @@ export const cobaltGenerateTestsPrompt = {
 		{
 			name: 'experimentFile',
 			description: 'Path to the experiment file to enhance',
-			required: true
+			required: true,
 		},
 		{
 			name: 'focus',
-			description:
-				'Focus area: "edge-cases" | "adversarial" | "coverage" (optional)',
-			required: false
-		}
-	]
-}
+			description: 'Focus area: "edge-cases" | "adversarial" | "coverage" (optional)',
+			required: false,
+		},
+	],
+};
 
 /**
  * Get the prompt message for generating additional test cases
  */
 export function getCobaltGenerateTestsPrompt(args: {
-	experimentFile?: string
-	focus?: string
+	experimentFile?: string;
+	focus?: string;
 }) {
 	const focusInstruction = args.focus
 		? `Focus specifically on **${args.focus}** test cases.`
-		: 'Generate a balanced mix of normal, edge, and adversarial cases.'
+		: 'Generate a balanced mix of normal, edge, and adversarial cases.';
 
 	return {
 		messages: [
@@ -66,9 +65,9 @@ export function getCobaltGenerateTestsPrompt(args: {
 ]
 \`\`\`
 
-Explain the rationale for each new test case and how it improves coverage.`
-				}
-			}
-		]
-	}
+Explain the rationale for each new test case and how it improves coverage.`,
+				},
+			},
+		],
+	};
 }

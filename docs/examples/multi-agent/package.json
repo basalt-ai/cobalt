@@ -1,19 +1,19 @@
 {
-  "name": "cobalt-example-multi-agent",
-  "version": "1.0.0",
-  "description": "Cobalt example: Testing multi-agent workflows",
-  "type": "module",
-  "scripts": {
-    "test": "cobalt run multi-agent.cobalt.ts"
-  },
-  "dependencies": {
-    "cobalt": "latest",
-    "openai": "^4.73.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.7.0",
-    "tsx": "^4.7.0"
-  },
-  "keywords": ["cobalt", "multi-agent", "workflow", "example"]
+	"name": "cobalt-example-multi-agent",
+	"version": "1.0.0",
+	"description": "Cobalt example: Testing multi-agent workflows",
+	"type": "module",
+	"scripts": {
+		"test": "cobalt run multi-agent.cobalt.ts"
+	},
+	"dependencies": {
+		"cobalt": "latest",
+		"openai": "^4.73.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"typescript": "^5.7.0",
+		"tsx": "^4.7.0"
+	},
+	"keywords": ["cobalt", "multi-agent", "workflow", "example"]
 }

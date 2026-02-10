@@ -1,24 +1,19 @@
 {
-  "name": "cobalt-example-classification",
-  "version": "1.0.0",
-  "description": "Cobalt example: Testing text classification",
-  "type": "module",
-  "scripts": {
-    "test": "cobalt run classifier.cobalt.ts"
-  },
-  "dependencies": {
-    "cobalt": "latest",
-    "openai": "^4.73.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.7.0",
-    "tsx": "^4.7.0"
-  },
-  "keywords": [
-    "cobalt",
-    "classification",
-    "sentiment",
-    "example"
-  ]
+	"name": "cobalt-example-classification",
+	"version": "1.0.0",
+	"description": "Cobalt example: Testing text classification",
+	"type": "module",
+	"scripts": {
+		"test": "cobalt run classifier.cobalt.ts"
+	},
+	"dependencies": {
+		"cobalt": "latest",
+		"openai": "^4.73.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"typescript": "^5.7.0",
+		"tsx": "^4.7.0"
+	},
+	"keywords": ["cobalt", "classification", "sentiment", "example"]
 }

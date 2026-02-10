@@ -1,175 +1,179 @@
-import { readdir } from 'node:fs/promises'
-import { resolve, join } from 'node:path'
-import { existsSync } from 'node:fs'
-import { defineCommand } from 'citty'
-import { createJiti } from 'jiti'
-import pc from 'picocolors'
-import { loadConfig } from '../../core/config.js'
-import type { ExperimentReport } from '../../types/index.js'
+import { existsSync } from 'node:fs';
+import { readdir } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+import { defineCommand } from 'citty';
+import { createJiti } from 'jiti';
+import pc from 'picocolors';
+import { loadConfig } from '../../core/config.js';
+import type { ExperimentReport } from '../../types/index.js';
 
 export default defineCommand({
-  meta: {
-    name: 'run',
-    description: 'Run cobalt experiments'
-  },
-  args: {
-    file: {
-      type: 'string',
-      description: 'Specific experiment file to run',
-      alias: 'f'
-    },
-    filter: {
-      type: 'string',
-      description: 'Filter experiments by name',
-      alias: 'n'
-    },
-    concurrency: {
-      type: 'string',
-      description: 'Override concurrency setting',
-      alias: 'c'
-    }
-  },
-  async run({ args }) {
-    console.log(pc.bold('\n🔷 Cobalt v0.1.0\n'))
+	meta: {
+		name: 'run',
+		description: 'Run cobalt experiments',
+	},
+	args: {
+		file: {
+			type: 'string',
+			description: 'Specific experiment file to run',
+			alias: 'f',
+		},
+		filter: {
+			type: 'string',
+			description: 'Filter experiments by name',
+			alias: 'n',
+		},
+		concurrency: {
+			type: 'string',
+			description: 'Override concurrency setting',
+			alias: 'c',
+		},
+	},
+	async run({ args }) {
+		console.log(pc.bold('\n🔷 Cobalt v0.1.0\n'));
 
-    try {
-      // Load configuration
-      const config = await loadConfig()
+		try {
+			// Load configuration
+			const config = await loadConfig();
 
-      // Determine which files to run
-      let files: string[] = []
+			// Determine which files to run
+			let files: string[] = [];
 
-      if (args.file) {
-        // Run specific file
-        const filepath = resolve(process.cwd(), args.file)
-        if (!existsSync(filepath)) {
-          console.error(pc.red(`\n❌ File not found: ${args.file}\n`))
-          process.exit(1)
-        }
-        files = [filepath]
-      } else {
-        // Find all experiment files
-        const testDir = resolve(process.cwd(), config.testDir)
+			if (args.file) {
+				// Run specific file
+				const filepath = resolve(process.cwd(), args.file);
+				if (!existsSync(filepath)) {
+					console.error(pc.red(`\n❌ File not found: ${args.file}\n`));
+					process.exit(1);
+				}
+				files = [filepath];
+			} else {
+				// Find all experiment files
+				const testDir = resolve(process.cwd(), config.testDir);
 
-        if (!existsSync(testDir)) {
-          console.error(pc.red(`\n❌ Test directory not found: ${testDir}`))
-          console.log(pc.dim('Run "npx cobalt init" to create the project structure\n'))
-          process.exit(1)
-        }
+				if (!existsSync(testDir)) {
+					console.error(pc.red(`\n❌ Test directory not found: ${testDir}`));
+					console.log(pc.dim('Run "npx cobalt init" to create the project structure\n'));
+					process.exit(1);
+				}
 
-        files = await findExperimentFiles(testDir, config.testMatch)
+				files = await findExperimentFiles(testDir, config.testMatch);
 
-        if (files.length === 0) {
-          console.error(pc.red(`\n❌ No experiment files found in ${testDir}`))
-          console.log(pc.dim('Create files matching patterns:'), config.testMatch.join(', '))
-          console.log(pc.dim('Or run "npx cobalt init" to create an example\n'))
-          process.exit(1)
-        }
-      }
+				if (files.length === 0) {
+					console.error(pc.red(`\n❌ No experiment files found in ${testDir}`));
+					console.log(pc.dim('Create files matching patterns:'), config.testMatch.join(', '));
+					console.log(pc.dim('Or run "npx cobalt init" to create an example\n'));
+					process.exit(1);
+				}
+			}
 
-      console.log(pc.dim(`Found ${files.length} experiment file(s)\n`))
+			console.log(pc.dim(`Found ${files.length} experiment file(s)\n`));
 
-      // Execute each experiment file
-      const jiti = createJiti(import.meta.url, {
-        interopDefault: true
-      })
+			// Execute each experiment file
+			const jiti = createJiti(import.meta.url, {
+				interopDefault: true,
+			});
 
-      // Collect experiment reports for CI mode checking
-      const reports: ExperimentReport[] = []
+			// Collect experiment reports for CI mode checking
+			const reports: ExperimentReport[] = [];
 
-      // Set up global callback to capture experiment reports
-      ;(global as any).__cobaltCLIResultCallback = (report: ExperimentReport) => {
-        reports.push(report)
-      }
+			// Set up global callback to capture experiment reports
+			(global as any).__cobaltCLIResultCallback = (report: ExperimentReport) => {
+				reports.push(report);
+			};
 
-      try {
-        for (const file of files) {
-          try {
-            console.log(pc.bold(`Running: ${file}\n`))
+			try {
+				for (const file of files) {
+					try {
+						console.log(pc.bold(`Running: ${file}\n`));
 
-            // Import and execute the file
-            // The experiment() call inside the file will execute automatically
-            await jiti.import(file, { default: true })
+						// Import and execute the file
+						// The experiment() call inside the file will execute automatically
+						await jiti.import(file, { default: true });
 
-            console.log('')
-          } catch (error) {
-            console.error(pc.red(`\n❌ Error running ${file}:`), error)
-            console.log('')
-          }
-        }
-      } finally {
-        // Clean up global callback
-        delete (global as any).__cobaltCLIResultCallback
-      }
+						console.log('');
+					} catch (error) {
+						console.error(pc.red(`\n❌ Error running ${file}:`), error);
+						console.log('');
+					}
+				}
+			} finally {
+				// Clean up global callback
+				(global as any).__cobaltCLIResultCallback = undefined;
+			}
 
-      // Check for CI mode failures
-      const ciFailures = reports.filter(r => r.ciStatus && !r.ciStatus.passed)
+			// Check for CI mode failures
+			const ciFailures = reports.filter((r) => r.ciStatus && !r.ciStatus.passed);
 
-      if (ciFailures.length > 0) {
-        console.log(pc.red(pc.bold(`\n❌ CI Mode: ${ciFailures.length} experiment(s) failed threshold checks\n`)))
-        for (const report of ciFailures) {
-          console.log(pc.red(`   ${report.name}: ${report.ciStatus!.summary}`))
-        }
-        console.log('')
-        process.exit(1)
-      }
+			if (ciFailures.length > 0) {
+				console.log(
+					pc.red(
+						pc.bold(`\n❌ CI Mode: ${ciFailures.length} experiment(s) failed threshold checks\n`),
+					),
+				);
+				for (const report of ciFailures) {
+					console.log(pc.red(`   ${report.name}: ${report.ciStatus!.summary}`));
+				}
+				console.log('');
+				process.exit(1);
+			}
 
-      console.log(pc.green(pc.bold('\n✅ All experiments completed!\n')))
-      console.log(pc.dim('View results: ls .cobalt/results/'))
-      console.log(pc.dim('Run dashboard: npx cobalt serve (coming in P1)\n'))
-    } catch (error) {
-      console.error(pc.red('\n❌ Failed to run experiments:'), error)
-      process.exit(1)
-    }
-  }
-})
+			console.log(pc.green(pc.bold('\n✅ All experiments completed!\n')));
+			console.log(pc.dim('View results: ls .cobalt/results/'));
+			console.log(pc.dim('Run dashboard: npx cobalt serve (coming in P1)\n'));
+		} catch (error) {
+			console.error(pc.red('\n❌ Failed to run experiments:'), error);
+			process.exit(1);
+		}
+	},
+});
 
 /**
  * Find experiment files matching patterns
  */
 async function findExperimentFiles(dir: string, patterns: string[]): Promise<string[]> {
-  const files: string[] = []
+	const files: string[] = [];
 
-  async function scan(currentDir: string) {
-    const entries = await readdir(currentDir, { withFileTypes: true })
+	async function scan(currentDir: string) {
+		const entries = await readdir(currentDir, { withFileTypes: true });
 
-    for (const entry of entries) {
-      const fullPath = join(currentDir, entry.name)
+		for (const entry of entries) {
+			const fullPath = join(currentDir, entry.name);
 
-      if (entry.isDirectory()) {
-        // Skip node_modules and hidden directories
-        if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
-          continue
-        }
-        await scan(fullPath)
-      } else if (entry.isFile()) {
-        // Check if file matches any pattern
-        const relativePath = fullPath.replace(dir + '/', '')
-        for (const pattern of patterns) {
-          if (matchPattern(relativePath, pattern)) {
-            files.push(fullPath)
-            break
-          }
-        }
-      }
-    }
-  }
+			if (entry.isDirectory()) {
+				// Skip node_modules and hidden directories
+				if (entry.name === 'node_modules' || entry.name.startsWith('.')) {
+					continue;
+				}
+				await scan(fullPath);
+			} else if (entry.isFile()) {
+				// Check if file matches any pattern
+				const relativePath = fullPath.replace(`${dir}/`, '');
+				for (const pattern of patterns) {
+					if (matchPattern(relativePath, pattern)) {
+						files.push(fullPath);
+						break;
+					}
+				}
+			}
+		}
+	}
 
-  await scan(dir)
-  return files
+	await scan(dir);
+	return files;
 }
 
 /**
  * Simple pattern matching (supports ** and *)
  */
 function matchPattern(path: string, pattern: string): boolean {
-  // Convert glob pattern to regex
-  const regexPattern = pattern
-    .replace(/\./g, '\\.')
-    .replace(/\*\*/g, '.*')
-    .replace(/\*/g, '[^/]*')
-    .replace(/\?/g, '.')
+	// Convert glob pattern to regex
+	const regexPattern = pattern
+		.replace(/\./g, '\\.')
+		.replace(/\*\*/g, '.*')
+		.replace(/\*/g, '[^/]*')
+		.replace(/\?/g, '.');
 
-  const regex = new RegExp(`^${regexPattern}$`)
-  return regex.test(path)
+	const regex = new RegExp(`^${regexPattern}$`);
+	return regex.test(path);
 }

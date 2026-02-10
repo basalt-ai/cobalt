@@ -1,74 +1,74 @@
-import { mkdir, writeFile, appendFile, readFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { defineCommand } from 'citty'
-import pc from 'picocolors'
+import { existsSync } from 'node:fs';
+import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { defineCommand } from 'citty';
+import pc from 'picocolors';
 
 export default defineCommand({
-  meta: {
-    name: 'init',
-    description: 'Initialize a new cobalt project'
-  },
-  async run() {
-    const cwd = process.cwd()
+	meta: {
+		name: 'init',
+		description: 'Initialize a new cobalt project',
+	},
+	async run() {
+		const cwd = process.cwd();
 
-    console.log(pc.bold('\n🔷 Cobalt Initialization\n'))
+		console.log(pc.bold('\n🔷 Cobalt Initialization\n'));
 
-    try {
-      // 1. Create cobalt.config.ts
-      const configPath = resolve(cwd, 'cobalt.config.ts')
-      if (existsSync(configPath)) {
-        console.log(pc.yellow('⚠ cobalt.config.ts already exists, skipping...'))
-      } else {
-        await writeFile(configPath, CONFIG_TEMPLATE)
-        console.log(pc.green('✓ Created cobalt.config.ts'))
-      }
+		try {
+			// 1. Create cobalt.config.ts
+			const configPath = resolve(cwd, 'cobalt.config.ts');
+			if (existsSync(configPath)) {
+				console.log(pc.yellow('⚠ cobalt.config.ts already exists, skipping...'));
+			} else {
+				await writeFile(configPath, CONFIG_TEMPLATE);
+				console.log(pc.green('✓ Created cobalt.config.ts'));
+			}
 
-      // 2. Create experiments directory
-      const experimentsDir = resolve(cwd, 'experiments')
-      if (!existsSync(experimentsDir)) {
-        await mkdir(experimentsDir, { recursive: true })
-        console.log(pc.green('✓ Created experiments/ directory'))
-      } else {
-        console.log(pc.yellow('⚠ experiments/ directory already exists, skipping...'))
-      }
+			// 2. Create experiments directory
+			const experimentsDir = resolve(cwd, 'experiments');
+			if (!existsSync(experimentsDir)) {
+				await mkdir(experimentsDir, { recursive: true });
+				console.log(pc.green('✓ Created experiments/ directory'));
+			} else {
+				console.log(pc.yellow('⚠ experiments/ directory already exists, skipping...'));
+			}
 
-      // 3. Create example experiment
-      const examplePath = resolve(experimentsDir, 'example.cobalt.ts')
-      if (!existsSync(examplePath)) {
-        await writeFile(examplePath, EXAMPLE_EXPERIMENT_TEMPLATE)
-        console.log(pc.green('✓ Created experiments/example.cobalt.ts'))
-      } else {
-        console.log(pc.yellow('⚠ experiments/example.cobalt.ts already exists, skipping...'))
-      }
+			// 3. Create example experiment
+			const examplePath = resolve(experimentsDir, 'example.cobalt.ts');
+			if (!existsSync(examplePath)) {
+				await writeFile(examplePath, EXAMPLE_EXPERIMENT_TEMPLATE);
+				console.log(pc.green('✓ Created experiments/example.cobalt.ts'));
+			} else {
+				console.log(pc.yellow('⚠ experiments/example.cobalt.ts already exists, skipping...'));
+			}
 
-      // 4. Update .gitignore
-      const gitignorePath = resolve(cwd, '.gitignore')
-      if (existsSync(gitignorePath)) {
-        const content = await readFile(gitignorePath, 'utf-8')
-        if (!content.includes('.cobalt/')) {
-          await appendFile(gitignorePath, '\n# Cobalt\n.cobalt/\n')
-          console.log(pc.green('✓ Updated .gitignore'))
-        } else {
-          console.log(pc.yellow('⚠ .gitignore already includes .cobalt/, skipping...'))
-        }
-      } else {
-        await writeFile(gitignorePath, '# Cobalt\n.cobalt/\n')
-        console.log(pc.green('✓ Created .gitignore'))
-      }
+			// 4. Update .gitignore
+			const gitignorePath = resolve(cwd, '.gitignore');
+			if (existsSync(gitignorePath)) {
+				const content = await readFile(gitignorePath, 'utf-8');
+				if (!content.includes('.cobalt/')) {
+					await appendFile(gitignorePath, '\n# Cobalt\n.cobalt/\n');
+					console.log(pc.green('✓ Updated .gitignore'));
+				} else {
+					console.log(pc.yellow('⚠ .gitignore already includes .cobalt/, skipping...'));
+				}
+			} else {
+				await writeFile(gitignorePath, '# Cobalt\n.cobalt/\n');
+				console.log(pc.green('✓ Created .gitignore'));
+			}
 
-      // Success message
-      console.log(pc.bold(pc.green('\n✅ Cobalt initialized successfully!\n')))
-      console.log(pc.dim('Next steps:'))
-      console.log(pc.dim('  1. Set your API key: export OPENAI_API_KEY=<your-key>'))
-      console.log(pc.dim('  2. Run the example: npx cobalt run'))
-      console.log(pc.dim('  3. Edit experiments/example.cobalt.ts to test your own agent\n'))
-    } catch (error) {
-      console.error(pc.red('\n❌ Initialization failed:'), error)
-      process.exit(1)
-    }
-  }
-})
+			// Success message
+			console.log(pc.bold(pc.green('\n✅ Cobalt initialized successfully!\n')));
+			console.log(pc.dim('Next steps:'));
+			console.log(pc.dim('  1. Set your API key: export OPENAI_API_KEY=<your-key>'));
+			console.log(pc.dim('  2. Run the example: npx cobalt run'));
+			console.log(pc.dim('  3. Edit experiments/example.cobalt.ts to test your own agent\n'));
+		} catch (error) {
+			console.error(pc.red('\n❌ Initialization failed:'), error);
+			process.exit(1);
+		}
+	},
+});
 
 // Configuration template
 const CONFIG_TEMPLATE = `import { defineConfig } from 'cobalt'
@@ -111,7 +111,7 @@ export default defineConfig({
     ttl: '7d'
   }
 })
-`
+`;
 
 // Example experiment template
 const EXAMPLE_EXPERIMENT_TEMPLATE = `import { experiment, Evaluator, Dataset } from 'cobalt'
@@ -171,4 +171,4 @@ experiment('example-agent', dataset, async ({ item }) => {
   timeout: 10_000,
   tags: ['example', 'v1']
 })
-`
+`;

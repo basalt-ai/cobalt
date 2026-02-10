@@ -37,5 +37,5 @@ Please provide a structured analysis in JSON format with the following fields:
   ]
 }
 
-Be specific and thorough. If the code doesn't clearly show certain aspects, make reasonable inferences based on function signatures and logic.`
+Be specific and thorough. If the code doesn't clearly show certain aspects, make reasonable inferences based on function signatures and logic.`;
 }

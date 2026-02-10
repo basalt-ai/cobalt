@@ -16,12 +16,7 @@
 	"dependencies": {
 		"@types/node": "^22.10.5"
 	},
-	"keywords": [
-		"cobalt",
-		"evaluator",
-		"plugin",
-		"ai-testing"
-	],
+	"keywords": ["cobalt", "evaluator", "plugin", "ai-testing"],
 	"author": "",
 	"license": "MIT"
 }

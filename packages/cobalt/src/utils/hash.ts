@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHash } from 'node:crypto';
 
 /**
  * Generate SHA-256 hash for cache key
@@ -6,12 +6,12 @@ import { createHash } from 'node:crypto'
  * @returns SHA-256 hash as hex string
  */
 export function generateHash(...data: any[]): string {
-  const hash = createHash('sha256')
+	const hash = createHash('sha256');
 
-  for (const item of data) {
-    const str = typeof item === 'object' ? JSON.stringify(item) : String(item)
-    hash.update(str)
-  }
+	for (const item of data) {
+		const str = typeof item === 'object' ? JSON.stringify(item) : String(item);
+		hash.update(str);
+	}
 
-  return hash.digest('hex')
+	return hash.digest('hex');
 }

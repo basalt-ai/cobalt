@@ -1,25 +1,20 @@
 {
-  "name": "cobalt-example-summarization",
-  "version": "1.0.0",
-  "description": "Cobalt example: Testing document summarization",
-  "type": "module",
-  "scripts": {
-    "test": "cobalt run summarizer.cobalt.ts",
-    "test:debug": "cobalt run summarizer.cobalt.ts --concurrency 1"
-  },
-  "dependencies": {
-    "cobalt": "latest",
-    "openai": "^4.73.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.0.0",
-    "typescript": "^5.7.0",
-    "tsx": "^4.7.0"
-  },
-  "keywords": [
-    "cobalt",
-    "summarization",
-    "ai-testing",
-    "example"
-  ]
+	"name": "cobalt-example-summarization",
+	"version": "1.0.0",
+	"description": "Cobalt example: Testing document summarization",
+	"type": "module",
+	"scripts": {
+		"test": "cobalt run summarizer.cobalt.ts",
+		"test:debug": "cobalt run summarizer.cobalt.ts --concurrency 1"
+	},
+	"dependencies": {
+		"cobalt": "latest",
+		"openai": "^4.73.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.0.0",
+		"typescript": "^5.7.0",
+		"tsx": "^4.7.0"
+	},
+	"keywords": ["cobalt", "summarization", "ai-testing", "example"]
 }

@@ -1,5 +1,8 @@
 {
 	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"files": {
+		"ignore": ["**/dist/**", "**/.cobalt/**", "**/node_modules/**", "**/coverage/**"]
+	},
 	"organizeImports": {
 		"enabled": true
 	},
@@ -12,6 +15,9 @@
 			},
 			"style": {
 				"noNonNullAssertion": "off"
+			},
+			"suspicious": {
+				"noExplicitAny": "off"
 			}
 		}
 	},

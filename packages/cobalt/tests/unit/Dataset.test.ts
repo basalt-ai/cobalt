@@ -1,393 +1,377 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { Dataset } from '../../src/datasets/Dataset.js'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Dataset } from '../../src/datasets/Dataset.js';
 import {
-  sampleDatasetItems,
-  sampleJSONArray,
-  sampleJSONObject,
-  sampleJSONL,
-  sampleCSV,
-  sampleCSVWithCommas,
-  largeDataset
-} from '../helpers/fixtures.js'
+	largeDataset,
+	sampleCSV,
+	sampleCSVWithCommas,
+	sampleDatasetItems,
+	sampleJSONArray,
+	sampleJSONL,
+	sampleJSONObject,
+} from '../helpers/fixtures.js';
 
 // Mock fs module
 vi.mock('node:fs', () => ({
-  readFileSync: vi.fn()
-}))
+	readFileSync: vi.fn(),
+}));
 
-import { readFileSync } from 'node:fs'
+import { readFileSync } from 'node:fs';
 
 describe('Dataset', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
 
-  describe('constructor', () => {
-    it('should create dataset with inline items', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+	describe('constructor', () => {
+		it('should create dataset with inline items', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(dataset.length).toBe(3)
-      expect(dataset.getItems()).toEqual(sampleDatasetItems)
-    })
+			expect(dataset.length).toBe(3);
+			expect(dataset.getItems()).toEqual(sampleDatasetItems);
+		});
 
-    it('should create empty dataset', () => {
-      const dataset = new Dataset({ items: [] })
+		it('should create empty dataset', () => {
+			const dataset = new Dataset({ items: [] });
 
-      expect(dataset.length).toBe(0)
-      expect(dataset.getItems()).toEqual([])
-    })
-  })
-
-  describe('fromJSON', () => {
-    it('should load dataset from JSON array', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleJSONArray)
+			expect(dataset.length).toBe(0);
+			expect(dataset.getItems()).toEqual([]);
+		});
+	});
 
-      const dataset = Dataset.fromJSON('./test.json')
+	describe('fromJSON', () => {
+		it('should load dataset from JSON array', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleJSONArray);
 
-      expect(dataset.length).toBe(3)
-      expect(dataset.getItems()).toEqual(sampleDatasetItems)
-    })
+			const dataset = Dataset.fromJSON('./test.json');
 
-    it('should load dataset from JSON object with items property', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleJSONObject)
+			expect(dataset.length).toBe(3);
+			expect(dataset.getItems()).toEqual(sampleDatasetItems);
+		});
 
-      const dataset = Dataset.fromJSON('./test.json')
+		it('should load dataset from JSON object with items property', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleJSONObject);
 
-      expect(dataset.length).toBe(3)
-      expect(dataset.getItems()).toEqual(sampleDatasetItems)
-    })
+			const dataset = Dataset.fromJSON('./test.json');
 
-    it('should throw error for invalid JSON', () => {
-      vi.mocked(readFileSync).mockReturnValue('invalid json')
+			expect(dataset.length).toBe(3);
+			expect(dataset.getItems()).toEqual(sampleDatasetItems);
+		});
 
-      expect(() => Dataset.fromJSON('./test.json')).toThrow(
-        /Failed to load JSON dataset/
-      )
-    })
+		it('should throw error for invalid JSON', () => {
+			vi.mocked(readFileSync).mockReturnValue('invalid json');
 
-    it('should throw error for missing file', () => {
-      vi.mocked(readFileSync).mockImplementation(() => {
-        throw new Error('ENOENT: no such file')
-      })
+			expect(() => Dataset.fromJSON('./test.json')).toThrow(/Failed to load JSON dataset/);
+		});
 
-      expect(() => Dataset.fromJSON('./missing.json')).toThrow(
-        /Failed to load JSON dataset/
-      )
-    })
-  })
+		it('should throw error for missing file', () => {
+			vi.mocked(readFileSync).mockImplementation(() => {
+				throw new Error('ENOENT: no such file');
+			});
 
-  describe('fromJSONL', () => {
-    it('should load dataset from JSONL file', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleJSONL)
+			expect(() => Dataset.fromJSON('./missing.json')).toThrow(/Failed to load JSON dataset/);
+		});
+	});
 
-      const dataset = Dataset.fromJSONL('./test.jsonl')
+	describe('fromJSONL', () => {
+		it('should load dataset from JSONL file', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleJSONL);
 
-      expect(dataset.length).toBe(3)
-      expect(dataset.getItems()).toEqual(sampleDatasetItems)
-    })
+			const dataset = Dataset.fromJSONL('./test.jsonl');
 
-    it('should handle empty lines', () => {
-      const jsonlWithEmptyLines = [
-        JSON.stringify(sampleDatasetItems[0]),
-        '',
-        JSON.stringify(sampleDatasetItems[1]),
-        '   ',
-        JSON.stringify(sampleDatasetItems[2])
-      ].join('\n')
+			expect(dataset.length).toBe(3);
+			expect(dataset.getItems()).toEqual(sampleDatasetItems);
+		});
 
-      vi.mocked(readFileSync).mockReturnValue(jsonlWithEmptyLines)
+		it('should handle empty lines', () => {
+			const jsonlWithEmptyLines = [
+				JSON.stringify(sampleDatasetItems[0]),
+				'',
+				JSON.stringify(sampleDatasetItems[1]),
+				'   ',
+				JSON.stringify(sampleDatasetItems[2]),
+			].join('\n');
 
-      const dataset = Dataset.fromJSONL('./test.jsonl')
+			vi.mocked(readFileSync).mockReturnValue(jsonlWithEmptyLines);
 
-      expect(dataset.length).toBe(3)
-    })
+			const dataset = Dataset.fromJSONL('./test.jsonl');
 
-    it('should throw error for invalid JSONL', () => {
-      vi.mocked(readFileSync).mockReturnValue('invalid json line')
+			expect(dataset.length).toBe(3);
+		});
 
-      expect(() => Dataset.fromJSONL('./test.jsonl')).toThrow(
-        /Failed to load JSONL dataset/
-      )
-    })
-  })
+		it('should throw error for invalid JSONL', () => {
+			vi.mocked(readFileSync).mockReturnValue('invalid json line');
 
-  describe('fromCSV', () => {
-    it('should load dataset from CSV file', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleCSV)
+			expect(() => Dataset.fromJSONL('./test.jsonl')).toThrow(/Failed to load JSONL dataset/);
+		});
+	});
 
-      const dataset = Dataset.fromCSV<{ input: string; expectedOutput: string }>(
-        './test.csv'
-      )
+	describe('fromCSV', () => {
+		it('should load dataset from CSV file', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleCSV);
 
-      expect(dataset.length).toBe(3)
-      const items = dataset.getItems()
-      expect(items[0].input).toBe('What is the capital of France?')
-      expect(items[0].expectedOutput).toBe('Paris')
-    })
+			const dataset = Dataset.fromCSV<{ input: string; expectedOutput: string }>('./test.csv');
 
-    it('should handle quoted values with commas', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleCSVWithCommas)
+			expect(dataset.length).toBe(3);
+			const items = dataset.getItems();
+			expect(items[0].input).toBe('What is the capital of France?');
+			expect(items[0].expectedOutput).toBe('Paris');
+		});
 
-      const dataset = Dataset.fromCSV<{ input: string; expectedOutput: string }>(
-        './test.csv'
-      )
+		it('should handle quoted values with commas', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleCSVWithCommas);
 
-      expect(dataset.length).toBe(2)
-      const items = dataset.getItems()
-      expect(items[0].input).toBe('What is the capital of France, the city of lights?')
-      expect(items[0].expectedOutput).toBe('Paris, France')
-    })
+			const dataset = Dataset.fromCSV<{ input: string; expectedOutput: string }>('./test.csv');
 
-    it('should return empty dataset for empty CSV', () => {
-      vi.mocked(readFileSync).mockReturnValue('')
+			expect(dataset.length).toBe(2);
+			const items = dataset.getItems();
+			expect(items[0].input).toBe('What is the capital of France, the city of lights?');
+			expect(items[0].expectedOutput).toBe('Paris, France');
+		});
 
-      const dataset = Dataset.fromCSV('./test.csv')
+		it('should return empty dataset for empty CSV', () => {
+			vi.mocked(readFileSync).mockReturnValue('');
 
-      expect(dataset.length).toBe(0)
-    })
+			const dataset = Dataset.fromCSV('./test.csv');
 
-    it('should handle CSV with only headers', () => {
-      vi.mocked(readFileSync).mockReturnValue('input,expectedOutput')
+			expect(dataset.length).toBe(0);
+		});
 
-      const dataset = Dataset.fromCSV('./test.csv')
+		it('should handle CSV with only headers', () => {
+			vi.mocked(readFileSync).mockReturnValue('input,expectedOutput');
 
-      expect(dataset.length).toBe(0)
-    })
+			const dataset = Dataset.fromCSV('./test.csv');
 
-    it('should throw error for missing file', () => {
-      vi.mocked(readFileSync).mockImplementation(() => {
-        throw new Error('ENOENT: no such file')
-      })
+			expect(dataset.length).toBe(0);
+		});
 
-      expect(() => Dataset.fromCSV('./missing.csv')).toThrow(
-        /Failed to load CSV dataset/
-      )
-    })
-  })
+		it('should throw error for missing file', () => {
+			vi.mocked(readFileSync).mockImplementation(() => {
+				throw new Error('ENOENT: no such file');
+			});
 
-  describe('fromFile', () => {
-    it('should auto-detect JSON format', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleJSONArray)
+			expect(() => Dataset.fromCSV('./missing.csv')).toThrow(/Failed to load CSV dataset/);
+		});
+	});
 
-      const dataset = Dataset.fromFile('./test.json')
+	describe('fromFile', () => {
+		it('should auto-detect JSON format', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleJSONArray);
 
-      expect(dataset.length).toBe(3)
-    })
+			const dataset = Dataset.fromFile('./test.json');
 
-    it('should auto-detect JSONL format', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleJSONL)
+			expect(dataset.length).toBe(3);
+		});
 
-      const dataset = Dataset.fromFile('./test.jsonl')
+		it('should auto-detect JSONL format', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleJSONL);
 
-      expect(dataset.length).toBe(3)
-    })
+			const dataset = Dataset.fromFile('./test.jsonl');
 
-    it('should auto-detect CSV format', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleCSV)
+			expect(dataset.length).toBe(3);
+		});
 
-      const dataset = Dataset.fromFile('./test.csv')
+		it('should auto-detect CSV format', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleCSV);
 
-      expect(dataset.length).toBe(3)
-    })
+			const dataset = Dataset.fromFile('./test.csv');
 
-    it('should default to JSON for unknown extension', () => {
-      vi.mocked(readFileSync).mockReturnValue(sampleJSONArray)
+			expect(dataset.length).toBe(3);
+		});
 
-      const dataset = Dataset.fromFile('./test.txt')
+		it('should default to JSON for unknown extension', () => {
+			vi.mocked(readFileSync).mockReturnValue(sampleJSONArray);
 
-      expect(dataset.length).toBe(3)
-    })
-  })
+			const dataset = Dataset.fromFile('./test.txt');
 
-  describe('map', () => {
-    it('should transform dataset items', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(dataset.length).toBe(3);
+		});
+	});
 
-      const transformed = dataset.map(item => ({
-        question: item.input,
-        answer: item.expectedOutput
-      }))
+	describe('map', () => {
+		it('should transform dataset items', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      const items = transformed.getItems()
-      expect(items[0]).toHaveProperty('question')
-      expect(items[0]).toHaveProperty('answer')
-      expect(items[0].question).toBe('What is the capital of France?')
-    })
+			const transformed = dataset.map((item) => ({
+				question: item.input,
+				answer: item.expectedOutput,
+			}));
 
-    it('should provide index to transform function', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
-      const indices: number[] = []
+			const items = transformed.getItems();
+			expect(items[0]).toHaveProperty('question');
+			expect(items[0]).toHaveProperty('answer');
+			expect(items[0].question).toBe('What is the capital of France?');
+		});
 
-      dataset.map((item, index) => {
-        indices.push(index)
-        return item
-      })
+		it('should provide index to transform function', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
+			const indices: number[] = [];
 
-      expect(indices).toEqual([0, 1, 2])
-    })
-  })
+			dataset.map((item, index) => {
+				indices.push(index);
+				return item;
+			});
 
-  describe('filter', () => {
-    it('should filter dataset items', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(indices).toEqual([0, 1, 2]);
+		});
+	});
 
-      const filtered = dataset.filter(item =>
-        item.input.includes('France')
-      )
+	describe('filter', () => {
+		it('should filter dataset items', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(filtered.length).toBe(1)
-      expect(filtered.getItems()[0].input).toBe('What is the capital of France?')
-    })
+			const filtered = dataset.filter((item) => item.input.includes('France'));
 
-    it('should provide index to filter function', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(filtered.length).toBe(1);
+			expect(filtered.getItems()[0].input).toBe('What is the capital of France?');
+		});
 
-      const filtered = dataset.filter((_, index) => index > 0)
+		it('should provide index to filter function', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(filtered.length).toBe(2)
-    })
+			const filtered = dataset.filter((_, index) => index > 0);
 
-    it('should return empty dataset when no items match', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(filtered.length).toBe(2);
+		});
 
-      const filtered = dataset.filter(() => false)
+		it('should return empty dataset when no items match', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(filtered.length).toBe(0)
-    })
-  })
+			const filtered = dataset.filter(() => false);
 
-  describe('sample', () => {
-    it('should return sample of specified size', () => {
-      const dataset = new Dataset({ items: largeDataset })
+			expect(filtered.length).toBe(0);
+		});
+	});
 
-      const sampled = dataset.sample(10)
+	describe('sample', () => {
+		it('should return sample of specified size', () => {
+			const dataset = new Dataset({ items: largeDataset });
 
-      expect(sampled.length).toBe(10)
-      expect(sampled.getItems().length).toBe(10)
-    })
+			const sampled = dataset.sample(10);
 
-    it('should return all items if sample size exceeds dataset size', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(sampled.length).toBe(10);
+			expect(sampled.getItems().length).toBe(10);
+		});
 
-      const sampled = dataset.sample(100)
+		it('should return all items if sample size exceeds dataset size', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(sampled.length).toBe(3)
-    })
+			const sampled = dataset.sample(100);
 
-    it('should return random items', () => {
-      const dataset = new Dataset({ items: largeDataset })
+			expect(sampled.length).toBe(3);
+		});
 
-      const sampled1 = dataset.sample(5)
-      const sampled2 = dataset.sample(5)
+		it('should return random items', () => {
+			const dataset = new Dataset({ items: largeDataset });
 
-      // Note: This test might occasionally fail due to randomness, but very unlikely
-      const items1 = sampled1.getItems()
-      const items2 = sampled2.getItems()
-      const isDifferent = JSON.stringify(items1) !== JSON.stringify(items2)
+			const sampled1 = dataset.sample(5);
+			const sampled2 = dataset.sample(5);
 
-      // At least one should be different (probabilistically)
-      expect(sampled1.length).toBe(5)
-      expect(sampled2.length).toBe(5)
-    })
+			// Note: This test might occasionally fail due to randomness, but very unlikely
+			const items1 = sampled1.getItems();
+			const items2 = sampled2.getItems();
+			const isDifferent = JSON.stringify(items1) !== JSON.stringify(items2);
 
-    it('should handle empty dataset', () => {
-      const dataset = new Dataset({ items: [] })
+			// At least one should be different (probabilistically)
+			expect(sampled1.length).toBe(5);
+			expect(sampled2.length).toBe(5);
+		});
 
-      const sampled = dataset.sample(10)
+		it('should handle empty dataset', () => {
+			const dataset = new Dataset({ items: [] });
 
-      expect(sampled.length).toBe(0)
-    })
-  })
+			const sampled = dataset.sample(10);
 
-  describe('slice', () => {
-    it('should return slice from start to end', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(sampled.length).toBe(0);
+		});
+	});
 
-      const sliced = dataset.slice(0, 2)
+	describe('slice', () => {
+		it('should return slice from start to end', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(sliced.length).toBe(2)
-      expect(sliced.getItems()).toEqual(sampleDatasetItems.slice(0, 2))
-    })
+			const sliced = dataset.slice(0, 2);
 
-    it('should return slice from start to dataset end when end not specified', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(sliced.length).toBe(2);
+			expect(sliced.getItems()).toEqual(sampleDatasetItems.slice(0, 2));
+		});
 
-      const sliced = dataset.slice(1)
+		it('should return slice from start to dataset end when end not specified', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(sliced.length).toBe(2)
-      expect(sliced.getItems()).toEqual(sampleDatasetItems.slice(1))
-    })
+			const sliced = dataset.slice(1);
 
-    it('should handle negative indices', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(sliced.length).toBe(2);
+			expect(sliced.getItems()).toEqual(sampleDatasetItems.slice(1));
+		});
 
-      const sliced = dataset.slice(-2)
+		it('should handle negative indices', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(sliced.length).toBe(2)
-      expect(sliced.getItems()).toEqual(sampleDatasetItems.slice(-2))
-    })
+			const sliced = dataset.slice(-2);
 
-    it('should return empty dataset for out of bounds slice', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(sliced.length).toBe(2);
+			expect(sliced.getItems()).toEqual(sampleDatasetItems.slice(-2));
+		});
 
-      const sliced = dataset.slice(10, 20)
+		it('should return empty dataset for out of bounds slice', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      expect(sliced.length).toBe(0)
-    })
-  })
+			const sliced = dataset.slice(10, 20);
 
-  describe('getItems', () => {
-    it('should return copy of items array', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			expect(sliced.length).toBe(0);
+		});
+	});
 
-      const items = dataset.getItems()
+	describe('getItems', () => {
+		it('should return copy of items array', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-      // Verify it's a copy, not reference
-      expect(items).toEqual(sampleDatasetItems)
-      expect(items).not.toBe(sampleDatasetItems)
-    })
-  })
+			const items = dataset.getItems();
 
-  describe('length', () => {
-    it('should return number of items', () => {
-      const dataset = new Dataset({ items: sampleDatasetItems })
+			// Verify it's a copy, not reference
+			expect(items).toEqual(sampleDatasetItems);
+			expect(items).not.toBe(sampleDatasetItems);
+		});
+	});
 
-      expect(dataset.length).toBe(3)
-    })
+	describe('length', () => {
+		it('should return number of items', () => {
+			const dataset = new Dataset({ items: sampleDatasetItems });
 
-    it('should return 0 for empty dataset', () => {
-      const dataset = new Dataset({ items: [] })
+			expect(dataset.length).toBe(3);
+		});
 
-      expect(dataset.length).toBe(0)
-    })
-  })
+		it('should return 0 for empty dataset', () => {
+			const dataset = new Dataset({ items: [] });
 
-  describe('chaining operations', () => {
-    it('should support chaining map, filter, slice', () => {
-      const dataset = new Dataset({ items: largeDataset })
+			expect(dataset.length).toBe(0);
+		});
+	});
 
-      const result = dataset
-        .filter((_, index) => index % 2 === 0)
-        .map(item => ({ ...item, processed: true }))
-        .slice(0, 5)
+	describe('chaining operations', () => {
+		it('should support chaining map, filter, slice', () => {
+			const dataset = new Dataset({ items: largeDataset });
 
-      expect(result.length).toBe(5)
-      const items = result.getItems()
-      expect(items[0]).toHaveProperty('processed', true)
-    })
+			const result = dataset
+				.filter((_, index) => index % 2 === 0)
+				.map((item) => ({ ...item, processed: true }))
+				.slice(0, 5);
 
-    it('should support sample after filter', () => {
-      const dataset = new Dataset({ items: largeDataset })
+			expect(result.length).toBe(5);
+			const items = result.getItems();
+			expect(items[0]).toHaveProperty('processed', true);
+		});
 
-      const result = dataset
-        .filter((_, index) => index < 50)
-        .sample(10)
+		it('should support sample after filter', () => {
+			const dataset = new Dataset({ items: largeDataset });
 
-      expect(result.length).toBe(10)
-    })
-  })
-})
+			const result = dataset.filter((_, index) => index < 50).sample(10);
+
+			expect(result.length).toBe(10);
+		});
+	});
+});
