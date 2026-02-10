@@ -127,13 +127,17 @@ pnpm test:coverage     # With coverage report
 
 ### 3. Code Quality
 
-**Before Committing:**
+**Before Committing (Required):**
 ```bash
-pnpm lint              # Check linting
+pnpm test              # Run tests - MUST PASS
+pnpm lint              # Check linting - MUST PASS
+pnpm build             # Verify build works - MUST PASS
+```
+
+**Optional (but recommended):**
+```bash
 pnpm format            # Format code
 pnpm check             # Auto-fix issues
-pnpm test              # Run tests
-pnpm build             # Verify build works
 ```
 
 **Code Standards:**
@@ -146,25 +150,103 @@ pnpm build             # Verify build works
 
 ### 4. Git Workflow
 
-**Commit Messages:**
+**IMPORTANT: Always create a new branch, verify tests/linting pass, commit, and create a PR.**
 
-Follow conventional commits:
+#### Standard Workflow
+
+1. **Create a new branch** for your changes:
+```bash
+git checkout -b category/short-description
+# Examples:
+# - feat/similarity-evaluator
+# - fix/dataset-csv-parsing
+# - docs/api-updates
 ```
-feat: add similarity evaluator with embeddings
-fix: resolve dataset CSV parsing bug
-refactor: simplify evaluator dispatch logic
-test: add unit tests for cost estimation
-docs: update API documentation
+
+2. **Make your changes** to the code
+
+3. **Verify quality checks pass** before committing:
+```bash
+# Run tests
+pnpm test
+
+# Check linting
+pnpm lint
+
+# Optional: run full check
+pnpm check && pnpm build
+```
+
+4. **Stage and commit** with a concise message:
+```bash
+git add .
+git commit -m "$(cat <<'EOF'
+type: short description (few words)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+EOF
+)"
+```
+
+5. **Push and create PR**:
+```bash
+# Push to remote
+git push -u origin your-branch-name
+
+# Create PR with gh CLI
+gh pr create --title "Short PR title" --body "PR description" --base main
+```
+
+#### Commit Message Guidelines
+
+**Keep commit messages SHORT (few words only):**
+
+✅ **Good examples:**
+```
+feat: add similarity evaluator
+fix: CSV parsing bug
+docs: update README badges
+test: add evaluator tests
+refactor: simplify dispatch logic
 chore: upgrade dependencies
 ```
 
-**Committing:**
-```bash
-git add .
-git commit -m "type: description"
+❌ **Bad examples (too long):**
+```
+feat: add similarity evaluator with embeddings support and comprehensive tests
+fix: resolve the dataset CSV parsing bug that was causing issues with commas
+docs: update the API documentation and add examples for all evaluators
 ```
 
-Always include `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` when Claude contributed significantly.
+**Conventional commit types:**
+- `feat:` - New feature
+- `fix:` - Bug fix
+- `docs:` - Documentation changes
+- `test:` - Test additions/changes
+- `refactor:` - Code refactoring
+- `style:` - Code style/formatting
+- `chore:` - Maintenance tasks
+- `ci:` - CI/CD changes
+
+**Always include:**
+- `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` when Claude contributed significantly
+
+#### Pre-Commit Checklist
+
+Before every commit, ensure:
+- ✅ Tests pass (`pnpm test`)
+- ✅ Linting passes (`pnpm lint`)
+- ✅ Build succeeds (`pnpm build`)
+- ✅ Commit message is concise (few words)
+- ✅ Changes are on a feature branch (not `main`)
+
+#### Never Commit:
+
+- ❌ Broken tests
+- ❌ Linting errors
+- ❌ Build failures
+- ❌ Directly to `main` branch
+- ❌ Without running quality checks
 
 ### 5. Error Handling
 
@@ -382,7 +464,7 @@ For **decisions that require approval**:
 - ❌ Third-party library behavior
 - ❌ Simple getters/setters
 
-**Current Coverage**: 138 tests covering P0/P1 features (17.2% overall, 80-100% for tested modules)
+**Current Coverage**: 231 tests across 12 test suites covering P0-P3 features (80-100% for tested modules)
 
 ## Getting Help
 
@@ -394,10 +476,20 @@ For **decisions that require approval**:
 
 ## Next Steps
 
-See `.memory/roadmap.md` for planned features and P2-P4 work.
+See `.memory/roadmap.md` for planned features and remaining work.
 
-**Current Status**: P0 (MVP) and P1 (Usable) are complete. P2 (Powerful) features next:
-- Similarity evaluator with embeddings
-- Multiple runs with statistical aggregation
-- CI mode with thresholds
-- Complete MCP implementation
+**Current Status**: P0-P3 are 95% complete (P0: MVP ✅, P1: Usable ✅, P2: Powerful ✅, P3: Connected ✅)
+
+**Completed in P2-P3:**
+- ✅ CI mode with quality thresholds
+- ✅ Plugin system for custom evaluators
+- ✅ Autoevals integration (11 evaluator types)
+- ✅ Complete MCP implementation (4 tools, 3 resources, 3 prompts)
+- ✅ Statistical aggregations (avg, min, max, p50, p95, passRate)
+- ✅ Auto-generate experiments from agent code
+
+**Remaining P3/P4 work:**
+- [ ] Dashboard frontend UI (backend API complete)
+- [ ] Remote dataset loaders (Dataset.fromRemote)
+- [ ] Similarity evaluator with embeddings
+- [ ] Multiple runs with statistical aggregation
