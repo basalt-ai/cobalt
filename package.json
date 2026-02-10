@@ -1,5 +1,5 @@
 {
-	"name": "cobalt",
+	"name": "@basalt-ai/cobalt",
 	"version": "0.1.0",
 	"private": true,
 	"description": "Cobalt - Jest for AI Agents. Test, evaluate, and track your AI experiments.",
