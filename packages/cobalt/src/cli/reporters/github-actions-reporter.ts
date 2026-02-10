@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync } from 'node:fs';
+import { appendFileSync } from 'node:fs';
 import type { ProgressInfo } from '../../core/runner.js';
 import type { CIResult, ExperimentReport } from '../../types/index.js';
 import { formatCost } from '../../utils/cost.js';
@@ -144,7 +144,7 @@ export class GitHubActionsReporter extends BaseReporter {
 		this.summaryContent.push('🤖 Generated with [Cobalt](https://github.com/basalt-ai/cobalt)\n');
 
 		// Write to GITHUB_STEP_SUMMARY if available
-		if (this.summaryFile && existsSync(this.summaryFile)) {
+		if (this.summaryFile) {
 			try {
 				appendFileSync(this.summaryFile, this.summaryContent.join(''));
 			} catch (error) {
@@ -166,7 +166,7 @@ export class GitHubActionsReporter extends BaseReporter {
 		}
 		this.summaryContent.push(`\`\`\`\n${error.message}\n\`\`\`\n\n`);
 
-		if (this.summaryFile && existsSync(this.summaryFile)) {
+		if (this.summaryFile) {
 			try {
 				appendFileSync(this.summaryFile, this.summaryContent.join(''));
 			} catch (err) {
