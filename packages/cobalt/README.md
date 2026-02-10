@@ -185,25 +185,22 @@ Load datasets from HTTP/HTTPS URLs or popular LLM observability platforms:
 // From any HTTP/HTTPS URL (JSON or JSONL)
 const dataset = await Dataset.fromRemote('https://example.com/datasets/qa.json')
 
-// From Langfuse
+// From Langfuse (uses LANGFUSE_API_KEY from env)
+const dataset = await Dataset.fromLangfuse('my-dataset')
+
+// Or with explicit API key
 const dataset = await Dataset.fromLangfuse('my-dataset', {
-  apiKey: process.env.LANGFUSE_API_KEY
+  apiKey: 'sk-lf-...'
 })
 
-// From LangSmith
-const dataset = await Dataset.fromLangsmith('my-dataset', {
-  apiKey: process.env.LANGSMITH_API_KEY
-})
+// From LangSmith (uses LANGSMITH_API_KEY from env)
+const dataset = await Dataset.fromLangsmith('my-dataset')
 
-// From Braintrust
-const dataset = await Dataset.fromBraintrust('my-project', 'my-dataset', {
-  apiKey: process.env.BRAINTRUST_API_KEY
-})
+// From Braintrust (uses BRAINTRUST_API_KEY from env)
+const dataset = await Dataset.fromBraintrust('my-project', 'my-dataset')
 
-// From Basalt
-const dataset = await Dataset.fromBasalt('dataset-123', {
-  apiKey: process.env.BASALT_API_KEY
-})
+// From Basalt (uses BASALT_API_KEY from env)
+const dataset = await Dataset.fromBasalt('dataset-123')
 ```
 
 **Supported platforms:**
@@ -213,8 +210,14 @@ const dataset = await Dataset.fromBasalt('dataset-123', {
 - **Braintrust**: AI evaluation and monitoring
 - **Basalt**: AI testing and evaluation
 
-**Configuration:**
-API keys can be set in environment variables or `cobalt.config.ts`:
+**Authentication:**
+API keys are automatically read from environment variables:
+- `LANGFUSE_API_KEY` (or `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY`)
+- `LANGSMITH_API_KEY`
+- `BRAINTRUST_API_KEY`
+- `BASALT_API_KEY`
+
+Alternatively, configure them in `cobalt.config.ts`:
 
 ```typescript
 export default defineConfig({
