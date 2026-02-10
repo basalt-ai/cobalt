@@ -4,7 +4,7 @@
 
 ## Project Overview
 
-Cobalt is a TypeScript CLI testing framework for AI agents and LLM-powered applications. Think "Cypress for AI agents" — it provides experiment runners, evaluators, datasets, and result tracking.
+Cobalt is a TypeScript CLI testing framework for AI agents and LLM-powered applications. Think "Jest for AI Agents" — it provides experiment runners, evaluators, datasets, and result tracking.
 
 ### Tech Stack
 

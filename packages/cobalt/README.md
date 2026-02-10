@@ -1,6 +1,6 @@
 # cobalt
 
-**Cypress for AI agents** — A TypeScript testing framework for evaluating AI systems.
+**Jest for AI Agents** — A TypeScript testing framework for evaluating AI systems.
 
 ## Installation
 

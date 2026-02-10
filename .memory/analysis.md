@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**Cobalt** is a TypeScript-based AI testing framework designed to evaluate AI agents and LLM-powered applications. The tagline is "Cypress for AI agents" — providing a familiar testing experience for AI systems.
+**Cobalt** is a TypeScript-based AI testing framework designed to evaluate AI agents and LLM-powered applications. The tagline is "Jest for AI Agents" — providing a familiar testing experience for AI systems.
 
 ## Project Structure
 
