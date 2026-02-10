@@ -7,10 +7,10 @@ import type { EvalContext, EvalResult, ExactMatchEvaluatorConfig } from '../type
  * @param context - Evaluation context
  * @returns Evaluation result
  */
-export function evaluateExactMatch(
+export async function evaluateExactMatch(
 	config: ExactMatchEvaluatorConfig,
 	context: EvalContext,
-): EvalResult {
+): Promise<EvalResult> {
 	const expected = context.item[config.field];
 	const actual =
 		typeof context.output === 'string' ? context.output : JSON.stringify(context.output);
