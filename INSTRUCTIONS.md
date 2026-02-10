@@ -542,7 +542,7 @@ The dashboard frontend is in a separate `dashboard-ui/` folder (React app), buil
 - [ ] `cobalt history` CLI
 
 ### P3 - Connected
-- [ ] Remote dataset (bdataset integration)
+- [ ] Remote dataset (Langfuse, Langsmith, Brainstrust, Basalt)
 - [ ] Built-in RAGAS-style evaluator
 - [ ] Native integration with RAGAS, DeepEval, AutoEval etc..
 - [ ] MCP implementation (see bellow)

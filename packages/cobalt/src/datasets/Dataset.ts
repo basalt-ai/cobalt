@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { DatasetConfig, ExperimentItem } from '../types/index.js';
+import { fetchRemoteDataset } from './loaders/remote.js';
 
 /**
  * Dataset class for managing experiment data
@@ -109,6 +110,21 @@ export class Dataset<T = ExperimentItem> {
 		} catch (error) {
 			throw new Error(`Failed to load CSV dataset from ${path}: ${error}`);
 		}
+	}
+
+	/**
+	 * Load dataset from remote URL (HTTP/HTTPS)
+	 * Supports JSON and JSONL formats
+	 * @param url - HTTP/HTTPS URL to fetch dataset from
+	 * @returns Promise resolving to Dataset instance
+	 * @example
+	 * ```ts
+	 * const dataset = await Dataset.fromRemote('https://example.com/datasets/qa.json')
+	 * ```
+	 */
+	static async fromRemote<T = ExperimentItem>(url: string): Promise<Dataset<T>> {
+		const items = await fetchRemoteDataset(url);
+		return new Dataset<T>({ items: items as T[] });
 	}
 
 	/**

@@ -177,6 +177,24 @@ input,expectedOutput
 "What is the capital of France?",Paris
 ```
 
+#### Remote Datasets
+
+Load datasets from HTTP/HTTPS URLs:
+
+```typescript
+// From any HTTP/HTTPS URL (JSON or JSONL)
+const dataset = await Dataset.fromRemote('https://example.com/datasets/qa.json')
+
+// JSONL format also supported
+const dataset = await Dataset.fromRemote('https://example.com/datasets/eval.jsonl')
+```
+
+**Supported formats:**
+- **JSON**: Array of items or object with `items` array property
+- **JSONL**: One JSON object per line (newline-delimited)
+
+**Note:** Remote datasets return a Promise, so use `await` or `.then()`.
+
 #### Dataset Transformations
 
 All methods are chainable and immutable:
