@@ -150,7 +150,16 @@ pnpm check             # Auto-fix issues
 
 ### 4. Git Workflow
 
-**IMPORTANT: Always create a new branch, verify tests/linting pass, commit, and create a PR.**
+**IMPORTANT: Always create a new branch for each new feature or Claude session, verify tests/linting pass, commit, and create a PR.**
+
+#### Branching Strategy
+
+**Create a new branch when:**
+- Starting a new Claude session
+- Working on a new feature or fix
+- Addressing a different issue or task
+
+**Format:** `category/short-description`
 
 #### Standard Workflow
 
@@ -161,6 +170,7 @@ git checkout -b category/short-description
 # - feat/similarity-evaluator
 # - fix/dataset-csv-parsing
 # - docs/api-updates
+# - ci/github-actions-setup
 ```
 
 2. **Make your changes** to the code
@@ -180,12 +190,7 @@ pnpm check && pnpm build
 4. **Stage and commit** with a concise message:
 ```bash
 git add .
-git commit -m "$(cat <<'EOF'
-type: short description (few words)
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-EOF
-)"
+git commit -m "type: short description (few words)"
 ```
 
 5. **Rebase on main before pushing**:
@@ -209,9 +214,9 @@ git push -u origin your-branch-name
 gh pr create --title "Short PR title" --body "PR description" --base main
 ```
 
-#### Adding to Existing PR (Same Session)
+#### Adding to Existing PR (Same Claude Session Only)
 
-**If you're working in the same session** and want to add related changes to an existing PR:
+**Only if you're continuing work in the SAME Claude session** on the SAME feature:
 
 1. **Stay on the same branch** (don't create a new one)
 2. **Make your additional changes**
@@ -222,12 +227,7 @@ pnpm test && pnpm lint
 4. **Commit with a descriptive message**:
 ```bash
 git add .
-git commit -m "$(cat <<'EOF'
-type: short description
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-EOF
-)"
+git commit -m "type: short description"
 ```
 5. **Rebase on main and push**:
 ```bash
@@ -236,9 +236,9 @@ git rebase origin/main
 git push  # Updates existing PR automatically
 ```
 
-**When to add to same PR vs. create new one:**
-- ✅ Same PR: Related changes, same feature/fix, same session
-- ❌ New PR: Unrelated changes, different feature, new session/day
+**When to add to same PR vs. create new branch:**
+- ✅ Same branch: Continuing work in the SAME Claude session on the SAME feature
+- ❌ New branch: New Claude session, different feature, unrelated changes
 
 #### Commit Message Guidelines
 
@@ -270,9 +270,6 @@ docs: update the API documentation and add examples for all evaluators
 - `style:` - Code style/formatting
 - `chore:` - Maintenance tasks
 - `ci:` - CI/CD changes
-
-**Always include:**
-- `Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>` when Claude contributed significantly
 
 #### Pre-Commit Checklist
 
