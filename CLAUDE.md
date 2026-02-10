@@ -188,14 +188,57 @@ EOF
 )"
 ```
 
-5. **Push and create PR**:
+5. **Rebase on main before pushing**:
 ```bash
-# Push to remote
+# Fetch latest changes
+git fetch origin
+
+# Rebase your branch on main
+git rebase origin/main
+
+# If conflicts occur, resolve them and continue
+git rebase --continue
+```
+
+6. **Push and create PR**:
+```bash
+# Push to remote (use -f if you rebased)
 git push -u origin your-branch-name
 
 # Create PR with gh CLI
 gh pr create --title "Short PR title" --body "PR description" --base main
 ```
+
+#### Adding to Existing PR (Same Session)
+
+**If you're working in the same session** and want to add related changes to an existing PR:
+
+1. **Stay on the same branch** (don't create a new one)
+2. **Make your additional changes**
+3. **Verify quality checks pass**:
+```bash
+pnpm test && pnpm lint
+```
+4. **Commit with a descriptive message**:
+```bash
+git add .
+git commit -m "$(cat <<'EOF'
+type: short description
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+EOF
+)"
+```
+5. **Rebase on main and push**:
+```bash
+git fetch origin
+git rebase origin/main
+git push  # Updates existing PR automatically
+```
+
+**When to add to same PR vs. create new one:**
+- ✅ Same PR: Related changes, same feature/fix, same session
+- ❌ New PR: Unrelated changes, different feature, new session/day
 
 #### Commit Message Guidelines
 
@@ -240,13 +283,22 @@ Before every commit, ensure:
 - ✅ Commit message is concise (few words)
 - ✅ Changes are on a feature branch (not `main`)
 
-#### Never Commit:
+#### Pre-Push Checklist
+
+Before pushing to remote, ensure:
+- ✅ All commits are on a feature branch
+- ✅ Branch is rebased on latest `main` (`git rebase origin/main`)
+- ✅ All tests still pass after rebase
+- ✅ No merge conflicts exist
+
+#### Never Commit/Push:
 
 - ❌ Broken tests
 - ❌ Linting errors
 - ❌ Build failures
 - ❌ Directly to `main` branch
 - ❌ Without running quality checks
+- ❌ Without rebasing on main first
 
 ### 5. Error Handling
 
