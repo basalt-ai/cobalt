@@ -11,7 +11,7 @@ import type { AutoevalsEvaluatorConfig, EvalContext, EvalResult } from '../../ty
 export async function evaluateAutoevals(
 	config: AutoevalsEvaluatorConfig,
 	context: EvalContext,
-	apiKey?: string,
+	_apiKey?: string,
 ): Promise<EvalResult> {
 	try {
 		// Dynamically import autoevals to avoid bundling if not used

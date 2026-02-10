@@ -77,7 +77,12 @@ async function getEmbedding(text: string, apiKey: string, model: string): Promis
 			encoding_format: 'float',
 		});
 
-		return response.data[0].embedding;
+		const embedding = response.data[0]?.embedding;
+		if (!embedding) {
+			throw new Error('No embedding returned from OpenAI API');
+		}
+
+		return embedding;
 	} catch (error) {
 		console.error('OpenAI embedding error:', error);
 		throw error;
@@ -96,15 +101,15 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 	// Calculate dot product
 	let dotProduct = 0;
 	for (let i = 0; i < vecA.length; i++) {
-		dotProduct += vecA[i] * vecB[i];
+		dotProduct += vecA[i]! * vecB[i]!;
 	}
 
 	// Calculate magnitudes
 	let magnitudeA = 0;
 	let magnitudeB = 0;
 	for (let i = 0; i < vecA.length; i++) {
-		magnitudeA += vecA[i] * vecA[i];
-		magnitudeB += vecB[i] * vecB[i];
+		magnitudeA += vecA[i]! * vecA[i]!;
+		magnitudeB += vecB[i]! * vecB[i]!;
 	}
 	magnitudeA = Math.sqrt(magnitudeA);
 	magnitudeB = Math.sqrt(magnitudeB);

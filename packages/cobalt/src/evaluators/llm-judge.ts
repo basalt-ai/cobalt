@@ -15,9 +15,12 @@ import { renderTemplate } from '../utils/template.js';
 export async function evaluateLLMJudge(
 	config: LLMJudgeEvaluatorConfig,
 	context: EvalContext,
-	apiKey: string,
+	apiKey?: string,
 	modelOverride?: string,
 ): Promise<EvalResult> {
+	if (!apiKey) {
+		throw new Error('API key is required for LLM judge evaluator');
+	}
 	const model = modelOverride || config.model || 'gpt-4o-mini';
 
 	// Render prompt template
@@ -115,6 +118,10 @@ Do not include any text outside the JSON object.`;
 		});
 
 		const content = response.content[0];
+
+		if (!content) {
+			throw new Error('No content in Anthropic response');
+		}
 
 		if (content.type !== 'text') {
 			throw new Error('Unexpected response type from Anthropic');
