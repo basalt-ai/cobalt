@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Required for committing version bump
+      id-token: write  # Required for npm provenance
 
     steps:
       - name: Checkout code
@@ -76,6 +77,8 @@ jobs:
         run: pnpm build
 
       - name: Publish to npm
-        run: pnpm publish --filter cobalt --no-git-checks --access public
+        run: |
+          cd packages/cobalt
+          pnpm publish --no-git-checks --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
