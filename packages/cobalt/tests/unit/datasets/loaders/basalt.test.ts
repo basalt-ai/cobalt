@@ -8,6 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchBasaltDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// biome-ignore lint/performance/noDelete: Need to properly clear env vars in tests
 		delete process.env.BASALT_API_KEY;
 	});
 

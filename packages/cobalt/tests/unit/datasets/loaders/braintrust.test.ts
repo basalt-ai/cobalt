@@ -8,6 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchBraintrustDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// biome-ignore lint/performance/noDelete: Need to properly clear env vars in tests
 		delete process.env.BRAINTRUST_API_KEY;
 	});
 

@@ -8,8 +8,11 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchLangfuseDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// biome-ignore lint/performance/noDelete: Need to properly clear env vars in tests
 		delete process.env.LANGFUSE_API_KEY;
+		// biome-ignore lint/performance/noDelete: Need to properly clear env vars in tests
 		delete process.env.LANGFUSE_PUBLIC_KEY;
+		// biome-ignore lint/performance/noDelete: Need to properly clear env vars in tests
 		delete process.env.LANGFUSE_SECRET_KEY;
 	});
 

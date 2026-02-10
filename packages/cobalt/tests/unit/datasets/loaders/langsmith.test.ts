@@ -8,6 +8,7 @@ global.fetch = mockFetch as typeof fetch;
 describe('fetchLangSmithDataset', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// biome-ignore lint/performance/noDelete: Need to properly clear env vars in tests
 		delete process.env.LANGSMITH_API_KEY;
 	});
 
