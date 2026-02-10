@@ -204,6 +204,28 @@ export interface CacheConfig {
 	ttl: string;
 }
 
+export interface LangfuseConfig {
+	apiKey?: string;
+	publicKey?: string;
+	secretKey?: string;
+	baseUrl?: string;
+}
+
+export interface LangSmithConfig {
+	apiKey?: string;
+	baseUrl?: string;
+}
+
+export interface BraintrustConfig {
+	apiKey?: string;
+	baseUrl?: string;
+}
+
+export interface BasaltConfig {
+	apiKey?: string;
+	baseUrl?: string;
+}
+
 export interface CobaltConfig {
 	testDir: string;
 	testMatch: string[];
@@ -218,6 +240,11 @@ export interface CobaltConfig {
 	ciMode?: boolean; // Enable CI mode with threshold checking
 	thresholds?: ThresholdConfig; // Default thresholds for CI mode
 	plugins?: string[]; // Paths to custom evaluator plugins
+	// Remote dataset platform configurations
+	langfuse?: LangfuseConfig;
+	langsmith?: LangSmithConfig;
+	braintrust?: BraintrustConfig;
+	basalt?: BasaltConfig;
 }
 
 // ============================================================================

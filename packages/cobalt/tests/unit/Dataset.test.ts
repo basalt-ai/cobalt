@@ -191,6 +191,77 @@ describe('Dataset', () => {
 		});
 	});
 
+	describe('fromRemote', () => {
+		const mockFetch = vi.fn();
+
+		beforeEach(() => {
+			global.fetch = mockFetch as typeof fetch;
+			vi.clearAllMocks();
+		});
+
+		afterEach(() => {
+			vi.restoreAllMocks();
+		});
+
+		it('should load dataset from remote JSON URL', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				headers: new Headers({ 'content-type': 'application/json' }),
+				text: async () => sampleJSONArray,
+			});
+
+			const dataset = await Dataset.fromRemote('https://example.com/dataset.json');
+
+			expect(dataset.length).toBe(3);
+			expect(dataset.getItems()).toEqual(sampleDatasetItems);
+			expect(mockFetch).toHaveBeenCalledWith('https://example.com/dataset.json');
+		});
+
+		it('should load dataset from remote JSONL URL', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				headers: new Headers({ 'content-type': 'application/jsonl' }),
+				text: async () => sampleJSONL,
+			});
+
+			const dataset = await Dataset.fromRemote('https://example.com/dataset.jsonl');
+
+			expect(dataset.length).toBe(3);
+			expect(dataset.getItems()).toEqual(sampleDatasetItems);
+		});
+
+		it('should handle HTTP protocol', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				headers: new Headers({ 'content-type': 'application/json' }),
+				text: async () => sampleJSONArray,
+			});
+
+			const dataset = await Dataset.fromRemote('http://example.com/dataset.json');
+
+			expect(dataset.length).toBe(3);
+		});
+
+		it('should throw on network error', async () => {
+			mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+			await expect(Dataset.fromRemote('https://example.com/dataset.json')).rejects.toThrow();
+		});
+
+		it('should throw on HTTP error', async () => {
+			mockFetch.mockResolvedValueOnce({
+				ok: false,
+				status: 404,
+				statusText: 'Not Found',
+			});
+
+			await expect(Dataset.fromRemote('https://example.com/dataset.json')).rejects.toThrow();
+		});
+	});
+
 	describe('map', () => {
 		it('should transform dataset items', () => {
 			const dataset = new Dataset({ items: sampleDatasetItems });

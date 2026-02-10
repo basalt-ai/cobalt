@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { Dataset, Evaluator, experiment } from 'cobalt';
 import { type Document, answerWithRAG } from './rag-agent.js';
 
