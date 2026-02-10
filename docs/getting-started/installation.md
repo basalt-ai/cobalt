@@ -219,7 +219,7 @@ You should see:
 
 ```
 Cobalt v0.1.0
-Cypress for AI agents
+Jest for AI Agents
 ```
 
 ## Next Steps

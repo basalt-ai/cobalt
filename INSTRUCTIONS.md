@@ -2,9 +2,9 @@
 
 ## Vision
 
-cobalt is a TypeScript library (installable via `npm install cobalt`) that provides a Cypress-like experience for testing and evaluating AI agents. It combines a test runner, a CLI, a local dashboard, and built-in memory to track experiment results over time.
+cobalt is a TypeScript library (installable via `npm install cobalt`) that provides a Jest-like experience for testing and evaluating AI agents. It combines a test runner, a CLI, a local dashboard, and built-in memory to track experiment results over time.
 
-**Tagline:** "Cypress for AI agents."
+**Tagline:** "Jest for AI Agents."
 
 ---
 
@@ -602,7 +602,7 @@ This allows integration into a CI/CD pipeline to block a deploy if agent quality
 {
   "name": "cobalt",
   "version": "0.1.0",
-  "description": "Cypress for AI agents — test, evaluate, and track your AI experiments",
+  "description": "Jest for AI Agents — test, evaluate, and track your AI experiments",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -638,7 +638,7 @@ This allows integration into a CI/CD pipeline to block a deploy if agent quality
 
 3. **Support `.cobalt.ts` files without requiring the user to install `ts-node`.** Use `jiti` or `tsx` to dynamically import TypeScript files.
 
-4. **The `.cobalt/` directory should be automatically added to `.gitignore` by `cobalt init`** (like Cypress does with its directory).
+4. **The `.cobalt/` directory should be automatically added to `.gitignore` by `cobalt init`** (similar to how testing frameworks handle generated directories).
 
 5. **Everything must work without config.** If there's no `cobalt.config.ts`, use sensible defaults (testDir: `./experiments`, judge: OpenAI if `OPENAI_API_KEY` is set).
 

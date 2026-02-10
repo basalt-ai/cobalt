@@ -1,5 +1,5 @@
 /**
- * Cobalt - Cypress for AI agents
+ * Cobalt - Jest for AI Agents
  * Test, evaluate, and track your AI experiments
  */
 

@@ -1,8 +1,8 @@
 {
-	"name": "cobalt-monorepo",
+	"name": "cobalt",
 	"version": "0.1.0",
 	"private": true,
-	"description": "Cobalt - Cypress for AI agents. Test, evaluate, and track your AI experiments.",
+	"description": "Cobalt - Jest for AI Agents. Test, evaluate, and track your AI experiments.",
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build",

@@ -4,7 +4,7 @@
 
 ### Project Overview
 
-Cobalt is an AI testing framework - "Cypress for AI agents" - that provides experiment runners, evaluators, datasets, and result tracking for testing AI systems.
+Cobalt is an AI testing framework - "Jest for AI Agents" - that provides experiment runners, evaluators, datasets, and result tracking for testing AI systems.
 
 **Status**: P0 (MVP) and P1 (Usable) are complete ✅
 
