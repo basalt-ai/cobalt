@@ -177,6 +177,68 @@ input,expectedOutput
 "What is the capital of France?",Paris
 ```
 
+#### Remote Datasets
+
+Load datasets from HTTP/HTTPS URLs or popular LLM observability platforms:
+
+```typescript
+// From any HTTP/HTTPS URL (JSON or JSONL)
+const dataset = await Dataset.fromRemote('https://example.com/datasets/qa.json')
+
+// From Langfuse (uses LANGFUSE_API_KEY from env)
+const dataset = await Dataset.fromLangfuse('my-dataset')
+
+// Or with explicit API key
+const dataset = await Dataset.fromLangfuse('my-dataset', {
+  apiKey: 'sk-lf-...'
+})
+
+// From LangSmith (uses LANGSMITH_API_KEY from env)
+const dataset = await Dataset.fromLangsmith('my-dataset')
+
+// From Braintrust (uses BRAINTRUST_API_KEY from env)
+const dataset = await Dataset.fromBraintrust('my-project', 'my-dataset')
+
+// From Basalt (uses BASALT_API_KEY from env)
+const dataset = await Dataset.fromBasalt('dataset-123')
+```
+
+**Supported platforms:**
+- **HTTP/HTTPS**: Generic JSON/JSONL datasets from any URL
+- **Langfuse**: LLM observability and dataset management
+- **LangSmith**: LangChain tracing and evaluation platform
+- **Braintrust**: AI evaluation and monitoring
+- **Basalt**: AI testing and evaluation
+
+**Authentication:**
+API keys are automatically read from environment variables:
+- `LANGFUSE_API_KEY` (or `LANGFUSE_PUBLIC_KEY`/`LANGFUSE_SECRET_KEY`)
+- `LANGSMITH_API_KEY`
+- `BRAINTRUST_API_KEY`
+- `BASALT_API_KEY`
+
+Alternatively, configure them in `cobalt.config.ts`:
+
+```typescript
+export default defineConfig({
+  langfuse: {
+    apiKey: process.env.LANGFUSE_API_KEY,
+    baseUrl: 'https://cloud.langfuse.com' // optional
+  },
+  langsmith: {
+    apiKey: process.env.LANGSMITH_API_KEY
+  },
+  braintrust: {
+    apiKey: process.env.BRAINTRUST_API_KEY
+  },
+  basalt: {
+    apiKey: process.env.BASALT_API_KEY
+  }
+})
+```
+
+**Note:** Remote datasets return a Promise, so use `await` or `.then()`.
+
 #### Dataset Transformations
 
 All methods are chainable and immutable:

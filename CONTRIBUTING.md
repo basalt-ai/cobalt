@@ -1,600 +1,410 @@
-# cobalt
-
-**Cypress for AI agents** — A TypeScript testing framework for evaluating AI systems.
-
-## Installation
-
-```bash
-npm install cobalt
-# or
-pnpm add cobalt
-# or
-yarn add cobalt
-```
-
-## Quick Start
-
-```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
-
-// Define evaluators
-const evaluators = [
-  new Evaluator({
-    name: 'relevance',
-    type: 'llm-judge',
-    prompt: 'Rate from 0 to 1 how relevant the output is.',
-    model: 'gpt-4o-mini',
-    provider: 'openai'
-  })
-]
-
-// Load dataset
-const dataset = Dataset.fromJSON('./data.json')
-
-// Run experiment
-await experiment('my-agent', dataset, async ({ item }) => {
-  const response = await myAgent.run(item.input)
-  return {
-    output: response.text,
-    metadata: {
-      model: 'gpt-4o',
-      tokens: response.usage.totalTokens
-    }
-  }
-}, { evaluators })
-```
-
-## Features
-
-- 🧪 **Experiment Runner** - Run AI agents on datasets with parallel execution
-- 📊 **Multiple Evaluators** - LLM judges, custom functions, exact matching
-- 💰 **Cost Tracking** - Automatic token counting and cost estimation
-- 📁 **Dataset Support** - JSON, JSONL, CSV file formats
-- 🔄 **Result Caching** - LLM response caching to save API costs
-- 📈 **Statistics** - Avg, min, max, p50, p95 for all evaluators
-- 🎯 **CLI Tools** - Full command-line interface
-- 🔌 **MCP Integration** - Model Context Protocol for Claude Code
-
-## API Reference
-
-### Core Functions
-
-#### `experiment()`
-
-Run an experiment on a dataset.
-
-```typescript
-function experiment<T extends ExperimentItem>(
-  name: string,
-  dataset: Dataset<T>,
-  runner: ExperimentRunner<T>,
-  options: ExperimentOptions
-): Promise<ExperimentReport>
-```
-
-**Example:**
-```typescript
-const report = await experiment('qa-agent', dataset, runner, {
-  evaluators: [relevanceEval, accuracyEval],
-  concurrency: 5,
-  timeout: 30000,
-  tags: ['v1', 'production']
-})
-
-console.log(`Average score: ${report.statistics.relevance.avg}`)
-console.log(`Cost: $${report.estimatedCost.toFixed(2)}`)
-```
-
----
-
-### Evaluators
-
-#### `new Evaluator(config)`
-
-Create an evaluator instance.
-
-**LLM Judge:**
-```typescript
-new Evaluator({
-  name: 'relevance',
-  type: 'llm-judge',
-  prompt: 'Rate from 0 to 1 how relevant this is.\n\nInput: {{input}}\nOutput: {{output}}',
-  model: 'gpt-4o-mini',
-  provider: 'openai'
-})
-```
-
-**Custom Function:**
-```typescript
-new Evaluator({
-  name: 'word-count',
-  type: 'function',
-  fn: ({ output }) => ({
-    score: output.split(' ').length <= 100 ? 1 : 0,
-    reason: `Word count: ${output.split(' ').length}`
-  })
-})
-```
-
-**Exact Match:**
-```typescript
-new Evaluator({
-  name: 'correct-answer',
-  type: 'exact-match',
-  field: 'expectedOutput',
-  caseSensitive: false
-})
-```
-
----
-
-### Datasets
-
-#### `Dataset.fromJSON(path)`
-
-Load dataset from JSON file.
-
-```typescript
-const dataset = Dataset.fromJSON('./data.json')
-```
-
-**Supported formats:**
-```json
-// Array format
-[
-  { "input": "Question 1", "expectedOutput": "Answer 1" },
-  { "input": "Question 2", "expectedOutput": "Answer 2" }
-]
-
-// Object format
-{
-  "items": [
-    { "input": "Question 1", "expectedOutput": "Answer 1" }
-  ]
-}
-```
-
-#### `Dataset.fromJSONL(path)`
-
-Load from line-delimited JSON.
-
-```typescript
-const dataset = Dataset.fromJSONL('./data.jsonl')
-```
-
-#### `Dataset.fromCSV(path)`
-
-Load from CSV file.
-
-```typescript
-const dataset = Dataset.fromCSV('./data.csv')
-```
-
-**CSV format:**
-```csv
-input,expectedOutput
-"What is 2+2?",4
-"What is the capital of France?",Paris
-```
-
-#### Dataset Transformations
-
-All methods are chainable and immutable:
-
-```typescript
-const processed = dataset
-  .filter(item => item.validated === true)
-  .map(item => ({ ...item, priority: 'high' }))
-  .sample(100)  // Random 100 items
-  .slice(0, 50)  // First 50
-```
-
-**Available methods:**
-- `map(fn)` - Transform items
-- `filter(predicate)` - Filter items
-- `sample(n)` - Random sample
-- `slice(start, end)` - Subset by index
-
----
-
-### Configuration
-
-#### `defineConfig(config)`
-
-Define configuration file.
-
-```typescript
-// cobalt.config.ts
-import { defineConfig } from 'cobalt'
-
-export default defineConfig({
-  evaluators: [{
-    name: 'relevance',
-    type: 'llm-judge',
-    prompt: 'Rate this from 0 to 1',
-    model: 'gpt-4o-mini',
-    provider: 'openai'
-  }],
-  concurrency: 10,
-  timeout: 60000,
-  openaiApiKey: process.env.OPENAI_API_KEY,
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY
-})
-```
-
----
-
-## CLI Commands
-
-### `cobalt run`
-
-Run experiment files.
-
-```bash
-# Run single file
-npx cobalt run experiments/my-agent.cobalt.ts
-
-# Filter by pattern
-npx cobalt run --filter "gpt-4*"
-
-# Filter by tag
-npx cobalt run --filter "production"
-```
-
-### `cobalt init`
-
-Initialize new project.
-
-```bash
-npx cobalt init
-```
-
-Creates:
-- `experiments/` folder with examples
-- `datasets/` folder
-- `cobalt.config.ts` configuration
-- `.cobalt/` directory for results
-
-### `cobalt history`
-
-View past runs.
-
-```bash
-npx cobalt history
-npx cobalt history --limit 10
-npx cobalt history --tag "production"
-```
-
-### `cobalt compare`
-
-Compare two runs.
-
-```bash
-npx cobalt compare <run-id-1> <run-id-2>
-```
-
-Shows side-by-side comparison of scores, costs, and statistics.
-
-### `cobalt serve`
-
-Start dashboard server.
-
-```bash
-npx cobalt serve
-# Opens at http://localhost:4000
-```
-
-**Note:** Currently API backend only, React UI coming soon.
-
-### `cobalt clean`
-
-Clean old cache and results.
-
-```bash
-# Clean cache older than 30 days
-npx cobalt clean --cache --days 30
-
-# Clean results older than 90 days
-npx cobalt clean --results --days 90
-```
-
-### `cobalt mcp`
-
-Start MCP server for Claude Code.
-
-```bash
-npx cobalt mcp
-```
-
-Add to `.mcp.json`:
-```json
-{
-  "mcpServers": {
-    "cobalt": {
-      "command": "npx",
-      "args": ["cobalt", "mcp"]
-    }
-  }
-}
-```
-
----
-
-## TypeScript Types
-
-### Core Types
-
-```typescript
-// Flexible experiment item
-type ExperimentItem = Record<string, any>
-
-// Result returned from runner
-interface ExperimentResult {
-  output: string | Record<string, any>
-  metadata?: Record<string, any>
-}
-
-// Evaluation result
-interface EvaluationResult {
-  score: number      // 0 to 1
-  reason?: string
-}
-
-// Statistics
-interface ScoreStats {
-  avg: number
-  min: number
-  max: number
-  p50: number
-  p95: number
-}
-```
-
-### Evaluator Types
-
-```typescript
-type EvaluatorType = 'llm-judge' | 'function' | 'exact-match' | 'similarity'
-
-interface LLMJudgeEvaluatorConfig {
-  name: string
-  type: 'llm-judge'
-  prompt: string
-  model: string
-  provider: 'openai' | 'anthropic'
-}
-
-interface FunctionEvaluatorConfig {
-  name: string
-  type: 'function'
-  fn: (context: EvaluationContext) => EvaluationResult | Promise<EvaluationResult>
-}
-
-interface ExactMatchEvaluatorConfig {
-  name: string
-  type: 'exact-match'
-  field: string
-  caseSensitive?: boolean
-  trim?: boolean
-}
-```
-
----
-
-## Environment Variables
-
-```bash
-# Required for LLM judges
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Optional path overrides
-COBALT_RESULTS_DIR=.cobalt/results
-COBALT_CACHE_DIR=.cobalt/cache
-COBALT_HISTORY_DB=.cobalt/history.db
-```
-
----
-
-## Supported Models
-
-### OpenAI
-- `gpt-4o`
-- `gpt-4o-mini`
-- `gpt-4-turbo`
-- `gpt-4`
-- `gpt-3.5-turbo`
-
-### Anthropic
-- `claude-opus-4-6`
-- `claude-sonnet-4-5-20250929`
-- `claude-haiku-4-5-20251001`
-- `claude-3-5-sonnet-20241022`
-- `claude-3-5-haiku-20241022`
-
----
-
-## Cost Estimation
-
-Cobalt automatically estimates costs based on token usage:
-
-```typescript
-const report = await experiment(...)
-
-console.log(`Total tokens: ${report.totalTokens}`)
-console.log(`Estimated cost: $${report.estimatedCost.toFixed(2)}`)
-```
-
-**Pricing** (as of February 2026):
-- GPT-4o: $2.50/$10.00 per 1M tokens (input/output)
-- GPT-4o-mini: $0.15/$0.60 per 1M tokens
-- Claude Sonnet: $3.00/$15.00 per 1M tokens
-- Claude Haiku: $0.80/$4.00 per 1M tokens
-
----
-
-## Caching
-
-LLM judge responses are automatically cached to save API costs:
-
-**Cache key:** `hash(prompt + model + input + output)`
-
-**Benefits:**
-- ✅ Rerun experiments without new API calls
-- ✅ Significant cost savings
-- ✅ Faster execution on reruns
-
-**Cleanup:**
-```bash
-npx cobalt clean --cache --days 30
-```
-
----
-
-## Best Practices
-
-1. **Start small** - Test with a few items before scaling up
-2. **Use appropriate evaluators** - LLM judges for subjective, functions for objective
-3. **Tag your experiments** - Makes filtering and comparison easier
-4. **Monitor costs** - Check `estimatedCost` after runs
-5. **Leverage caching** - Rerun experiments for free
-6. **Set timeouts** - Prevent hanging on slow items
-7. **Use concurrency** - Parallelize for faster execution
-
----
-
-## Examples
-
-### Basic Example
-
-```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
-
-const evaluators = [
-  new Evaluator({
-    name: 'relevance',
-    type: 'llm-judge',
-    prompt: 'Rate from 0 to 1',
-    model: 'gpt-4o-mini',
-    provider: 'openai'
-  })
-]
-
-const dataset = new Dataset({
-  items: [
-    { input: 'What is 2+2?', expectedOutput: '4' },
-    { input: 'What is 3+3?', expectedOutput: '6' }
-  ]
-})
-
-await experiment('math-qa', dataset, async ({ item }) => {
-  return { output: await myAgent.run(item.input) }
-}, { evaluators })
-```
-
-### Advanced Example with Multiple Evaluators
-
-```typescript
-const evaluators = [
-  new Evaluator({
-    name: 'relevance',
-    type: 'llm-judge',
-    prompt: 'Rate relevance from 0 to 1',
-    model: 'gpt-4o-mini',
-    provider: 'openai'
-  }),
-  new Evaluator({
-    name: 'correct-answer',
-    type: 'exact-match',
-    field: 'expectedOutput',
-    caseSensitive: false
-  }),
-  new Evaluator({
-    name: 'length-check',
-    type: 'function',
-    fn: ({ output }) => ({
-      score: output.length <= 200 ? 1 : 0.5,
-      reason: `Length: ${output.length} chars`
-    })
-  })
-]
-
-const dataset = Dataset
-  .fromJSON('./qa-pairs.json')
-  .filter(item => item.category === 'important')
-  .sample(50)
-
-const report = await experiment('multi-eval', dataset, runner, {
-  evaluators,
-  concurrency: 10,
-  timeout: 60000,
-  tags: ['v2', 'gpt-4o']
-})
-
-console.log(`Relevance: ${report.statistics.relevance.avg}`)
-console.log(`Accuracy: ${report.statistics['correct-answer'].avg}`)
-console.log(`Cost: $${report.estimatedCost.toFixed(2)}`)
-```
-
----
-
-## Error Handling
-
-### Evaluator Errors
-
-Evaluators return `{score: 0, reason: "error"}` instead of throwing:
-
-```typescript
-const result = await evaluator.evaluate(context)
-
-if (result.score === 0 && result.reason?.includes('error')) {
-  console.error(`Evaluation failed: ${result.reason}`)
-}
-```
-
-### Runner Errors
-
-If a runner throws, the item is marked as failed but doesn't stop the experiment:
-
-```typescript
-{
-  item: { input: "test" },
-  output: null,
-  error: "Connection timeout",
-  scores: {}  // No evaluations run
-}
-```
-
----
-
-## Requirements
+# Contributing to Cobalt
+
+Thank you for your interest in contributing to Cobalt! We welcome contributions from the community and appreciate your help in making this project better.
+
+## Table of Contents
+
+- [Code of Conduct](#code-of-conduct)
+- [Ways to Contribute](#ways-to-contribute)
+- [Getting Started](#getting-started)
+- [Development Setup](#development-setup)
+- [Development Workflow](#development-workflow)
+- [Code Standards](#code-standards)
+- [Testing Requirements](#testing-requirements)
+- [Submitting Changes](#submitting-changes)
+- [PR Review Process](#pr-review-process)
+- [Community](#community)
+
+## Code of Conduct
+
+By participating in this project, you agree to maintain a respectful and inclusive environment for all contributors. We expect:
+
+- Respectful communication
+- Constructive feedback
+- Collaboration over competition
+- Focus on what's best for the project and community
+
+## Ways to Contribute
+
+There are many ways to contribute to Cobalt:
+
+### 🐛 Report Bugs
+Found a bug? [Open an issue](https://github.com/basalt-ai/cobalt/issues) with:
+- Clear description of the problem
+- Steps to reproduce
+- Expected vs. actual behavior
+- Your environment (Node.js version, OS, etc.)
+
+### ✨ Suggest Features
+Have an idea? [Open an issue](https://github.com/basalt-ai/cobalt/issues) with:
+- Clear description of the feature
+- Use cases and motivation
+- Examples of how it would work
+
+### 📝 Improve Documentation
+Documentation improvements are always welcome:
+- Fix typos or unclear explanations
+- Add examples or tutorials
+- Improve API documentation
+- Update guides and best practices
+
+### 🔌 Create Plugins
+Extend Cobalt with custom evaluators:
+- Write plugins for new evaluator types
+- Integrate with other AI evaluation frameworks
+- Share your plugins with the community
+
+### 💻 Submit Code
+Fix bugs, add features, or improve existing code:
+- Start with issues labeled `good first issue`
+- Follow the development workflow below
+- Write tests for your changes
+- Update documentation as needed
+
+## Getting Started
+
+### Prerequisites
 
 - **Node.js**: 20.0.0 or higher
-- **TypeScript**: 5.0.0 or higher (if using TypeScript)
+- **pnpm**: 8.0.0 or higher
+- **Git**: For version control
 
----
+### Fork and Clone
+
+1. Fork the repository on GitHub
+2. Clone your fork locally:
+```bash
+git clone https://github.com/YOUR-USERNAME/cobalt.git
+cd cobalt
+```
+
+3. Add upstream remote:
+```bash
+git remote add upstream https://github.com/basalt-ai/cobalt.git
+```
+
+## Development Setup
+
+1. **Install dependencies:**
+```bash
+pnpm install
+```
+
+2. **Set up environment variables:**
+```bash
+# Create .env file for testing (optional)
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+3. **Run tests to verify setup:**
+```bash
+pnpm test
+```
+
+4. **Build the project:**
+```bash
+pnpm build
+```
+
+## Development Workflow
+
+### 1. Create a Feature Branch
+
+**Always create a new branch for your changes:**
+
+```bash
+git checkout -b category/short-description
+```
+
+**Branch naming convention:**
+- `feat/` - New features (e.g., `feat/similarity-evaluator`)
+- `fix/` - Bug fixes (e.g., `fix/csv-parsing-bug`)
+- `docs/` - Documentation (e.g., `docs/api-updates`)
+- `test/` - Tests (e.g., `test/evaluator-coverage`)
+- `refactor/` - Code refactoring (e.g., `refactor/simplify-dispatch`)
+- `chore/` - Maintenance (e.g., `chore/upgrade-deps`)
+
+### 2. Make Your Changes
+
+- Write clear, focused commits
+- Follow existing code patterns
+- Add tests for new functionality
+- Update documentation as needed
+
+### 3. Run Quality Checks
+
+**Before committing, ensure all checks pass:**
+
+```bash
+# Run tests
+pnpm test
+
+# Check linting
+pnpm lint
+
+# Verify build
+pnpm build
+```
+
+**Optional but recommended:**
+```bash
+# Auto-format code
+pnpm format
+
+# Run all checks
+pnpm check
+```
+
+### 4. Commit Your Changes
+
+**Use conventional commit messages (keep them short):**
+
+```bash
+git add .
+git commit -m "feat: add similarity evaluator"
+```
+
+**Good commit messages:**
+- `feat: add similarity evaluator`
+- `fix: CSV parsing bug`
+- `docs: update README badges`
+- `test: add evaluator tests`
+
+**Bad commit messages (too long):**
+- `feat: add similarity evaluator with embeddings support and comprehensive tests`
+- `fix: resolve the dataset CSV parsing bug that was causing issues with commas`
+
+### 5. Rebase on Main
+
+**Before pushing, rebase on the latest main:**
+
+```bash
+git fetch upstream
+git rebase upstream/main
+```
+
+If conflicts occur:
+```bash
+# Resolve conflicts in your editor
+git add .
+git rebase --continue
+```
+
+### 6. Push and Create PR
+
+```bash
+# Push to your fork
+git push -u origin your-branch-name
+
+# Create PR using GitHub CLI (optional)
+gh pr create --title "Short PR title" --body "Description" --base main
+```
+
+## Code Standards
+
+### TypeScript Guidelines
+
+- ✅ Use **strict mode** - no `any` types
+- ✅ Write **descriptive names** for variables and functions
+- ✅ Keep functions **small and focused**
+- ✅ Handle **errors explicitly**
+- ✅ Use **functional patterns** where appropriate
+- ❌ Avoid complex nested logic
+- ❌ Don't skip type definitions
+
+### Code Style
+
+We use [Biome](https://biomejs.dev/) for linting and formatting:
+
+```bash
+# Check code style
+pnpm lint
+
+# Auto-format
+pnpm format
+
+# Auto-fix issues
+pnpm check
+```
+
+### Architecture Patterns
+
+- **Evaluators**: Return `{score: 0, reason: "error"}` instead of throwing
+- **Dataset methods**: Chainable and immutable
+- **CLI commands**: Simple and composable
+- **Error handling**: Graceful with meaningful messages
+
+## Testing Requirements
+
+### Test Coverage
+
+**All core functionality must have tests:**
+
+- ✅ Core API functions (`experiment`, `Evaluator`, `Dataset`)
+- ✅ Evaluator implementations
+- ✅ Dataset transformations
+- ✅ Utility functions (cost, stats, template)
+- ✅ Error handling and edge cases
+
+### Writing Tests
+
+```typescript
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+
+describe('FeatureName', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should do something', async () => {
+    // Arrange
+    const input = 'test'
+
+    // Act
+    const result = await functionUnderTest(input)
+
+    // Assert
+    expect(result).toBe('expected')
+  })
+})
+```
+
+### Mocking Guidelines
+
+- **LLM APIs**: Always mock `openai` and `@anthropic-ai/sdk`
+- **File system**: Mock `node:fs` or use test helpers
+- **External services**: Never make real API calls in tests
+
+### Run Tests
+
+```bash
+pnpm test              # Run all tests
+pnpm test:watch        # Watch mode
+pnpm test:coverage     # Coverage report
+```
+
+## Submitting Changes
+
+### Pull Request Process
+
+1. **Create PR** with clear title and description
+2. **Link related issues** (e.g., "Fixes #123")
+3. **Describe your changes**:
+   - What was changed and why
+   - How to test the changes
+   - Any breaking changes
+   - Screenshots (if UI-related)
+
+### PR Checklist
+
+Before submitting, ensure:
+
+- [ ] Tests pass (`pnpm test`)
+- [ ] Linting passes (`pnpm lint`)
+- [ ] Build succeeds (`pnpm build`)
+- [ ] New features have tests
+- [ ] Documentation is updated
+- [ ] Commit messages follow conventions
+- [ ] Branch is rebased on latest `main`
+- [ ] No merge conflicts
+
+### PR Template
+
+```markdown
+## Description
+Brief description of what this PR does
+
+## Motivation
+Why is this change needed?
+
+## Changes
+- List of changes made
+- Each change on a new line
+
+## Testing
+How to test these changes
+
+## Breaking Changes
+Any breaking changes? (yes/no)
+If yes, describe migration path
+
+## Screenshots (if applicable)
+Add screenshots for UI changes
+```
+
+## PR Review Process
+
+### What to Expect
+
+1. **Automated checks** run on your PR (tests, linting, build)
+2. **Maintainer review** within 1-3 business days
+3. **Feedback and iteration** if changes are requested
+4. **Approval and merge** once all checks pass
+
+### Review Criteria
+
+Reviewers will check:
+- Code quality and style
+- Test coverage
+- Documentation completeness
+- Performance implications
+- Breaking changes
+- Security considerations
+
+### After Review
+
+If changes are requested:
+
+1. **Make the requested changes**
+2. **Run quality checks** (`pnpm test && pnpm lint`)
+3. **Commit and push** to update the PR
+4. **Respond to feedback** with comments
+
+## Project Structure
+
+Understanding the codebase:
+
+```
+packages/cobalt/
+├── src/
+│   ├── core/           # Core experiment runner
+│   ├── datasets/       # Dataset loading
+│   ├── evaluators/     # Evaluator implementations
+│   ├── cli/            # CLI commands
+│   ├── storage/        # Data persistence
+│   ├── utils/          # Utilities
+│   └── types/          # TypeScript types
+├── tests/              # Test suite
+├── docs/               # Documentation
+└── examples/           # Example projects
+```
+
+## Development Resources
+
+- **[CLAUDE.md](CLAUDE.md)** - Comprehensive development guide
+- **[README.md](README.md)** - User-facing documentation
+- **[.memory/](.memory/)** - Project context and decisions
+- **[docs/](docs/)** - Additional documentation
+
+## Community
+
+### Get Help
+
+- 💬 **Discord**: [Join our community](https://discord.gg/cobalt-ai) _(coming soon)_
+- 🐛 **Issues**: [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
+- 📖 **Docs**: [Documentation](.memory/)
+
+### Stay Updated
+
+- ⭐ **Star the repo** to follow development
+- 👀 **Watch releases** for new versions
+- 📢 **Follow discussions** for announcements
 
 ## License
 
-ISC
+By contributing to Cobalt, you agree that your contributions will be licensed under the [MIT License](LICENSE).
 
 ---
 
-## Links
-
-- [GitHub Repository](https://github.com/user/cobalt)
-- [Documentation](../../README.md)
-- [Issue Tracker](https://github.com/user/cobalt/issues)
-
----
-
-## Contributing
-
-Contributions are welcome! Please read the [contributing guidelines](../../CONTRIBUTING.md) before submitting PRs.
-
----
-
-## Support
-
-- 📧 Email: support@cobalt.dev (placeholder)
-- 💬 Discord: https://discord.gg/cobalt (placeholder)
-- 📖 Docs: https://docs.cobalt.dev (placeholder)
+Thank you for contributing to Cobalt! 🎉 Your help makes this project better for everyone.

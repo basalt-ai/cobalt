@@ -616,32 +616,24 @@ See the \`.memory/\` folder for detailed project documentation:
 
 We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or sharing feedback, your help is appreciated.
 
-### Ways to Contribute
+### Quick Start
 
-- **Report Issues**: Found a bug or have a feature request? [Open an issue](https://github.com/basalt-ai/cobalt/issues)
-- **Submit PRs**: Want to contribute code? Check out the [development guide](CLAUDE.md)
-- **Share Feedback**: Join discussions and help shape the future of Cobalt
-- **Write Plugins**: Create custom evaluators and share them with the community
-- **Improve Docs**: Help us make the documentation better
+- 🐛 **Report bugs**: [Open an issue](https://github.com/basalt-ai/cobalt/issues)
+- ✨ **Suggest features**: Share your ideas in [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
+- 💻 **Submit code**: Follow our [Contributing Guide](CONTRIBUTING.md)
+- 🔌 **Create plugins**: Extend Cobalt with custom evaluators
+- 📝 **Improve docs**: Help make our documentation better
 
-### Development Setup
+### For Contributors
 
-```bash
-# Clone the repository
-git clone https://github.com/basalt-ai/cobalt.git
-cd cobalt
+Please read our **[Contributing Guide](CONTRIBUTING.md)** for:
+- Development setup instructions
+- Code standards and guidelines
+- Testing requirements
+- Pull request process
+- Community guidelines
 
-# Install dependencies
-pnpm install
-
-# Run tests
-pnpm test
-
-# Build the project
-pnpm build
-```
-
-See [CLAUDE.md](CLAUDE.md) for detailed development guidelines.
+For detailed development workflows, see [CLAUDE.md](CLAUDE.md).
 
 ### Community
 
