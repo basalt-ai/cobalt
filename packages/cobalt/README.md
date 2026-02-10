@@ -320,6 +320,82 @@ Add to `.mcp.json`:
 
 ---
 
+## CI/CD Integration
+
+Cobalt provides pluggable reporters for different output formats, making it easy to integrate with CI/CD pipelines.
+
+### Reporters
+
+Configure reporters in your `cobalt.config.ts`:
+
+```typescript
+export default defineConfig({
+  reporters: ['cli', 'json', 'github-actions'] // default: ['cli', 'json']
+})
+```
+
+Available reporters:
+- **`cli`** - Terminal output with colors (default)
+- **`json`** - Structured JSON output for machine parsing
+- **`github-actions`** - GitHub Actions annotations and step summary
+
+### GitHub Actions Integration
+
+The `github-actions` reporter automatically enables when running in GitHub Actions (detects `GITHUB_ACTIONS=true` environment variable) and provides:
+
+- **Annotations**: Errors and warnings appear inline in your PR
+- **Step Summary**: Rich markdown summary with scores, costs, and metrics
+- **Threshold Violations**: Clear CI failures with detailed explanations
+
+Example GitHub Actions workflow:
+
+```yaml
+name: Cobalt Tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run Cobalt experiments
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npx cobalt run
+```
+
+The reporter will automatically:
+- Show progress with `::notice::` commands
+- Mark threshold failures with `::error::` annotations
+- Write a detailed summary to `$GITHUB_STEP_SUMMARY`
+
+### CI Mode with Thresholds
+
+Use thresholds to enforce quality gates in CI:
+
+```typescript
+experiment('my-test', dataset, agent, {
+  evaluators: [/* ... */],
+  thresholds: {
+    accuracy: { avg: 0.8, p95: 0.7 },
+    relevance: { passRate: 0.9, minScore: 0.6 }
+  }
+})
+```
+
+If thresholds are not met, the experiment will exit with code 1, failing your CI pipeline.
+
+See [ci-mode.md](./docs/ci-mode.md) for complete documentation.
+
+---
+
 ## TypeScript Types
 
 ### Core Types
