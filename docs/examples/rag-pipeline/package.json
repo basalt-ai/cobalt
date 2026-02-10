@@ -1,0 +1,19 @@
+{
+  "name": "cobalt-example-rag",
+  "version": "1.0.0",
+  "description": "Cobalt example: Testing RAG systems",
+  "type": "module",
+  "scripts": {
+    "test": "cobalt run rag.cobalt.ts"
+  },
+  "dependencies": {
+    "cobalt": "latest",
+    "openai": "^4.73.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.7.0"
+  },
+  "keywords": ["cobalt", "rag", "retrieval", "example"]
+}

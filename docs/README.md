@@ -1,6 +1,6 @@
 # Cobalt Documentation
 
-> **Cypress for AI Agents** — A TypeScript testing framework for AI agents and LLM applications
+> **Unit Testing for AI** — A TypeScript testing framework for AI agents and LLM applications
 
 Welcome to the Cobalt documentation! This guide will help you test, evaluate, and improve your AI agents with confidence.
 

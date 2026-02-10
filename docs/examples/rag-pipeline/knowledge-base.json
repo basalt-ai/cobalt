@@ -1,0 +1,12 @@
+[
+  {"id": "doc1", "content": "Paris is the capital and largest city of France. It is situated on the Seine River and is known for landmarks like the Eiffel Tower and the Louvre Museum."},
+  {"id": "doc2", "content": "Python is a high-level programming language known for its readability and versatility. It was created by Guido van Rossum and first released in 1991."},
+  {"id": "doc3", "content": "Photosynthesis is the process by which plants convert light energy into chemical energy. It occurs in chloroplasts and produces glucose and oxygen from carbon dioxide and water."},
+  {"id": "doc4", "content": "The Roman Empire was one of the largest empires in history, spanning from 27 BC to 476 AD in the West. Rome was its capital and the center of government."},
+  {"id": "doc5", "content": "Machine learning is a subset of artificial intelligence that enables systems to learn from data without explicit programming. Common algorithms include neural networks, decision trees, and support vector machines."},
+  {"id": "doc6", "content": "The water cycle describes how water moves through Earth's systems. It includes evaporation, condensation, precipitation, and collection in bodies of water."},
+  {"id": "doc7", "content": "JavaScript is a programming language primarily used for web development. It enables interactive web pages and runs in web browsers as well as server-side with Node.js."},
+  {"id": "doc8", "content": "Climate change refers to long-term shifts in temperatures and weather patterns. Human activities, especially burning fossil fuels, have significantly contributed to recent climate change."},
+  {"id": "doc9", "content": "The human heart is a muscular organ that pumps blood throughout the body. It has four chambers: two atria and two ventricles, and beats approximately 100,000 times per day."},
+  {"id": "doc10", "content": "Tokyo is the capital of Japan and one of the world's most populous cities. It is a major center for technology, culture, and finance."}
+]

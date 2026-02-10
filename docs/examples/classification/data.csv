@@ -1,0 +1,51 @@
+text,expected_label
+"This product exceeded my expectations! Absolutely love it.",POSITIVE
+"Terrible quality. Completely disappointed with this purchase.",NEGATIVE
+"The item arrived on time and matches the description.",NEUTRAL
+"Best investment I've made this year! Highly recommend.",POSITIVE
+"Waste of money. Don't buy this.",NEGATIVE
+"It's okay, nothing special but does the job.",NEUTRAL
+"Amazing service and great product quality!",POSITIVE
+"Horrible experience. Would not recommend to anyone.",NEGATIVE
+"Standard product, met basic expectations.",NEUTRAL
+"I'm thrilled with this purchase! Exceeded expectations.",POSITIVE
+"Very poor quality. Broke after one use.",NEGATIVE
+"Acceptable for the price. Nothing more, nothing less.",NEUTRAL
+"Fantastic! This is exactly what I needed.",POSITIVE
+"Complete garbage. Total rip-off.",NEGATIVE
+"Neutral feelings about this product.",NEUTRAL
+"Love it! Will definitely buy again.",POSITIVE
+"Awful product. Stay away.",NEGATIVE
+"It's fine. Neither good nor bad.",NEUTRAL
+"Outstanding quality and excellent customer service!",POSITIVE
+"Terrible. Returned immediately.",NEGATIVE
+"The product is adequate for basic use.",NEUTRAL
+"Brilliant! Solved all my problems.",POSITIVE
+"Worst purchase ever. Very disappointed.",NEGATIVE
+"Standard quality, as described.",NEUTRAL
+"Incredible value! So happy with this.",POSITIVE
+"Poor craftsmanship. Not worth it.",NEGATIVE
+"Meets expectations, nothing remarkable.",NEUTRAL
+"Perfect! Couldn't be happier.",POSITIVE
+"Disappointing quality for the price.",NEGATIVE
+"It does what it's supposed to do.",NEUTRAL
+"Excellent product! Highly satisfied.",POSITIVE
+"Not good. Many issues.",NEGATIVE
+"Average product with average performance.",NEUTRAL
+"Amazing! Best thing I've bought.",POSITIVE
+"Bad quality. Wouldn't buy again.",NEGATIVE
+"It's alright, serves its purpose.",NEUTRAL
+"Superb quality! Exceeded all expectations.",POSITIVE
+"Very unsatisfied. Many problems.",NEGATIVE
+"Standard item, nothing to complain about.",NEUTRAL
+"Love everything about it!",POSITIVE
+"Horrible. Do not purchase.",NEGATIVE
+"It's functional and that's about it.",NEUTRAL
+"Fantastic product! Worth every penny.",POSITIVE
+"Awful experience from start to finish.",NEGATIVE
+"The product works as intended.",NEUTRAL
+"Best purchase! Absolutely recommend.",POSITIVE
+"Terrible service and poor quality.",NEGATIVE
+"It's satisfactory for the price point.",NEUTRAL
+"Outstanding! Will buy more.",POSITIVE
+"Very poor. Major disappointment.",NEGATIVE
