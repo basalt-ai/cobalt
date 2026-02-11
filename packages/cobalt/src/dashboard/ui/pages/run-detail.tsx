@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { getRunDetail } from '../api/runs';
 import type { ItemResult, RunDetailResponse } from '../api/types';
+import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
 import { MetricCard } from '../components/data/metric-card';
 import { ScoreBadge } from '../components/data/score-badge';
 import { PageHeader } from '../components/layout/page-header';
@@ -263,30 +264,72 @@ function ItemsTable({
 	evaluatorNames: string[];
 	onItemClick: (item: ItemResult) => void;
 }) {
+	const [filters, setFilters] = useState<FilterValue[]>([]);
+
+	const filterDefs: FilterDef[] = useMemo(
+		() => [
+			{ key: 'latencyMs', label: 'Latency (ms)', type: 'number' },
+			{ key: 'hasError', label: 'Has Error', type: 'boolean' },
+			...evaluatorNames.map((n) => ({
+				key: `score_${n}`,
+				label: `${n} Score`,
+				type: 'number' as const,
+			})),
+		],
+		[evaluatorNames],
+	);
+
+	// Apply filters to items
+	const filteredItems = useMemo(() => {
+		if (filters.length === 0) return run.items;
+		return run.items.filter((item) =>
+			filters.every((f) => {
+				if (f.key === 'hasError') {
+					const hasErr = !!item.error;
+					return String(hasErr) === f.value;
+				}
+				if (f.key === 'latencyMs') {
+					return applyNumericFilter(item.latencyMs, f.operator, Number(f.value));
+				}
+				if (f.key.startsWith('score_')) {
+					const evalName = f.key.slice(6);
+					const score = item.evaluations[evalName]?.score;
+					if (score == null) return false;
+					return applyNumericFilter(score, f.operator, Number(f.value));
+				}
+				return true;
+			}),
+		);
+	}, [run.items, filters]);
+
 	// Compute AVG scores per evaluator for header
 	const evaluatorAvgs = useMemo(() => {
 		const avgs: Record<string, number> = {};
 		for (const name of evaluatorNames) {
-			const scores = run.items
+			const scores = filteredItems
 				.map((item) => item.evaluations[name]?.score)
 				.filter((s): s is number => s != null);
 			avgs[name] = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 		}
 		return avgs;
-	}, [run.items, evaluatorNames]);
+	}, [filteredItems, evaluatorNames]);
 
 	// Compute avg latency for header
 	const avgLatency = useMemo(() => {
-		if (run.items.length === 0) return 0;
-		return run.items.reduce((sum, i) => sum + i.latencyMs, 0) / run.items.length;
-	}, [run.items]);
+		if (filteredItems.length === 0) return 0;
+		return filteredItems.reduce((sum, i) => sum + i.latencyMs, 0) / filteredItems.length;
+	}, [filteredItems]);
 
-	const hasErrors = run.items.some((item) => item.error);
+	const hasErrors = filteredItems.some((item) => item.error);
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-			<div className="border-b bg-muted/50 px-4 py-3">
-				<h2 className="text-sm font-semibold">Items ({run.items.length})</h2>
+			<div className="border-b bg-muted/50 px-4 py-3 flex items-center justify-between gap-4">
+				<h2 className="text-sm font-semibold">
+					Items ({filteredItems.length}
+					{filteredItems.length !== run.items.length && ` of ${run.items.length}`})
+				</h2>
+				<FilterBar filters={filters} onFiltersChange={setFilters} filterDefs={filterDefs} />
 			</div>
 			<div className="overflow-x-auto">
 				<table className="w-full text-sm">
@@ -315,7 +358,7 @@ function ItemsTable({
 						</tr>
 					</thead>
 					<tbody>
-						{run.items.map((item) => (
+						{filteredItems.map((item) => (
 							<tr
 								key={item.index}
 								className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
@@ -421,6 +464,23 @@ function ItemDetailDialog({
 			</DialogContent>
 		</Dialog>
 	);
+}
+
+function applyNumericFilter(val: number, op: FilterValue['operator'], target: number): boolean {
+	switch (op) {
+		case 'eq':
+			return val === target;
+		case 'gt':
+			return val > target;
+		case 'lt':
+			return val < target;
+		case 'gte':
+			return val >= target;
+		case 'lte':
+			return val <= target;
+		default:
+			return true;
+	}
 }
 
 function truncateValue(value: unknown): string {

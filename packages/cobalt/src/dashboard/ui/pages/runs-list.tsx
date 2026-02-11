@@ -1,8 +1,15 @@
 import { ArrowRight, MagnifyingGlass } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { getRuns } from '../api/runs';
 import type { ResultSummary, RunsResponse } from '../api/types';
+import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
+import {
+	FilterBar,
+	type FilterDef,
+	type FilterValue,
+	applyFilters,
+} from '../components/data/filter-bar';
 import { ScoreBadge } from '../components/data/score-badge';
 import { PageHeader } from '../components/layout/page-header';
 import { Badge } from '../components/ui/badge';
@@ -20,6 +27,8 @@ export function RunsListPage() {
 	const [selected, setSelected] = useState<Set<string>>(new Set());
 	const [sortKey, setSortKey] = useState<SortKey>('timestamp');
 	const [sortDir, setSortDir] = useState<SortDir>('desc');
+	const [filters, setFilters] = useState<FilterValue[]>([]);
+	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
 	const navigate = useNavigate();
 
 	function handleSort(key: SortKey) {
@@ -78,9 +87,59 @@ export function RunsListPage() {
 		);
 	}
 
-	const filtered = data.runs
-		.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()))
-		.sort((a, b) => {
+	const evaluatorNames = getEvaluatorNames(data.runs);
+
+	// Build filter definitions from available data
+	const allTags = useMemo(() => {
+		const tags = new Set<string>();
+		for (const run of data.runs) {
+			for (const tag of run.tags) tags.add(tag);
+		}
+		return Array.from(tags);
+	}, [data.runs]);
+
+	const filterDefs: FilterDef[] = useMemo(
+		() => [
+			{ key: 'name', label: 'Name', type: 'text' },
+			...(allTags.length > 0
+				? [{ key: 'tags', label: 'Tag', type: 'select' as const, options: allTags }]
+				: []),
+			{ key: 'totalItems', label: 'Items', type: 'number' },
+			{ key: 'durationMs', label: 'Duration (ms)', type: 'number' },
+		],
+		[allTags],
+	);
+
+	const displayColumns = useMemo(
+		() => [
+			{ key: 'date', label: 'Date' },
+			{ key: 'items', label: 'Items' },
+			{ key: 'duration', label: 'Duration' },
+			...evaluatorNames.map((n) => ({ key: `score_${n}`, label: n })),
+			{ key: 'tags', label: 'Tags' },
+		],
+		[evaluatorNames],
+	);
+
+	// Apply search, filters, and sort
+	const filtered = useMemo(() => {
+		let result = data.runs.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
+
+		// Apply tag filters specially (check if any tag matches)
+		const tagFilters = filters.filter((f) => f.key === 'tags');
+		const otherFilters = filters.filter((f) => f.key !== 'tags');
+
+		if (tagFilters.length > 0) {
+			result = result.filter((r) =>
+				tagFilters.every((f) =>
+					r.tags.some((t) => t.toLowerCase().includes(f.value.toLowerCase())),
+				),
+			);
+		}
+
+		result = applyFilters(result, otherFilters);
+
+		result.sort((a, b) => {
 			const dir = sortDir === 'asc' ? 1 : -1;
 			if (sortKey === 'name') return a.name.localeCompare(b.name) * dir;
 			if (sortKey === 'timestamp')
@@ -90,22 +149,33 @@ export function RunsListPage() {
 			return 0;
 		});
 
-	const evaluatorNames = getEvaluatorNames(data.runs);
+		return result;
+	}, [data.runs, search, filters, sortKey, sortDir]);
 
 	return (
 		<div className="space-y-4">
 			<PageHeader title="Experiment Runs" description={`${data.runs.length} runs recorded`}>
-				<div className="relative">
-					<MagnifyingGlass className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-					<input
-						type="text"
-						placeholder="Search experiments..."
-						value={search}
-						onChange={(e) => setSearch(e.target.value)}
-						className="h-9 w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+				<div className="flex items-center gap-2">
+					<div className="relative">
+						<MagnifyingGlass className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+						<input
+							type="text"
+							placeholder="Search experiments..."
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							className="h-9 w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+						/>
+					</div>
+					<DisplayOptions
+						columns={displayColumns}
+						visibility={columnVisibility}
+						onVisibilityChange={setColumnVisibility}
 					/>
 				</div>
 			</PageHeader>
+
+			{/* Filter Bar */}
+			<FilterBar filters={filters} onFiltersChange={setFilters} filterDefs={filterDefs} />
 
 			<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
 				<div className="overflow-x-auto">
@@ -122,35 +192,48 @@ export function RunsListPage() {
 									dir={sortDir}
 									onSort={handleSort}
 								/>
-								<SortableHeader
-									label="Date"
-									sortKey="timestamp"
-									currentKey={sortKey}
-									dir={sortDir}
-									onSort={handleSort}
-								/>
-								<SortableHeader
-									label="Items"
-									sortKey="totalItems"
-									currentKey={sortKey}
-									dir={sortDir}
-									onSort={handleSort}
-									className="text-right"
-								/>
-								<SortableHeader
-									label="Duration"
-									sortKey="durationMs"
-									currentKey={sortKey}
-									dir={sortDir}
-									onSort={handleSort}
-									className="text-right"
-								/>
-								{evaluatorNames.map((name) => (
-									<th key={name} className="px-3 py-3 text-right font-medium text-muted-foreground">
-										{name}
-									</th>
-								))}
-								<th className="px-3 py-3 font-medium text-muted-foreground">Tags</th>
+								{columnVisibility.date !== false && (
+									<SortableHeader
+										label="Date"
+										sortKey="timestamp"
+										currentKey={sortKey}
+										dir={sortDir}
+										onSort={handleSort}
+									/>
+								)}
+								{columnVisibility.items !== false && (
+									<SortableHeader
+										label="Items"
+										sortKey="totalItems"
+										currentKey={sortKey}
+										dir={sortDir}
+										onSort={handleSort}
+										className="text-right"
+									/>
+								)}
+								{columnVisibility.duration !== false && (
+									<SortableHeader
+										label="Duration"
+										sortKey="durationMs"
+										currentKey={sortKey}
+										dir={sortDir}
+										onSort={handleSort}
+										className="text-right"
+									/>
+								)}
+								{evaluatorNames.map((name) =>
+									columnVisibility[`score_${name}`] !== false ? (
+										<th
+											key={name}
+											className="px-3 py-3 text-right font-medium text-muted-foreground"
+										>
+											{name}
+										</th>
+									) : null,
+								)}
+								{columnVisibility.tags !== false && (
+									<th className="px-3 py-3 font-medium text-muted-foreground">Tags</th>
+								)}
 								<th className="w-10 px-3 py-3" />
 							</tr>
 						</thead>
@@ -184,31 +267,41 @@ export function RunsListPage() {
 											{run.name}
 										</Link>
 									</td>
-									<td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
-										{formatRelativeTime(run.timestamp)}
-									</td>
-									<td className="px-3 py-3 text-right tabular-nums">{run.totalItems}</td>
-									<td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
-										{formatDuration(run.durationMs)}
-									</td>
-									{evaluatorNames.map((name) => (
-										<td key={name} className="px-3 py-3 text-right">
-											{run.avgScores[name] != null ? (
-												<ScoreBadge score={run.avgScores[name]} />
-											) : (
-												<span className="text-muted-foreground">-</span>
-											)}
+									{columnVisibility.date !== false && (
+										<td className="px-3 py-3 text-muted-foreground whitespace-nowrap">
+											{formatRelativeTime(run.timestamp)}
 										</td>
-									))}
-									<td className="px-3 py-3">
-										<div className="flex gap-1 flex-wrap">
-											{run.tags.map((tag) => (
-												<Badge key={tag} color="sand" size="xs">
-													{tag}
-												</Badge>
-											))}
-										</div>
-									</td>
+									)}
+									{columnVisibility.items !== false && (
+										<td className="px-3 py-3 text-right tabular-nums">{run.totalItems}</td>
+									)}
+									{columnVisibility.duration !== false && (
+										<td className="px-3 py-3 text-right tabular-nums text-muted-foreground">
+											{formatDuration(run.durationMs)}
+										</td>
+									)}
+									{evaluatorNames.map((name) =>
+										columnVisibility[`score_${name}`] !== false ? (
+											<td key={name} className="px-3 py-3 text-right">
+												{run.avgScores[name] != null ? (
+													<ScoreBadge score={run.avgScores[name]} />
+												) : (
+													<span className="text-muted-foreground">-</span>
+												)}
+											</td>
+										) : null,
+									)}
+									{columnVisibility.tags !== false && (
+										<td className="px-3 py-3">
+											<div className="flex gap-1 flex-wrap">
+												{run.tags.map((tag) => (
+													<Badge key={tag} color="sand" size="xs">
+														{tag}
+													</Badge>
+												))}
+											</div>
+										</td>
+									)}
 									<td className="px-3 py-3">
 										<ArrowRight className="h-4 w-4 text-muted-foreground" />
 									</td>
