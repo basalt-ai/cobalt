@@ -27,7 +27,9 @@ export default defineConfig({
 					recharts: ['recharts'],
 					radix: [
 						'@radix-ui/react-dialog',
+						'@radix-ui/react-popover',
 						'@radix-ui/react-select',
+						'@radix-ui/react-switch',
 						'@radix-ui/react-tabs',
 						'@radix-ui/react-tooltip',
 					],
