@@ -7,7 +7,7 @@ import type { RunAggregation, ScoreStats } from '../types/index.js';
  */
 export function calculateStats(scores: number[]): ScoreStats {
 	if (scores.length === 0) {
-		return { avg: 0, min: 0, max: 0, p50: 0, p95: 0 };
+		return { avg: 0, min: 0, max: 0, p50: 0, p95: 0, p99: 0 };
 	}
 
 	const sorted = [...scores].sort((a, b) => a - b);
@@ -19,6 +19,7 @@ export function calculateStats(scores: number[]): ScoreStats {
 		max: sorted[sorted.length - 1],
 		p50: percentile(sorted, 50),
 		p95: percentile(sorted, 95),
+		p99: percentile(sorted, 99),
 	};
 }
 
@@ -76,6 +77,7 @@ export function calculateRunStats(scores: number[]): RunAggregation {
 			max: 0,
 			p50: 0,
 			p95: 0,
+			p99: 0,
 			scores: [],
 		};
 	}
@@ -90,6 +92,7 @@ export function calculateRunStats(scores: number[]): RunAggregation {
 		max: sorted[sorted.length - 1],
 		p50: percentile(sorted, 50),
 		p95: percentile(sorted, 95),
+		p99: percentile(sorted, 99),
 		scores: [...scores], // copy for reference
 	};
 }

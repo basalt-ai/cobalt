@@ -68,15 +68,7 @@ export function TrendsPage() {
 		return getTrends(activeExperiment);
 	}, [activeExperiment]);
 
-	function handleExperimentChange(name: string) {
-		setSearchParams({ experiment: name });
-	}
-
-	if (!runsData && !experiment) {
-		return <LoadingSkeleton />;
-	}
-
-	// Get all evaluator names from trend data
+	// All hooks must be called before any conditional returns (Rules of Hooks)
 	const evaluatorNames = useMemo(() => {
 		if (!trendsData?.trends?.length) return [];
 		const names = new Set<string>();
@@ -88,7 +80,6 @@ export function TrendsPage() {
 		return Array.from(names);
 	}, [trendsData]);
 
-	// Prepare chart data
 	const chartData = useMemo(() => {
 		if (!trendsData?.trends?.length) return [];
 		return trendsData.trends.map((point) => ({
@@ -101,6 +92,14 @@ export function TrendsPage() {
 			...point.scores,
 		}));
 	}, [trendsData]);
+
+	function handleExperimentChange(name: string) {
+		setSearchParams({ experiment: name });
+	}
+
+	if (!runsData && !experiment) {
+		return <LoadingSkeleton />;
+	}
 
 	return (
 		<div className="space-y-6">
