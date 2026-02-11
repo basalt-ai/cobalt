@@ -1,5 +1,5 @@
 import { ArrowLeft, CheckCircle, Clock, Warning, XCircle } from '@phosphor-icons/react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { getRunDetail } from '../api/runs';
 import type { ItemResult, RunDetailResponse } from '../api/types';
@@ -16,8 +16,16 @@ import {
 	DialogTitle,
 } from '../components/ui/dialog';
 import { Skeleton } from '../components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useApi } from '../hooks/use-api';
-import { cn, formatDate, formatDuration, formatScore } from '../lib/utils';
+import {
+	type ClientStats,
+	cn,
+	computeClientStats,
+	formatDate,
+	formatDuration,
+	formatScore,
+} from '../lib/utils';
 
 export function RunDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -95,19 +103,14 @@ export function RunDetailPage() {
 				<div
 					className={cn(
 						'rounded-xl border p-4',
-						run.ciStatus.passed
-							? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950'
-							: 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950',
+						run.ciStatus.passed ? 'border-lime-5 bg-lime-3' : 'border-tomato-5 bg-tomato-3',
 					)}
 				>
 					<div className="flex items-center gap-2">
 						{run.ciStatus.passed ? (
-							<CheckCircle
-								weight="fill"
-								className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
-							/>
+							<CheckCircle weight="fill" className="h-5 w-5 text-grass-11" />
 						) : (
-							<XCircle weight="fill" className="h-5 w-5 text-red-600 dark:text-red-400" />
+							<XCircle weight="fill" className="h-5 w-5 text-tomato-11" />
 						)}
 						<span className="font-medium">CI: {run.ciStatus.passed ? 'Passed' : 'Failed'}</span>
 					</div>
@@ -123,129 +126,238 @@ export function RunDetailPage() {
 				</div>
 			)}
 
-			{/* Scores by Evaluator */}
-			<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-				<div className="border-b bg-muted/50 px-4 py-3">
-					<h2 className="text-sm font-semibold">Scores by Evaluator</h2>
-				</div>
-				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
-						<thead>
-							<tr className="border-b">
-								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
-									Evaluator
-								</th>
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Avg</th>
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Min</th>
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Max</th>
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P50</th>
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P95</th>
-							</tr>
-						</thead>
-						<tbody>
-							{Object.entries(run.summary.scores).map(([name, stats]) => (
-								<tr key={name} className="border-b last:border-0">
-									<td className="px-4 py-2.5 font-medium">{name}</td>
-									<td className="px-4 py-2.5 text-right">
-										<ScoreBadge score={stats.avg} />
-									</td>
-									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-										{formatScore(stats.min)}%
-									</td>
-									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-										{formatScore(stats.max)}%
-									</td>
-									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-										{formatScore(stats.p50)}%
-									</td>
-									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-										{formatScore(stats.p95)}%
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			</div>
+			{/* Metrics Tabs */}
+			<MetricsTabs run={data.run} evaluatorNames={evaluatorNames} />
 
-			{/* Items */}
-			<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-				<div className="border-b bg-muted/50 px-4 py-3">
-					<h2 className="text-sm font-semibold">Items ({run.items.length})</h2>
-				</div>
-				<div className="overflow-x-auto">
-					<table className="w-full text-sm">
-						<thead>
-							<tr className="border-b">
-								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground w-10">#</th>
-								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
-								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
-									<Clock className="inline h-3.5 w-3.5" />
-								</th>
-								{evaluatorNames.map((name) => (
-									<th
-										key={name}
-										className="px-4 py-2.5 text-right font-medium text-muted-foreground"
-									>
-										{name}
-									</th>
-								))}
-								{run.items.some((item) => item.error) && (
-									<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Error</th>
-								)}
-							</tr>
-						</thead>
-						<tbody>
-							{run.items.map((item) => (
-								<tr
-									key={item.index}
-									className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
-									onClick={() => setSelectedItem(item)}
-									onKeyDown={(e) => e.key === 'Enter' && setSelectedItem(item)}
-								>
-									<td className="px-4 py-2.5 tabular-nums text-muted-foreground">
-										{item.index + 1}
-									</td>
-									<td className="px-4 py-2.5 max-w-48">
-										<span className="line-clamp-2 text-xs text-muted-foreground">
-											{truncateValue(item.input)}
-										</span>
-									</td>
-									<td className="px-4 py-2.5 max-w-48">
-										<span className="line-clamp-2 text-xs">{truncateValue(item.output)}</span>
-									</td>
-									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
-										{formatDuration(item.latencyMs)}
-									</td>
-									{evaluatorNames.map((name) => (
-										<td key={name} className="px-4 py-2.5 text-right">
-											{item.evaluations[name] ? (
-												<ScoreBadge score={item.evaluations[name].score} />
-											) : (
-												<span className="text-muted-foreground">-</span>
-											)}
-										</td>
-									))}
-									{run.items.some((i) => i.error) && (
-										<td className="px-4 py-2.5">
-											{item.error && (
-												<Badge color="tomato" size="xs" variant="outline">
-													<Warning className="h-3 w-3 mr-0.5" />
-													Error
-												</Badge>
-											)}
-										</td>
-									)}
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			</div>
+			{/* Items Table */}
+			<ItemsTable run={data.run} evaluatorNames={evaluatorNames} onItemClick={setSelectedItem} />
 
 			{/* Item Detail Dialog */}
 			<ItemDetailDialog item={selectedItem} onClose={() => setSelectedItem(null)} />
+		</div>
+	);
+}
+
+function MetricsTabs({
+	run,
+	evaluatorNames,
+}: {
+	run: RunDetailResponse['run'];
+	evaluatorNames: string[];
+}) {
+	const latencyStats = useMemo(
+		() => computeClientStats(run.items.map((i) => i.latencyMs)),
+		[run.items],
+	);
+
+	return (
+		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+			<Tabs defaultValue="scores">
+				<div className="border-b bg-muted/50 px-4 py-2">
+					<TabsList>
+						<TabsTrigger value="scores">Scores</TabsTrigger>
+						<TabsTrigger value="latency">Latency</TabsTrigger>
+					</TabsList>
+				</div>
+
+				<TabsContent value="scores" className="mt-0">
+					<div className="overflow-x-auto">
+						<table className="w-full text-sm">
+							<thead>
+								<tr className="border-b">
+									<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
+										Evaluator
+									</th>
+									<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Avg</th>
+									<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Min</th>
+									<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Max</th>
+									<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P50</th>
+									<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P95</th>
+									<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P99</th>
+								</tr>
+							</thead>
+							<tbody>
+								{Object.entries(run.summary.scores).map(([name, stats]) => (
+									<tr key={name} className="border-b last:border-0">
+										<td className="px-4 py-2.5 font-medium">{name}</td>
+										<td className="px-4 py-2.5 text-right">
+											<ScoreBadge score={stats.avg} />
+										</td>
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{formatScore(stats.min)}%
+										</td>
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{formatScore(stats.max)}%
+										</td>
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{formatScore(stats.p50)}%
+										</td>
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{formatScore(stats.p95)}%
+										</td>
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{stats.p99 != null ? `${formatScore(stats.p99)}%` : '-'}
+										</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				</TabsContent>
+
+				<TabsContent value="latency" className="mt-0">
+					<LatencyStatsTable stats={latencyStats} />
+				</TabsContent>
+			</Tabs>
+		</div>
+	);
+}
+
+function LatencyStatsTable({ stats }: { stats: ClientStats }) {
+	return (
+		<div className="overflow-x-auto">
+			<table className="w-full text-sm">
+				<thead>
+					<tr className="border-b">
+						<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Metric</th>
+						<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Avg</th>
+						<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Min</th>
+						<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Max</th>
+						<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P50</th>
+						<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P95</th>
+						<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P99</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr className="border-b last:border-0">
+						<td className="px-4 py-2.5 font-medium">Latency</td>
+						<td className="px-4 py-2.5 text-right tabular-nums">{formatDuration(stats.avg)}</td>
+						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+							{formatDuration(stats.min)}
+						</td>
+						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+							{formatDuration(stats.max)}
+						</td>
+						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+							{formatDuration(stats.p50)}
+						</td>
+						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+							{formatDuration(stats.p95)}
+						</td>
+						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+							{formatDuration(stats.p99)}
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
+function ItemsTable({
+	run,
+	evaluatorNames,
+	onItemClick,
+}: {
+	run: RunDetailResponse['run'];
+	evaluatorNames: string[];
+	onItemClick: (item: ItemResult) => void;
+}) {
+	// Compute AVG scores per evaluator for header
+	const evaluatorAvgs = useMemo(() => {
+		const avgs: Record<string, number> = {};
+		for (const name of evaluatorNames) {
+			const scores = run.items
+				.map((item) => item.evaluations[name]?.score)
+				.filter((s): s is number => s != null);
+			avgs[name] = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+		}
+		return avgs;
+	}, [run.items, evaluatorNames]);
+
+	// Compute avg latency for header
+	const avgLatency = useMemo(() => {
+		if (run.items.length === 0) return 0;
+		return run.items.reduce((sum, i) => sum + i.latencyMs, 0) / run.items.length;
+	}, [run.items]);
+
+	const hasErrors = run.items.some((item) => item.error);
+
+	return (
+		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+			<div className="border-b bg-muted/50 px-4 py-3">
+				<h2 className="text-sm font-semibold">Items ({run.items.length})</h2>
+			</div>
+			<div className="overflow-x-auto">
+				<table className="w-full text-sm">
+					<thead>
+						<tr className="border-b">
+							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground w-10">#</th>
+							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
+							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
+							<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
+								<div className="flex flex-col items-end gap-0.5">
+									<Clock className="inline h-3.5 w-3.5" />
+									<span className="text-[10px] tabular-nums">{formatDuration(avgLatency)}</span>
+								</div>
+							</th>
+							{evaluatorNames.map((name) => (
+								<th key={name} className="px-4 py-2.5 text-right font-medium text-muted-foreground">
+									<div className="flex flex-col items-end gap-0.5">
+										<span>{name}</span>
+										<ScoreBadge score={evaluatorAvgs[name]} />
+									</div>
+								</th>
+							))}
+							{hasErrors && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Error</th>
+							)}
+						</tr>
+					</thead>
+					<tbody>
+						{run.items.map((item) => (
+							<tr
+								key={item.index}
+								className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
+								onClick={() => onItemClick(item)}
+								onKeyDown={(e) => e.key === 'Enter' && onItemClick(item)}
+							>
+								<td className="px-4 py-2.5 tabular-nums text-muted-foreground">{item.index + 1}</td>
+								<td className="px-4 py-2.5 max-w-48">
+									<span className="line-clamp-2 text-xs text-muted-foreground">
+										{truncateValue(item.input)}
+									</span>
+								</td>
+								<td className="px-4 py-2.5 max-w-48">
+									<span className="line-clamp-2 text-xs">{truncateValue(item.output)}</span>
+								</td>
+								<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
+									{formatDuration(item.latencyMs)}
+								</td>
+								{evaluatorNames.map((name) => (
+									<td key={name} className="px-4 py-2.5 text-right">
+										{item.evaluations[name] ? (
+											<ScoreBadge score={item.evaluations[name].score} />
+										) : (
+											<span className="text-muted-foreground">-</span>
+										)}
+									</td>
+								))}
+								{hasErrors && (
+									<td className="px-4 py-2.5">
+										{item.error && (
+											<Badge color="tomato" size="xs" variant="outline">
+												<Warning className="h-3 w-3 mr-0.5" />
+												Error
+											</Badge>
+										)}
+									</td>
+								)}
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
 		</div>
 	);
 }
@@ -284,8 +396,8 @@ function ItemDetailDialog({
 
 					{item.error && (
 						<div>
-							<h4 className="text-xs font-medium text-destructive mb-1">Error</h4>
-							<pre className="rounded-lg bg-red-50 dark:bg-red-950 p-3 text-xs text-red-800 dark:text-red-300 overflow-x-auto">
+							<h4 className="text-xs font-medium text-tomato-11 mb-1">Error</h4>
+							<pre className="rounded-lg bg-tomato-3 p-3 text-xs text-tomato-12 overflow-x-auto">
 								{item.error}
 							</pre>
 						</div>
