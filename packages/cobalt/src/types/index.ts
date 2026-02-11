@@ -2,6 +2,8 @@
  * Core types for Cobalt AI testing framework
  */
 
+import type { Evaluator } from '../core/Evaluator.js';
+
 // ============================================================================
 // Dataset Types
 // ============================================================================
@@ -100,7 +102,7 @@ export interface RunnerContext {
 export type RunnerFunction = (context: RunnerContext) => Promise<ExperimentResult>;
 
 export interface ExperimentOptions {
-	evaluators: EvaluatorConfig[];
+	evaluators: (EvaluatorConfig | Evaluator)[];
 	runs?: number; // default: 1
 	concurrency?: number; // default: 5
 	timeout?: number; // default: 30_000

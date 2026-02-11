@@ -659,41 +659,46 @@ vi.mock('openai', () => ({
 
 ## Deferred Decisions
 
-### DD-001: Dashboard UI Framework
-**Status**: Deferred to P4  
-**Context**: Dashboard API is built (Hono), but React UI is not implemented.
+### AD-026: Dashboard Frontend — Vite + React SPA Inside src/dashboard/ui/
+**Date**: 2026-02-10
+**Status**: Accepted
+**Alternatives Considered**: Next.js (static export), Next.js (full-stack), separate `packages/dashboard/`
 
-**Options under consideration**:
-- React + Vite
-- Solid.js
-- Svelte
+**Decision**: Use Vite + React SPA colocated with the backend at `src/dashboard/ui/`, built to `dist/dashboard/`.
 
-**Blocked by**: P4 prioritization, UI requirements not fully defined
+**Rationale**:
+- Single npm package — `cobalt serve` serves everything from `dist/`
+- No SSR needed — pure client SPA with API proxy in dev
+- Cohesive: API (`src/dashboard/api/`) and UI (`src/dashboard/ui/`) are siblings
+- Build pipeline: tsup (library) → Vite (dashboard), both output to `dist/`
+- Next.js adds unnecessary complexity for a local dashboard
+- Vite gives HMR in dev, optimized build in prod
+
+**Architecture**:
+- Dev: Vite dev server on :5173 proxies `/api` to Hono on :4000
+- Prod: Hono serves `dist/dashboard/` static files + SPA fallback
+- React Router v7 for client-side routing
+- Typed API client layer mirrors backend types
+
+**Consequences**:
+- ✅ Single `dist/` folder, single npm package
+- ✅ Clean dev workflow (Vite HMR + API proxy)
+- ✅ No SSR complexity
+- ✅ Future-ready for cloud version (same React codebase)
+- ❌ Dashboard not functional without build step
+- ❌ Adds React/Vite deps to the main package
 
 ---
 
-### DD-002: Similarity Evaluator Implementation
-**Status**: Deferred to P2  
-**Context**: Interface defined, but implementation stubbed (throws error).
-
-**Options under consideration**:
-- OpenAI embeddings (text-embedding-3-small/large)
-- Cohere embeddings
-- Local embeddings (e.g., sentence-transformers via ONNX)
-
-**Blocked by**: P2 prioritization, need to decide on embedding provider
+### DD-002: Similarity Evaluator — Multi-Provider Support
+**Status**: Deferred to P5
+**Context**: OpenAI embeddings implemented in P2. Multi-provider (Cohere, local) deferred.
 
 ---
 
 ### DD-003: Remote Dataset Support
-**Status**: Deferred to P3  
-
-**Options under consideration**:
-- bdataset integration
-- HTTP URLs (fetch JSON/JSONL/CSV)
-- S3/cloud storage
-
-**Blocked by**: P3 prioritization, authentication story not defined
+**Status**: Resolved ✅ (P3 complete)
+**Resolution**: Implemented 5 platform loaders (HTTP, Langfuse, LangSmith, Braintrust, Basalt)
 
 ---
 

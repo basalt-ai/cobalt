@@ -1,68 +1,67 @@
 # Roadmap
 
-## Current Status: Bootstrap Complete ✅
+## Current Status: P0–P3 Complete, P4 In Progress
 
-The project foundation is fully set up with all infrastructure, tooling, and example code in place.
+Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"). Core features are production-ready. Dashboard frontend is being scaffolded.
 
-## Next Phase: Domain Implementation
+## Completed
 
-After this bootstrap is verified and committed, the next steps will be:
+### P0 — MVP ✅
+- [x] `experiment()` runner with parallel execution
+- [x] `Evaluator` types: `llm-judge`, `function`
+- [x] `Dataset` inline and `fromFile` (JSON)
+- [x] CLI `cobalt run` with terminal reporter
+- [x] Save results as JSON in `.cobalt/results/`
+- [x] `cobalt init` scaffolding
+- [x] `defineConfig` with config file loading
 
-### 1. Domain Definition
-- Define the actual business domain and entities
-- Design the database schema for real features
-- Create domain models and business logic
+### P1 — Usable ✅
+- [x] Evaluator type `exact-match`
+- [x] LLM judge response cache
+- [x] `Dataset.sample()` and `Dataset.slice()`
+- [x] `--filter` for `cobalt run`
+- [x] Cost estimation in reports
+- [x] Dataset `fromFile` CSV and JSONL
 
-### 2. Authentication & Authorization
-- Choose auth strategy (JWT, sessions, OAuth)
-- Implement user registration and login
-- Add authorization middleware
-- Create user management endpoints
+### P2 — Powerful ✅
+- [x] Evaluator type `similarity` (embeddings)
+- [x] `runs > 1` with statistical aggregation
+- [x] `cobalt compare` CLI
+- [x] `cobalt history` CLI
 
-### 3. Core Features
-*To be defined based on product requirements*
+### P3 — Connected ✅
+- [x] Remote datasets (Langfuse, LangSmith, Braintrust, Basalt)
+- [x] Built-in RAGAS-style evaluators (Autoevals — 11 types)
+- [x] MCP implementation (4 tools, 3 resources, 3 prompts)
+- [x] CI mode (`cobalt run --ci` with thresholds)
+- [x] GitHub Actions reporter
+- [x] Plugin system for custom evaluators
 
-### 4. SDK Development
-- Implement TypeScript SDK in `/packages/sdk`
-- Add API client methods
-- Include type exports
-- Prepare for npm publishing
+## In Progress
 
-### 5. CI/CD Pipeline
-- Create GitHub Actions workflow
-- Add automated testing on PRs
-- Set up deployment pipeline
-- Configure environment variables
+### P4 — Dashboard 🔄
+- [x] Hono backend API (`cobalt serve`)
+- [x] SQLite history.db for dashboard queries
+- [x] Dashboard frontend scaffolding (Vite + React SPA)
+- [x] Runs list page (with data fetching)
+- [x] Run detail page (summary, scores, items table)
+- [ ] UI library integration + styled pages
+- [ ] Compare page (2 runs side-by-side)
+- [ ] Trends page (evolution graphs)
+- [ ] Tags and filtering in dashboard
+- [ ] Export results (CSV, Markdown)
 
-### 6. Production Readiness
-- Add error monitoring (Sentry)
-- Implement rate limiting
-- Set up caching strategy (Redis)
-- Add API documentation (OpenAPI/Swagger)
-- Performance optimization
-- Security audit
+## Future
 
-### 7. Open Source Preparation
-- Polish documentation
-- Add contributing guidelines
-- Choose appropriate license
-- Create issue templates
-- Set up community guidelines
+### P5 — Polish
+- [ ] Similarity evaluator: multi-provider (Cohere, local)
+- [ ] Dashboard real-time updates during experiment runs
+- [ ] Plugin auto-discovery from npm packages
+- [ ] More comprehensive integration tests
+- [ ] CLI integration tests
 
-## Future Enhancements
+## Technical Debt
 
-- GraphQL API layer (optional)
-- WebSocket support for real-time features
-- Background job processing
-- Email service integration
-- File upload handling
-- Search functionality
-- Analytics and metrics
-- Admin dashboard
-
-## Technical Debt to Monitor
-
-- Consider DI container when app grows beyond current complexity
-- May need to split into separate apps if deployment requirements change
-- Watch for N+1 query issues as features are added
-- Monitor bundle size as dependencies increase
+- Fix pre-existing llm-judge.ts DTS warnings
+- Add CLI command integration tests
+- Dashboard pages need UI library styling (user will provide)

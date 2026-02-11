@@ -547,13 +547,14 @@ The dashboard frontend is in a separate `dashboard-ui/` folder (React app), buil
 - [x] Native integration with RAGAS, DeepEval, AutoEval etc.. (Autoevals complete)
 - [x] MCP implementation (see bellow)
 - [x] CI mode (`cobalt run --ci` — exit code based on thresholds)
-- [ ] GitHub Actions reporter
+- [x] GitHub Actions reporter
 - [x] Plugin system for custom evaluators
-- [ ] Webhooks (notify an external service after a run)
+
 
 ### P4 — Dashboard
-- [ ] CLI `cobalt serve` with basic dashboard (run list + detail)
-- [ ] SQLite history.db for the dashboard
+- [x] CLI `cobalt serve` with basic dashboard (run list + detail)
+- [x] SQLite history.db for the dashboard
+- [x] Dashboard frontend scaffolding (Vite + React SPA)
 - [ ] Dashboard Compare page (2 runs side-by-side)
 - [ ] Dashboard Trends page (evolution graphs)
 - [ ] Tags and filtering in the dashboard
