@@ -1,90 +1,91 @@
 import type { Context } from 'hono';
 import { loadResult } from '../../storage/results.js';
+import type { ExperimentReport, ExperimentSummary, ItemEvaluation } from '../../types/index.js';
+
+interface CompareRunInfo {
+	id: string;
+	name: string;
+	timestamp: string;
+	summary: ExperimentSummary;
+}
+
+interface CompareItemOutput {
+	output: unknown;
+	latencyMs: number;
+	evaluations: Record<string, ItemEvaluation>;
+	error?: string;
+}
 
 /**
- * GET /api/compare?a=runId1&b=runId2
- * Compare two experiment runs
+ * GET /api/compare?a=runId1&b=runId2&c=runId3 (c is optional)
+ * Compare 2 or 3 experiment runs side-by-side
  */
 export async function compareRuns(c: Context) {
 	try {
-		const { a, b } = c.req.query();
+		const { a, b, c: cId } = c.req.query();
 
 		if (!a || !b) {
 			return c.json({ error: 'Missing run IDs (a and b query params required)' }, 400);
 		}
 
-		// Load both runs
-		const runA = await loadResult(a);
-		const runB = await loadResult(b);
-
-		// Calculate differences
-		const scoreDiffs: Record<
-			string,
-			{
-				baseline: number;
-				candidate: number;
-				diff: number;
-				percentChange: number;
-			}
-		> = {};
-
-		for (const evaluator in runA.summary.scores) {
-			const baselineScore = runA.summary.scores[evaluator].avg;
-			const candidateScore = runB.summary.scores[evaluator]?.avg || 0;
-
-			const diff = candidateScore - baselineScore;
-			const percentChange = baselineScore !== 0 ? (diff / baselineScore) * 100 : 0;
-
-			scoreDiffs[evaluator] = {
-				baseline: baselineScore,
-				candidate: candidateScore,
-				diff,
-				percentChange,
-			};
+		// Load runs
+		const reports: ExperimentReport[] = [await loadResult(a), await loadResult(b)];
+		if (cId) {
+			reports.push(await loadResult(cId));
 		}
 
-		// Find items with biggest changes
-		const itemChanges = runA.items
-			.map((itemA, index) => {
-				const itemB = runB.items[index];
-				if (!itemB) return null;
+		// Build run info
+		const runs: CompareRunInfo[] = reports.map((r) => ({
+			id: r.id,
+			name: r.name,
+			timestamp: r.timestamp,
+			summary: r.summary,
+		}));
 
-				const changes: Record<string, number> = {};
-				for (const evaluator in itemA.evaluations) {
-					const scoreA = itemA.evaluations[evaluator].score;
-					const scoreB = itemB.evaluations[evaluator]?.score || 0;
-					changes[evaluator] = scoreB - scoreA;
-				}
+		// Collect all evaluator names across all runs
+		const allEvaluators = new Set<string>();
+		for (const report of reports) {
+			for (const name of Object.keys(report.summary.scores)) {
+				allEvaluators.add(name);
+			}
+		}
 
-				return {
-					index,
-					input: itemA.input,
-					changes,
-				};
-			})
-			.filter(Boolean);
+		// Score diffs: per evaluator, one avg score per run
+		const scoreDiffs: Record<string, { scores: number[]; diffs: number[] }> = {};
+		for (const evaluator of allEvaluators) {
+			const scores = reports.map((r) => r.summary.scores[evaluator]?.avg ?? 0);
+			const baseline = scores[0];
+			const diffs = scores.map((s) => s - baseline);
+			scoreDiffs[evaluator] = { scores, diffs };
+		}
 
-		// Sort by biggest absolute change
-		itemChanges.sort((a: any, b: any) => {
-			const maxChangeA = Math.max(...Object.values(a.changes).map(Math.abs));
-			const maxChangeB = Math.max(...Object.values(b.changes).map(Math.abs));
-			return maxChangeB - maxChangeA;
-		});
+		// Build items with outputs from each run
+		const maxItems = Math.max(...reports.map((r) => r.items.length));
+		const items: Array<{
+			index: number;
+			input: unknown;
+			outputs: (CompareItemOutput | null)[];
+		}> = [];
 
-		return c.json({
-			runA: {
-				id: runA.id,
-				name: runA.name,
-				timestamp: runA.timestamp,
-			},
-			runB: {
-				id: runB.id,
-				name: runB.name,
-				timestamp: runB.timestamp,
-			},
-			scoreDiffs,
-			topChanges: itemChanges.slice(0, 10),
-		});
+		for (let i = 0; i < maxItems; i++) {
+			const baseItem = reports.find((r) => r.items[i])?.items[i];
+			items.push({
+				index: i,
+				input: baseItem?.input ?? {},
+				outputs: reports.map((r) => {
+					const item = r.items[i];
+					if (!item) return null;
+					return {
+						output: item.output,
+						latencyMs: item.latencyMs,
+						evaluations: item.evaluations,
+						error: item.error,
+					};
+				}),
+			});
+		}
+
+		return c.json({ runs, scoreDiffs, items });
 	} catch (error) {
 		console.error('Failed to compare runs:', error);
 		return c.json({ error: 'Failed to compare runs' }, 500);
