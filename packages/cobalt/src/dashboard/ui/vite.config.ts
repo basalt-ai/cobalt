@@ -21,5 +21,18 @@ export default defineConfig({
 	build: {
 		outDir: resolve(__dirname, '../../../dist/dashboard'),
 		emptyOutDir: true,
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					recharts: ['recharts'],
+					radix: [
+						'@radix-ui/react-dialog',
+						'@radix-ui/react-select',
+						'@radix-ui/react-tabs',
+						'@radix-ui/react-tooltip',
+					],
+				},
+			},
+		},
 	},
 });
