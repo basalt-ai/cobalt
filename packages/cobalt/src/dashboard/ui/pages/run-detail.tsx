@@ -66,7 +66,7 @@ export function RunDetailPage() {
 				{run.tags.length > 0 && (
 					<div className="flex gap-1.5">
 						{run.tags.map((tag) => (
-							<Badge key={tag} variant="secondary">
+							<Badge key={tag} color="sand" size="sm">
 								{tag}
 							</Badge>
 						))}
@@ -230,7 +230,7 @@ export function RunDetailPage() {
 									{run.items.some((i) => i.error) && (
 										<td className="px-4 py-2.5">
 											{item.error && (
-												<Badge variant="destructive" className="text-[10px]">
+												<Badge color="tomato" size="xs" variant="outline">
 													<Warning className="h-3 w-3 mr-0.5" />
 													Error
 												</Badge>

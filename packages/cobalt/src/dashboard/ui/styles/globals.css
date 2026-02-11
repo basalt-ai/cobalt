@@ -41,6 +41,46 @@
 	--color-popover: var(--popover);
 	--color-popover-foreground: var(--popover-foreground);
 
+	/* Radix color scales for badges */
+	--color-lime-3: var(--lime-3);
+	--color-lime-5: var(--lime-5);
+	--color-lime-9: var(--lime-9);
+	--color-lime-10: var(--lime-10);
+	--color-lime-11: var(--lime-11);
+	--color-lime-12: var(--lime-12);
+	--color-tomato-3: var(--tomato-3);
+	--color-tomato-5: var(--tomato-5);
+	--color-tomato-9: var(--tomato-9);
+	--color-tomato-10: var(--tomato-10);
+	--color-tomato-11: var(--tomato-11);
+	--color-tomato-12: var(--tomato-12);
+	--color-grass-3: var(--grass-3);
+	--color-grass-5: var(--grass-5);
+	--color-grass-9: var(--grass-9);
+	--color-grass-11: var(--grass-11);
+	--color-grass-12: var(--grass-12);
+	--color-blue-3: var(--blue-3);
+	--color-blue-5: var(--blue-5);
+	--color-blue-9: var(--blue-9);
+	--color-blue-11: var(--blue-11);
+	--color-blue-12: var(--blue-12);
+	--color-cyan-3: var(--cyan-3);
+	--color-cyan-5: var(--cyan-5);
+	--color-cyan-11: var(--cyan-11);
+	--color-orange-3: var(--orange-3);
+	--color-orange-5: var(--orange-5);
+	--color-orange-9: var(--orange-9);
+	--color-orange-11: var(--orange-11);
+	--color-amber-3: var(--amber-3);
+	--color-amber-5: var(--amber-5);
+	--color-amber-8: var(--amber-8);
+	--color-amber-9: var(--amber-9);
+	--color-amber-11: var(--amber-11);
+	--color-sand-3: var(--sand-3);
+	--color-sand-5: var(--sand-5);
+	--color-sand-9: var(--sand-9);
+	--color-sand-11: var(--sand-11);
+
 	/* Comparison colors */
 	--color-run-a: #231f1c;
 	--color-run-a-bg: #faf9f7;
@@ -127,6 +167,42 @@
 	--sand-11: #63635e;
 	--sand-12: #21201c;
 
+	/* Radix color scales (light) */
+	--lime-3: #e4f7c7;
+	--lime-5: #c9e894;
+	--lime-9: #bdee63;
+	--lime-10: #b0e64c;
+	--lime-11: #5c7c2f;
+	--lime-12: #37401c;
+	--tomato-3: #fff0ee;
+	--tomato-5: #fdd1cb;
+	--tomato-9: #e54d2e;
+	--tomato-10: #dd4425;
+	--tomato-11: #d13415;
+	--tomato-12: #5c271f;
+	--grass-3: #e2f9d3;
+	--grass-5: #b6e9a1;
+	--grass-9: #46a758;
+	--grass-11: #2a7e3b;
+	--grass-12: #203c25;
+	--blue-3: #e1f0ff;
+	--blue-5: #b7d9f8;
+	--blue-9: #3e63dd;
+	--blue-11: #3358d4;
+	--blue-12: #1f2d5c;
+	--cyan-3: #d5f4fd;
+	--cyan-5: #a5e7f5;
+	--cyan-11: #0c7792;
+	--orange-3: #fff1e7;
+	--orange-5: #ffcca7;
+	--orange-9: #f76b15;
+	--orange-11: #bd4b00;
+	--amber-3: #fff4d5;
+	--amber-5: #ffe7a3;
+	--amber-8: #f5b731;
+	--amber-9: #ffc53d;
+	--amber-11: #915930;
+
 	/* Semantic colors */
 	--background: var(--sand-1);
 	--foreground: var(--sand-12);
@@ -189,6 +265,42 @@
 	--sand-10: #7c7b74;
 	--sand-11: #b5b3ad;
 	--sand-12: #eeeeec;
+
+	/* Radix color scales (dark) */
+	--lime-3: #1e2900;
+	--lime-5: #2f4400;
+	--lime-9: #bdee63;
+	--lime-10: #caff4e;
+	--lime-11: #99d52a;
+	--lime-12: #e3f7ba;
+	--tomato-3: #391714;
+	--tomato-5: #541c15;
+	--tomato-9: #e54d2e;
+	--tomato-10: #ec6142;
+	--tomato-11: #ff977d;
+	--tomato-12: #fbd3cb;
+	--grass-3: #0d2712;
+	--grass-5: #18461a;
+	--grass-9: #46a758;
+	--grass-11: #71d083;
+	--grass-12: #c2f0c2;
+	--blue-3: #0d2847;
+	--blue-5: #0f3e82;
+	--blue-9: #3e63dd;
+	--blue-11: #99b2ff;
+	--blue-12: #d5e2ff;
+	--cyan-3: #00293d;
+	--cyan-5: #004a63;
+	--cyan-11: #4ccce6;
+	--orange-3: #331e0b;
+	--orange-5: #542a0f;
+	--orange-9: #f76b15;
+	--orange-11: #ff9c55;
+	--amber-3: #302008;
+	--amber-5: #493c00;
+	--amber-8: #e8a517;
+	--amber-9: #ffc53d;
+	--amber-11: #f5d90a;
 
 	/* Semantic colors (dark) */
 	--background: var(--sand-1);

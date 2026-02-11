@@ -1,4 +1,6 @@
 import { cn } from '../../lib/utils';
+import type { BadgeColor } from '../ui/badge';
+import { Badge, BadgeDot } from '../ui/badge';
 
 interface ScoreBadgeProps {
 	score: number;
@@ -6,25 +8,35 @@ interface ScoreBadgeProps {
 	showPercent?: boolean;
 }
 
-function getScoreColor(score: number): string {
-	if (score >= 0.8)
-		return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
-	if (score >= 0.5) return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
-	return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300';
+function scoreToColor(score: number): BadgeColor {
+	if (score >= 0.9) return 'lime';
+	if (score >= 0.8) return 'orange';
+	if (score >= 0.7) return 'amber';
+	return 'tomato';
 }
 
 export function ScoreBadge({ score, className, showPercent = false }: ScoreBadgeProps) {
-	const display = showPercent ? `${(score * 100).toFixed(0)}%` : score.toFixed(2);
+	const color = scoreToColor(score);
+	const display = showPercent ? `${(score * 100).toFixed(0)}%` : `${(score * 100).toFixed(1)}%`;
 	return (
-		<span
-			className={cn(
-				'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium tabular-nums',
-				getScoreColor(score),
-				className,
-			)}
-		>
+		<Badge size="xs" color={color} className={cn('tabular-nums', className)}>
 			{display}
-		</span>
+		</Badge>
+	);
+}
+
+export function ScoreDot({ score, className }: { score: number; className?: string }) {
+	const color = scoreToColor(score);
+	return <BadgeDot color={color} className={cn('w-[10px] h-[10px]', className)} />;
+}
+
+export function EvaluationTag({ passed, className }: { passed: boolean; className?: string }) {
+	const color: BadgeColor = passed ? 'lime' : 'tomato';
+	return (
+		<Badge size="xs" variant="outline" color={color} className={className}>
+			<BadgeDot color={color} />
+			{passed ? 'Passed' : 'Failed'}
+		</Badge>
 	);
 }
 
@@ -34,8 +46,8 @@ export function ScoreChange({ value, className }: { value: number; className?: s
 	const color = isNeutral
 		? 'text-muted-foreground'
 		: isPositive
-			? 'text-emerald-600 dark:text-emerald-400'
-			: 'text-red-600 dark:text-red-400';
+			? 'text-grass-11'
+			: 'text-tomato-11';
 
 	return (
 		<span className={cn('text-xs font-medium tabular-nums', color, className)}>

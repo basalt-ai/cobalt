@@ -203,7 +203,7 @@ export function RunsListPage() {
 									<td className="px-3 py-3">
 										<div className="flex gap-1 flex-wrap">
 											{run.tags.map((tag) => (
-												<Badge key={tag} variant="secondary" className="text-[10px]">
+												<Badge key={tag} color="sand" size="xs">
 													{tag}
 												</Badge>
 											))}
