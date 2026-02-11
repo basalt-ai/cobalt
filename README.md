@@ -1,6 +1,8 @@
-# Cobalt
-
 <div align="center">
+
+<img src="assets/logo.png" alt="Cobalt" width="200" />
+
+# Cobalt
 
 ![Build Status](https://github.com/basalt-ai/cobalt/actions/workflows/test.yml/badge.svg)
 [![npm version](https://img.shields.io/npm/v/cobalt.svg)](https://www.npmjs.com/package/cobalt)

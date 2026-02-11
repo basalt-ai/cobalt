@@ -1,6 +1,12 @@
+<div align="center">
+
+<img src="../assets/logo.png" alt="Cobalt" width="150" />
+
 # Cobalt Documentation
 
 > **Unit Testing for AI** — A TypeScript testing framework for AI agents and LLM applications
+
+</div>
 
 Welcome to the Cobalt documentation! This guide will help you test, evaluate, and improve your AI agents with confidence.
 
