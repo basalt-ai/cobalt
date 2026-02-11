@@ -1,144 +1,335 @@
+import { ArrowLeft, CheckCircle, Clock, Warning, XCircle } from '@phosphor-icons/react';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { getRunDetail } from '../api/runs';
-import type { RunDetailResponse } from '../api/types';
+import type { ItemResult, RunDetailResponse } from '../api/types';
+import { MetricCard } from '../components/data/metric-card';
+import { ScoreBadge } from '../components/data/score-badge';
+import { PageHeader } from '../components/layout/page-header';
+import { Badge } from '../components/ui/badge';
+import { Button } from '../components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from '../components/ui/dialog';
+import { Skeleton } from '../components/ui/skeleton';
 import { useApi } from '../hooks/use-api';
-import { formatDate, formatDuration, formatScore } from '../lib/utils';
+import { cn, formatDate, formatDuration, formatScore } from '../lib/utils';
 
 export function RunDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const { data, error, loading } = useApi<RunDetailResponse>(() => getRunDetail(id!), [id]);
+	const [selectedItem, setSelectedItem] = useState<ItemResult | null>(null);
 
-	if (loading) return <div>Loading run...</div>;
-	if (error) return <div>Error: {error.message}</div>;
-	if (!data?.run) return <div>Run not found.</div>;
+	if (loading) return <LoadingSkeleton />;
+	if (error) {
+		return (
+			<div className="flex flex-col items-center justify-center py-20 text-center">
+				<p className="text-sm text-destructive">Failed to load run: {error.message}</p>
+				<Button
+					variant="outline"
+					size="sm"
+					className="mt-4"
+					onClick={() => window.location.reload()}
+				>
+					Retry
+				</Button>
+			</div>
+		);
+	}
+	if (!data?.run) {
+		return (
+			<div className="flex flex-col items-center justify-center py-20 text-center">
+				<p className="text-lg font-medium">Run not found</p>
+			</div>
+		);
+	}
 
 	const { run } = data;
+	const evaluatorNames = Object.keys(run.summary.scores);
 
 	return (
-		<div>
-			<p>
-				<Link to="/">← Back to runs</Link>
-			</p>
+		<div className="space-y-6">
+			{/* Breadcrumb */}
+			<Link
+				to="/"
+				className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+			>
+				<ArrowLeft className="h-4 w-4" />
+				Back to runs
+			</Link>
 
-			<h1>{run.name}</h1>
-
-			<section>
-				<h2>Summary</h2>
-				<dl>
-					<dt>ID</dt>
-					<dd>{run.id}</dd>
-					<dt>Date</dt>
-					<dd>{formatDate(run.timestamp)}</dd>
-					<dt>Items</dt>
-					<dd>{run.summary.totalItems}</dd>
-					<dt>Duration</dt>
-					<dd>{formatDuration(run.summary.totalDurationMs)}</dd>
-					<dt>Avg Latency</dt>
-					<dd>{formatDuration(run.summary.avgLatencyMs)}</dd>
-					{run.summary.totalTokens != null && (
-						<>
-							<dt>Tokens</dt>
-							<dd>{run.summary.totalTokens.toLocaleString()}</dd>
-						</>
-					)}
-					{run.summary.estimatedCost != null && (
-						<>
-							<dt>Cost</dt>
-							<dd>${run.summary.estimatedCost.toFixed(4)}</dd>
-						</>
-					)}
-					{run.tags.length > 0 && (
-						<>
-							<dt>Tags</dt>
-							<dd>{run.tags.join(', ')}</dd>
-						</>
-					)}
-				</dl>
-			</section>
-
-			<section>
-				<h2>Scores</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>Evaluator</th>
-							<th>Avg</th>
-							<th>Min</th>
-							<th>Max</th>
-							<th>P50</th>
-							<th>P95</th>
-						</tr>
-					</thead>
-					<tbody>
-						{Object.entries(run.summary.scores).map(([name, stats]) => (
-							<tr key={name}>
-								<td>{name}</td>
-								<td>{formatScore(stats.avg)}%</td>
-								<td>{formatScore(stats.min)}%</td>
-								<td>{formatScore(stats.max)}%</td>
-								<td>{formatScore(stats.p50)}%</td>
-								<td>{formatScore(stats.p95)}%</td>
-							</tr>
+			<PageHeader title={run.name} description={`${formatDate(run.timestamp)} — Run ${run.id}`}>
+				{run.tags.length > 0 && (
+					<div className="flex gap-1.5">
+						{run.tags.map((tag) => (
+							<Badge key={tag} variant="secondary">
+								{tag}
+							</Badge>
 						))}
-					</tbody>
-				</table>
-			</section>
+					</div>
+				)}
+			</PageHeader>
 
+			{/* Metric Cards */}
+			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+				<MetricCard label="Items" value={run.summary.totalItems} />
+				<MetricCard
+					label="Duration"
+					value={formatDuration(run.summary.totalDurationMs)}
+					detail={`avg ${formatDuration(run.summary.avgLatencyMs)}/item`}
+				/>
+				{run.summary.totalTokens != null && (
+					<MetricCard label="Tokens" value={run.summary.totalTokens.toLocaleString()} />
+				)}
+				{run.summary.estimatedCost != null && (
+					<MetricCard label="Cost" value={`$${run.summary.estimatedCost.toFixed(4)}`} />
+				)}
+			</div>
+
+			{/* CI Status */}
 			{run.ciStatus && (
-				<section>
-					<h2>CI Status: {run.ciStatus.passed ? 'Passed' : 'Failed'}</h2>
+				<div
+					className={cn(
+						'rounded-xl border p-4',
+						run.ciStatus.passed
+							? 'border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950'
+							: 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950',
+					)}
+				>
+					<div className="flex items-center gap-2">
+						{run.ciStatus.passed ? (
+							<CheckCircle
+								weight="fill"
+								className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+							/>
+						) : (
+							<XCircle weight="fill" className="h-5 w-5 text-red-600 dark:text-red-400" />
+						)}
+						<span className="font-medium">CI: {run.ciStatus.passed ? 'Passed' : 'Failed'}</span>
+					</div>
 					{run.ciStatus.violations.length > 0 && (
-						<ul>
+						<ul className="mt-2 space-y-1 pl-7">
 							{run.ciStatus.violations.map((v) => (
-								<li key={`${v.evaluator}-${v.metric}`}>{v.message}</li>
+								<li key={`${v.evaluator}-${v.metric}`} className="text-sm text-muted-foreground">
+									{v.message}
+								</li>
 							))}
 						</ul>
 					)}
-				</section>
+				</div>
 			)}
 
-			<section>
-				<h2>Items ({run.items.length})</h2>
-				<table>
-					<thead>
-						<tr>
-							<th>#</th>
-							<th>Input</th>
-							<th>Output</th>
-							<th>Latency</th>
-							<th>Scores</th>
-							{run.items.some((item) => item.error) && <th>Error</th>}
-						</tr>
-					</thead>
-					<tbody>
-						{run.items.map((item) => (
-							<tr key={item.index}>
-								<td>{item.index + 1}</td>
-								<td>
-									<pre>{JSON.stringify(item.input, null, 2)}</pre>
-								</td>
-								<td>
-									<pre>
-										{typeof item.output === 'string'
-											? item.output
-											: JSON.stringify(item.output, null, 2)}
-									</pre>
-								</td>
-								<td>{formatDuration(item.latencyMs)}</td>
-								<td>
-									{Object.entries(item.evaluations)
-										.map(
-											([name, ev]) =>
-												`${name}: ${formatScore(ev.score)}%${ev.reason ? ` (${ev.reason})` : ''}`,
-										)
-										.join('\n')}
-								</td>
-								{run.items.some((i) => i.error) && <td>{item.error || ''}</td>}
+			{/* Scores by Evaluator */}
+			<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+				<div className="border-b bg-muted/50 px-4 py-3">
+					<h2 className="text-sm font-semibold">Scores by Evaluator</h2>
+				</div>
+				<div className="overflow-x-auto">
+					<table className="w-full text-sm">
+						<thead>
+							<tr className="border-b">
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
+									Evaluator
+								</th>
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Avg</th>
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Min</th>
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Max</th>
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P50</th>
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">P95</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
-			</section>
+						</thead>
+						<tbody>
+							{Object.entries(run.summary.scores).map(([name, stats]) => (
+								<tr key={name} className="border-b last:border-0">
+									<td className="px-4 py-2.5 font-medium">{name}</td>
+									<td className="px-4 py-2.5 text-right">
+										<ScoreBadge score={stats.avg} />
+									</td>
+									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+										{formatScore(stats.min)}%
+									</td>
+									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+										{formatScore(stats.max)}%
+									</td>
+									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+										{formatScore(stats.p50)}%
+									</td>
+									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+										{formatScore(stats.p95)}%
+									</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			{/* Items */}
+			<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+				<div className="border-b bg-muted/50 px-4 py-3">
+					<h2 className="text-sm font-semibold">Items ({run.items.length})</h2>
+				</div>
+				<div className="overflow-x-auto">
+					<table className="w-full text-sm">
+						<thead>
+							<tr className="border-b">
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground w-10">#</th>
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
+									<Clock className="inline h-3.5 w-3.5" />
+								</th>
+								{evaluatorNames.map((name) => (
+									<th
+										key={name}
+										className="px-4 py-2.5 text-right font-medium text-muted-foreground"
+									>
+										{name}
+									</th>
+								))}
+								{run.items.some((item) => item.error) && (
+									<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Error</th>
+								)}
+							</tr>
+						</thead>
+						<tbody>
+							{run.items.map((item) => (
+								<tr
+									key={item.index}
+									className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
+									onClick={() => setSelectedItem(item)}
+									onKeyDown={(e) => e.key === 'Enter' && setSelectedItem(item)}
+								>
+									<td className="px-4 py-2.5 tabular-nums text-muted-foreground">
+										{item.index + 1}
+									</td>
+									<td className="px-4 py-2.5 max-w-48">
+										<span className="line-clamp-2 text-xs text-muted-foreground">
+											{truncateValue(item.input)}
+										</span>
+									</td>
+									<td className="px-4 py-2.5 max-w-48">
+										<span className="line-clamp-2 text-xs">{truncateValue(item.output)}</span>
+									</td>
+									<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
+										{formatDuration(item.latencyMs)}
+									</td>
+									{evaluatorNames.map((name) => (
+										<td key={name} className="px-4 py-2.5 text-right">
+											{item.evaluations[name] ? (
+												<ScoreBadge score={item.evaluations[name].score} />
+											) : (
+												<span className="text-muted-foreground">-</span>
+											)}
+										</td>
+									))}
+									{run.items.some((i) => i.error) && (
+										<td className="px-4 py-2.5">
+											{item.error && (
+												<Badge variant="destructive" className="text-[10px]">
+													<Warning className="h-3 w-3 mr-0.5" />
+													Error
+												</Badge>
+											)}
+										</td>
+									)}
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			{/* Item Detail Dialog */}
+			<ItemDetailDialog item={selectedItem} onClose={() => setSelectedItem(null)} />
+		</div>
+	);
+}
+
+function ItemDetailDialog({
+	item,
+	onClose,
+}: {
+	item: ItemResult | null;
+	onClose: () => void;
+}) {
+	if (!item) return null;
+
+	return (
+		<Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
+			<DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>Item #{item.index + 1}</DialogTitle>
+					<DialogDescription>Latency: {formatDuration(item.latencyMs)}</DialogDescription>
+				</DialogHeader>
+
+				<div className="space-y-4">
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-1">Input</h4>
+						<pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap">
+							{JSON.stringify(item.input, null, 2)}
+						</pre>
+					</div>
+
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-1">Output</h4>
+						<pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap">
+							{typeof item.output === 'string' ? item.output : JSON.stringify(item.output, null, 2)}
+						</pre>
+					</div>
+
+					{item.error && (
+						<div>
+							<h4 className="text-xs font-medium text-destructive mb-1">Error</h4>
+							<pre className="rounded-lg bg-red-50 dark:bg-red-950 p-3 text-xs text-red-800 dark:text-red-300 overflow-x-auto">
+								{item.error}
+							</pre>
+						</div>
+					)}
+
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-2">Evaluations</h4>
+						<div className="space-y-2">
+							{Object.entries(item.evaluations).map(([name, ev]) => (
+								<div key={name} className="rounded-lg border p-3">
+									<div className="flex items-center justify-between">
+										<span className="text-sm font-medium">{name}</span>
+										<ScoreBadge score={ev.score} />
+									</div>
+									{ev.reason && <p className="mt-1.5 text-xs text-muted-foreground">{ev.reason}</p>}
+								</div>
+							))}
+						</div>
+					</div>
+				</div>
+			</DialogContent>
+		</Dialog>
+	);
+}
+
+function truncateValue(value: unknown): string {
+	if (typeof value === 'string') return value;
+	const str = JSON.stringify(value);
+	return str.length > 120 ? `${str.slice(0, 120)}...` : str;
+}
+
+function LoadingSkeleton() {
+	return (
+		<div className="space-y-6">
+			<Skeleton className="h-4 w-24" />
+			<Skeleton className="h-8 w-64" />
+			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+				{Array.from({ length: 4 }).map((_, i) => (
+					// biome-ignore lint/suspicious/noArrayIndexKey: static skeleton
+					<Skeleton key={i} className="h-24 rounded-xl" />
+				))}
+			</div>
+			<Skeleton className="h-48 rounded-xl" />
+			<Skeleton className="h-64 rounded-xl" />
 		</div>
 	);
 }
