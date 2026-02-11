@@ -424,72 +424,61 @@ During implementation, several mismatches were discovered and fixed:
 
 ---
 
-## Statistics (Updated)
+## Statistics (Updated — February 10, 2026)
 
 **Project Metrics:**
-- **Lines of Code**: ~3,800 (src/) [+500 from P2]
-- **Test Files**: 9 [+1 similarity test]
-- **Test Cases**: 167 [+15 from P2]
-- **Test Coverage**: ~20% overall (85-100% for tested modules)
-- **CLI Commands**: 7 (unchanged)
-- **Evaluator Types**: 4 implemented (llm-judge, function, exact-match, **similarity** ← NEW)
-- **Dataset Formats**: 3 (JSON, JSONL, CSV)
+- **Lines of Code**: ~5,800 (src/)
+- **Test Files**: 19
+- **Test Cases**: 330
+- **Test Coverage**: 80-100% for tested modules
+- **CLI Commands**: 7 (run, init, history, compare, serve, clean, mcp)
+- **Evaluator Types**: 4 built-in + 11 via Autoevals
+- **Dataset Formats**: 3 local (JSON, JSONL, CSV) + 5 remote (HTTP, Langfuse, LangSmith, Braintrust, Basalt)
 
 **Phase Completion:**
 - ✅ P0 (MVP): 100% complete
 - ✅ P1 (Usable): 100% complete
-- ✅ **P2 (Powerful): 100% complete** ← NEW!
-- ⚠️ P3 (Connected): ~10% complete
-- ⚠️ P4 (Dashboard): 25% complete
+- ✅ P2 (Powerful): 100% complete
+- ✅ P3 (Connected): 100% complete
+- 🔄 P4 (Dashboard): ~50% (backend + frontend scaffolding)
 
 ---
 
-## Next Steps
+## 2026-02-10: P4 Dashboard Frontend Scaffolding
 
-### Immediate (Documentation Completion)
-- ✅ Root README.md updated
-- ✅ CLAUDE.md updated
-- ✅ .memory/ files updated
-- 🔄 packages/cobalt/README.md (in progress)
+### What Was Built
 
-### P2 (Powerful) Features
-1. **Similarity evaluator** - Embeddings-based evaluation
-   - OpenAI text-embedding-3-small/large
-   - Cohere embeddings
-   - Semantic similarity scoring
+**Architecture Decision**: Vite + React SPA inside `src/dashboard/ui/`, built to `dist/dashboard/`.
+- Challenged Next.js proposal → chose Vite SPA for npm packaging simplicity
+- Colocated with backend: `src/dashboard/api/` (backend) + `src/dashboard/ui/` (frontend)
+- Single `dist/` folder: tsup output + Vite output coexist
 
-2. **Multiple runs aggregation** - Run same item N times
-   - Statistical aggregation (mean, stddev)
-   - Confidence intervals
-   - Non-determinism handling
+**Files Created (~18 files)**:
+- Build config: `vite.config.ts`, `tsconfig.json`, `index.html`
+- API client layer: `api/types.ts`, `api/client.ts`, `api/runs.ts`, `api/compare.ts`, `api/trends.ts`, `api/health.ts`
+- App entry: `main.tsx`, `router.tsx`
+- Pages: `runs-list.tsx` (with data fetching), `run-detail.tsx` (with data fetching), `compare.tsx`, `trends.tsx`, `not-found.tsx`
+- Layout: `layouts/root-layout.tsx`
+- Hooks: `hooks/use-api.ts`
+- Utils: `lib/utils.ts`
 
-3. **Complete compare/history** (already done early)
+**Files Modified**:
+- `packages/cobalt/package.json` — Added React deps, build scripts
+- `packages/cobalt/src/dashboard/server.ts` — Added serveStatic + SPA fallback + `/api` index
+- `INSTRUCTIONS.md` — Removed webhooks from P3
 
-### P3 (Connected) Features
-1. **Complete MCP implementation**
-   - `cobalt_generate` tool (auto-generate experiments)
-   - MCP resources
-   - MCP prompts
+**Key Features**:
+- Typed API client with `fetchApi<T>()` wrapper
+- `useApi<T>(fetcher, deps)` hook with loading/error/refetch
+- RunsListPage: fetches runs, shows table with name, date, items, duration, scores
+- RunDetailPage: fetches run, shows summary, scores table, CI status, items table
+- Dev workflow: Vite on :5173 proxies `/api` → Hono on :4000
+- Production: `cobalt serve` serves everything from `dist/dashboard/`
 
-2. **CI mode** - Thresholds and exit codes
-   - `--ci` flag
-   - Threshold-based pass/fail
-   - Minimal output for CI logs
-
-3. **Remote datasets** - bdataset, HTTP URLs, S3
-
-4. **RAGAS integration** - Built-in RAGAS-style evaluators
-
-### P4 (Dashboard) Features
-1. **React UI** - Build dashboard frontend
-   - Runs list page
-   - Run detail page
-   - Compare page
-   - Trends visualization
-
-2. **Real-time updates** - WebSocket support
-
-3. **Export** - CSV and Markdown export
+### Next Steps
+- User will provide UI library + existing page design for styling
+- Wire up Compare and Trends pages
+- Add filtering and tags support
 
 ---
 

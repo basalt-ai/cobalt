@@ -129,17 +129,28 @@ CREATE TABLE runs (
 
 ### 6. Dashboard (`src/dashboard/`)
 
-HTTP server for visualizing experiment results (P4 - backend only, no React UI yet).
+Full-stack dashboard: Hono backend API + React SPA frontend.
 
-**Framework:** Hono (fast, lightweight HTTP server)
-
-**API Endpoints:**
+**Backend** (`src/dashboard/server.ts`, `src/dashboard/api/`):
+- Hono server serving API + static files
+- `GET /api` - API index (available endpoints)
 - `GET /api/runs` - List all runs
 - `GET /api/runs/:id` - Get specific run details
 - `GET /api/compare` - Compare multiple runs
 - `GET /api/trends` - Get trend data over time
+- `GET /api/health` - Health check
+- SPA fallback: serves `index.html` for client-side routing
 
-**Status:** Backend API complete, React frontend not implemented.
+**Frontend** (`src/dashboard/ui/`):
+- Vite + React 19 SPA, built to `dist/dashboard/`
+- React Router v7 with routes: `/`, `/runs/:id`, `/compare`, `/trends`
+- Typed API client layer (`ui/api/`) mirroring backend types
+- `useApi` hook for data fetching with loading/error states
+- Pages: RunsListPage (data table), RunDetailPage (summary + scores + items)
+- Dev: Vite on :5173 proxies `/api` → Hono on :4000
+- Prod: Hono serves `dist/dashboard/` via `serveStatic`
+
+**Status:** Backend complete, frontend scaffolded with data fetching. UI styling pending (user will provide library).
 
 ### 7. MCP Integration (`src/mcp/`)
 
@@ -443,15 +454,20 @@ export type * from './types/index.js'
 | Storage (history) | ✅ P1+ Complete | SQLite database |
 | Cost tracking | ✅ P1 Complete | Token estimation |
 | Statistics | ✅ P1 Complete | p50, p95, avg, min, max |
-| Dashboard API | ⚠️ P4 Partial | Backend only, no UI |
-| MCP server | ⚠️ P3 Partial | Basic tools, missing generate |
-| Similarity evaluator | ❌ P2 Not started | Stubbed |
-| Multiple runs | ❌ P2 Not started | Not implemented |
+| Dashboard API | ✅ P4 Complete | Backend API + React SPA scaffolded |
+| MCP server | ✅ P3 Complete | 4 tools, 3 resources, 3 prompts |
+| Similarity evaluator | ✅ P2 Complete | OpenAI embeddings |
+| Multiple runs | ✅ P2 Complete | Statistical aggregation |
+| Remote datasets | ✅ P3 Complete | 5 platform loaders |
+| CI mode | ✅ P3 Complete | Threshold validation |
+| Plugin system | ✅ P3 Complete | Registry + loader |
+| Autoevals | ✅ P3 Complete | 11 evaluator types |
+| GitHub Actions reporter | ✅ P3 Complete | Job summary + annotations |
 
 ## Code Quality Metrics
 
-- **Total lines of code**: ~3,300 (src/)
-- **Test coverage**: 17.2% overall (138 tests)
+- **Total lines of code**: ~5,800 (src/)
+- **Test coverage**: 330 tests across 19 test suites
 - **Core module coverage**: 80-100%
 - **TypeScript strictness**: Full strict mode
 - **Linting**: Biome (no errors)

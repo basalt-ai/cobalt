@@ -32,8 +32,10 @@
 		"node": ">=18"
 	},
 	"scripts": {
-		"build": "pnpm build:lib",
+		"build": "pnpm build:lib && pnpm build:dashboard",
 		"build:lib": "tsup",
+		"build:dashboard": "vite build -c src/dashboard/ui/vite.config.ts",
+		"dev:dashboard": "vite -c src/dashboard/ui/vite.config.ts",
 		"dev": "tsup --watch",
 		"test": "vitest run",
 		"test:watch": "vitest",
@@ -58,6 +60,9 @@
 		"p-map": "^7.0.3",
 		"pathe": "^1.1.2",
 		"picocolors": "^1.1.1",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
+		"react-router": "^7.0.0",
 		"zod": "^3.24.1"
 	},
 	"devDependencies": {
@@ -65,9 +70,13 @@
 		"@cobalt/tsconfig": "workspace:*",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^22.10.5",
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"@vitejs/plugin-react": "^4.3.0",
 		"@vitest/coverage-v8": "^2.1.8",
 		"tsup": "^8.3.5",
 		"typescript": "^5.7.2",
+		"vite": "^6.0.0",
 		"vitest": "^2.1.8"
 	},
 	"repository": {
