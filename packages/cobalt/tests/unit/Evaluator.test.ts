@@ -264,6 +264,10 @@ describe('Evaluator', () => {
 
 	describe('edge cases', () => {
 		it('should handle empty context', async () => {
+			// Re-set mock since previous tests override it with mockRejectedValue
+			const { evaluateFunction } = await import('../../src/evaluators/function.js');
+			vi.mocked(evaluateFunction).mockResolvedValue({ score: 0.5, reason: 'Function result' });
+
 			const evaluator = new Evaluator({
 				name: 'test',
 				type: 'function',
@@ -278,7 +282,7 @@ describe('Evaluator', () => {
 			const result = await evaluator.evaluate(emptyContext);
 
 			expect(result).toBeDefined();
-			expect(result.score).toBeGreaterThanOrEqual(0);
+			expect(result.score).toBe(0.5);
 		});
 
 		it('should handle context with metadata', async () => {
