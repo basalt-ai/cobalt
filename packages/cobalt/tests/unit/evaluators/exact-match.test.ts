@@ -220,8 +220,8 @@ describe('evaluateExactMatch', () => {
 
 		const result = await evaluateExactMatch(config, context);
 
-		// Objects won't match unless they're the same reference or stringified
-		expect(result.score).toBeGreaterThanOrEqual(0);
+		// JSON.stringify({key:'value'}) = '{"key":"value"}' vs String({key:'value'}) = '[object Object]'
+		expect(result.score).toBe(0);
 	});
 
 	it('should handle arrays', async () => {
@@ -238,7 +238,8 @@ describe('evaluateExactMatch', () => {
 
 		const result = await evaluateExactMatch(config, context);
 
-		expect(result.score).toBeGreaterThanOrEqual(0);
+		// JSON.stringify(['a','b','c']) = '["a","b","c"]' vs String(['a','b','c']) = 'a,b,c'
+		expect(result.score).toBe(0);
 	});
 
 	it('should provide descriptive reason for match', async () => {
