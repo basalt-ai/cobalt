@@ -10,9 +10,7 @@ vi.mock('node:fs', () => ({
 
 // Mock jiti
 vi.mock('jiti', () => ({
-	createJiti: vi.fn().mockReturnValue(
-		vi.fn().mockReturnValue({ default: {} }),
-	),
+	createJiti: vi.fn().mockReturnValue(vi.fn().mockReturnValue({ default: {} })),
 }));
 
 describe('defineConfig', () => {
@@ -163,8 +161,8 @@ describe('getApiKey', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		process.env = { ...originalEnv };
-		delete process.env.OPENAI_API_KEY;
-		delete process.env.ANTHROPIC_API_KEY;
+		process.env.OPENAI_API_KEY = undefined;
+		process.env.ANTHROPIC_API_KEY = undefined;
 	});
 
 	afterEach(() => {

@@ -181,10 +181,11 @@ describe('runExperiment', () => {
 		});
 
 		it('should measure latency', async () => {
-			const runner = vi.fn().mockImplementation(
-				() =>
-					new Promise((resolve) => setTimeout(() => resolve({ output: 'done' }), 20)),
-			);
+			const runner = vi
+				.fn()
+				.mockImplementation(
+					() => new Promise((resolve) => setTimeout(() => resolve({ output: 'done' }), 20)),
+				);
 			const evaluator = createMockEvaluator('test', 1);
 
 			const results = await runExperiment([sampleItems[0]], runner, {

@@ -155,10 +155,7 @@ describe('listResults', () => {
 		const { existsSync } = await import('node:fs');
 		const { readdir, readFile } = await import('node:fs/promises');
 		vi.mocked(existsSync).mockReturnValue(true);
-		vi.mocked(readdir).mockResolvedValue([
-			'old_test_aaa.json',
-			'new_test_bbb.json',
-		] as any);
+		vi.mocked(readdir).mockResolvedValue(['old_test_aaa.json', 'new_test_bbb.json'] as any);
 
 		const oldReport = createReport({
 			id: 'aaa',

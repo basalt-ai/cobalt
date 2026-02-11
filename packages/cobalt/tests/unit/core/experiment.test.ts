@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { Evaluator } from '../../../src/core/Evaluator.js';
+import { Dataset } from '../../../src/datasets/Dataset.js';
 import type {
 	CobaltConfig,
 	ExperimentOptions,
 	ExperimentReport,
 	ItemResult,
 } from '../../../src/types/index.js';
-import { Dataset } from '../../../src/datasets/Dataset.js';
-import { Evaluator } from '../../../src/core/Evaluator.js';
 
 // --- Mocks ---
 
@@ -162,13 +162,13 @@ describe('experiment', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		// Clean up global callbacks
-		delete (global as any).__cobaltCLIResultCallback;
-		delete (global as any).__cobaltMCPResultCallback;
+		(global as any).__cobaltCLIResultCallback = undefined;
+		(global as any).__cobaltMCPResultCallback = undefined;
 	});
 
 	afterEach(() => {
-		delete (global as any).__cobaltCLIResultCallback;
-		delete (global as any).__cobaltMCPResultCallback;
+		(global as any).__cobaltCLIResultCallback = undefined;
+		(global as any).__cobaltMCPResultCallback = undefined;
 	});
 
 	const dataset = new Dataset({ items: [{ input: 'q1' }, { input: 'q2' }] });
@@ -344,10 +344,9 @@ describe('experiment', () => {
 			thresholds: { relevance: { avg: 0.8 } },
 		});
 
-		expect(validateThresholds).toHaveBeenCalledWith(
-			expect.any(Object),
-			{ relevance: { avg: 0.8 } },
-		);
+		expect(validateThresholds).toHaveBeenCalledWith(expect.any(Object), {
+			relevance: { avg: 0.8 },
+		});
 		expect(report.ciStatus).toBeDefined();
 	});
 
