@@ -26,6 +26,7 @@ export interface ProgressInfo {
 	totalRuns: number;
 	completedExecutions: number;
 	totalExecutions: number;
+	itemResult?: ItemResult;
 }
 
 export interface RunItemOptions {
@@ -72,19 +73,9 @@ export async function runExperiment(
 				});
 
 				completedCount++;
-				if (options.onProgress) {
-					options.onProgress({
-						itemIndex: index,
-						runIndex: 0,
-						totalItems: items.length,
-						totalRuns: 1,
-						completedExecutions: completedCount,
-						totalExecutions: items.length,
-					});
-				}
 
 				// Convert SingleRun to ItemResult for backward compatibility
-				return {
+				const itemResult: ItemResult = {
 					index,
 					input: item,
 					output: singleRun.output,
@@ -93,6 +84,20 @@ export async function runExperiment(
 					error: singleRun.error,
 					runs: [singleRun],
 				};
+
+				if (options.onProgress) {
+					options.onProgress({
+						itemIndex: index,
+						runIndex: 0,
+						totalItems: items.length,
+						totalRuns: 1,
+						completedExecutions: completedCount,
+						totalExecutions: items.length,
+						itemResult,
+					});
+				}
+
+				return itemResult;
 			},
 			{ concurrency: options.concurrency },
 		);
@@ -167,7 +172,6 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
 		);
 	} catch (err) {
 		error = err instanceof Error ? err.message : String(err);
-		console.error(`Error running item #${index} (run ${runIndex}):`, error);
 
 		// Return early if agent failed
 		return {
@@ -197,10 +201,6 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
 
 			evaluations[evaluator.name] = evalResult;
 		} catch (evalError) {
-			console.error(
-				`Evaluator "${evaluator.name}" failed for item #${index} (run ${runIndex}):`,
-				evalError,
-			);
 			evaluations[evaluator.name] = {
 				score: 0,
 				reason: `Evaluation error: ${evalError instanceof Error ? evalError.message : String(evalError)}`,

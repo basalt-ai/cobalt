@@ -16,7 +16,7 @@ const DEFAULT_CONFIG: CobaltConfig = {
 	},
 	concurrency: 5,
 	timeout: 30_000,
-	reporters: ['cli', 'json'],
+	reporters: ['cli'],
 	dashboard: {
 		port: 4000,
 		open: true,
