@@ -51,14 +51,12 @@ describe('defineConfig', () => {
 		expect(config.judge.provider).toBe('anthropic');
 	});
 
-	it('should merge reporters with defaults (defu array merge)', () => {
+	it('should replace reporters when specified', () => {
 		const config = defineConfig({
 			reporters: ['github-actions'],
 		});
 
-		// defu merges arrays, so custom reporters are added to defaults
-		expect(config.reporters).toContain('github-actions');
-		expect(config.reporters).toContain('cli');
+		expect(config.reporters).toEqual(['github-actions']);
 	});
 
 	it('should support plugins array', () => {
