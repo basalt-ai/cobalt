@@ -35,7 +35,7 @@
 
 <br />
 
-<img src="assets/cobalt_demo.gif" alt="Demo" width="600" />
+<img src="assets/cobalt_demo.gif" alt="Demo" width="100%" />
 
 </div>
 
