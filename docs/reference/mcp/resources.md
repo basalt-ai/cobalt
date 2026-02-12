@@ -44,16 +44,13 @@ cobalt://config
     ttl: number                // Time to live (ms)
   }
 
-  ciMode: boolean              // CI mode enabled
   thresholds: {                // Quality thresholds
-    [evaluator: string]: {
-      avg?: number
-      min?: number
-      max?: number
-      p50?: number
-      p95?: number
-      passRate?: number
-      minScore?: number
+    score?: ThresholdMetric      // Global avg across all evaluators
+    latency?: ThresholdMetric    // ms
+    tokens?: ThresholdMetric
+    cost?: ThresholdMetric       // USD
+    evaluators?: {               // Per-evaluator thresholds
+      [name: string]: ThresholdMetric
     }
   }
 
@@ -79,7 +76,6 @@ cobalt://config
     "enabled": true,
     "ttl": 86400000
   },
-  "ciMode": false,
   "thresholds": {},
   "tags": [],
   "plugins": []

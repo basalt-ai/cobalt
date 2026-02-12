@@ -38,7 +38,6 @@ Learn the core concepts and features.
 - [Evaluator Overview](guides/evaluators/overview.md) — How evaluation works
 - [LLM Judge](guides/evaluators/llm-judge.md) — LLM-based evaluation
 - [Function Evaluators](guides/evaluators/function-evaluators.md) — Custom JavaScript functions
-- [Exact Match](guides/evaluators/exact-match.md) — String comparison
 - [Similarity](guides/evaluators/similarity.md) — Semantic similarity with embeddings
 - [Autoevals](guides/evaluators/autoevals.md) — Braintrust Autoevals integration
 
@@ -179,7 +178,7 @@ Help improve Cobalt.
 Cobalt is a TypeScript testing framework specifically designed for AI agents and LLM-powered applications. It provides:
 
 - **Experiment Runner**: Test agents against datasets with reproducible results
-- **Evaluators**: LLM-based judges, similarity, exact match, autoevals, custom functions
+- **Evaluators**: LLM-based judges (boolean/scale), similarity, autoevals, custom functions
 - **Dataset Management**: Load from JSON/JSONL/CSV with transformations
 - **Result Tracking**: SQLite history, cost tracking, comparison tools
 - **CI/CD Integration**: Threshold-based quality gates with exit codes

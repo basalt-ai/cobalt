@@ -155,7 +155,7 @@ Evaluate document summarization quality
 
 ### [Classification](../examples/classification/README.md)
 Test text classification accuracy
-- **What you'll learn**: CSV loading, exact match evaluators
+- **What you'll learn**: CSV loading, function evaluators
 - **Time**: 10 minutes
 
 ### [RAG Pipeline](../examples/rag-pipeline/README.md)
@@ -215,9 +215,10 @@ const dataset = Dataset.fromJSON('./tests/scenarios.json')
 
 // 2. Set up CI/CD thresholds
 export default defineConfig({
-  ciMode: true,
   thresholds: {
-    'accuracy': { avg: 0.85, p95: 0.70 }
+    evaluators: {
+      'accuracy': { avg: 0.85, p95: 0.70 }
+    }
   }
 })
 

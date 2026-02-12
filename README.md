@@ -32,7 +32,7 @@
 Cobalt is a testing and evaluation framework designed specifically for AI agents and LLM-powered applications. It provides:
 
 - 🧪 **Experiment Runner** - Run your agent on datasets with parallel execution
-- 📊 **Multiple Evaluators** - LLM judges, custom functions, exact matching, and 11 Autoevals types
+- 📊 **Multiple Evaluators** - LLM judges (boolean/scale), custom functions, similarity, and 11 Autoevals types
 - 🔌 **Plugin System** - Extend with custom evaluators and integrations
 - 💰 **Cost Tracking** - Automatic token counting and cost estimation with caching
 - 📁 **Dataset Support** - Load from JSON, JSONL, CSV, or define inline
@@ -41,7 +41,7 @@ Cobalt is a testing and evaluation framework designed specifically for AI agents
 - ⚙️ **CI/CD Ready** - Quality thresholds with exit codes for pipelines
 - 🔌 **MCP Integration** - Model Context Protocol server for Claude Code with 4 tools + 3 prompts
 - 📈 **Dashboard API** - RESTful API for results (UI in development)
-- ✅ **Production Ready** - 231 tests with 80-100% coverage on core modules
+- ✅ **Production Ready** - 441 tests with 80-100% coverage on core modules
 
 ## Installation
 
@@ -76,14 +76,18 @@ const evaluators = [
   new Evaluator({
     name: 'relevance',
     type: 'llm-judge',
-    prompt: 'Rate from 0 to 1 how relevant the output is to the input query.',
+    prompt: 'Is the output relevant to the input query?',
     model: 'gpt-4o-mini',
     provider: 'openai'
+    // scoring defaults to 'boolean' — returns pass/fail
   }),
   new Evaluator({
-    name: 'exact-match',
-    type: 'exact-match',
-    field: 'expectedOutput'
+    name: 'length-check',
+    type: 'function',
+    fn: ({ output }) => ({
+      score: output.split(' ').length <= 100 ? 1 : 0,
+      reason: `${output.split(' ').length} words`
+    })
   })
 ]
 
@@ -132,17 +136,33 @@ An experiment runs your agent on a dataset and evaluates the outputs. Each run:
 Evaluators score your agent's outputs. Cobalt supports multiple types:
 
 #### LLM Judge
-Uses another LLM to evaluate outputs:
+Uses another LLM to evaluate outputs. Supports **boolean** (default) and **scale** scoring modes:
 
 ```typescript
+// Boolean mode (default) — pass/fail with chain of thought
 new Evaluator({
   name: 'relevance',
   type: 'llm-judge',
-  prompt: 'Rate from 0 to 1 how relevant this is.',
+  prompt: 'Is the output relevant to the input query?',
   model: 'gpt-4o-mini',
   provider: 'openai' // or 'anthropic'
 })
+
+// Scale mode — 0.0 to 1.0 scores
+new Evaluator({
+  name: 'quality',
+  type: 'llm-judge',
+  prompt: 'Rate the quality of this output.',
+  scoring: 'scale',
+  model: 'gpt-4o-mini',
+  provider: 'openai'
+})
 ```
+
+Options:
+- `scoring`: `'boolean'` (default) or `'scale'`
+- `chainOfThought`: Enable step-by-step reasoning (default: `true` for boolean)
+- `context`: Custom context mapping function for template variables
 
 #### Custom Function
 Write your own evaluation logic:
@@ -158,18 +178,6 @@ new Evaluator({
       reason: `Output has ${wordCount} words`
     }
   }
-})
-```
-
-#### Exact Match
-Compare output to expected value:
-
-```typescript
-new Evaluator({
-  name: 'correct-answer',
-  type: 'exact-match',
-  field: 'expectedOutput',
-  caseSensitive: false
 })
 ```
 
@@ -350,18 +358,26 @@ Run Cobalt in your CI/CD pipeline with quality thresholds:
 
 ```typescript
 export default defineConfig({
-  ciMode: true,  // Exit with code 1 if thresholds fail
   thresholds: {
-    'relevance': {
-      avg: 0.7,      // Average score must be >= 0.7
-      p95: 0.5,      // 95th percentile must be >= 0.5
-      min: 0.3       // Minimum score must be >= 0.3
-    },
-    'accuracy': {
-      passRate: 0.9  // At least 90% must pass
+    // Global thresholds (across all evaluators)
+    score: { avg: 0.7 },
+    latency: { avg: 5000 },
+    cost: { max: 1.0 },
+
+    // Per-evaluator thresholds
+    evaluators: {
+      'relevance': { avg: 0.8, passRate: 0.9 },
+      'accuracy': { avg: 0.85 }
     }
   }
 })
+```
+
+Use the `--ci` flag to enable exit codes in CI/CD:
+
+```bash
+# Exit code 0 if all thresholds pass, 1 if any fail
+npx cobalt run experiments/ --ci
 ```
 
 Use in GitHub Actions, GitLab CI, or any CI/CD platform:
@@ -369,7 +385,7 @@ Use in GitHub Actions, GitLab CI, or any CI/CD platform:
 ```yaml
 # .github/workflows/test-agent.yml
 - name: Run AI Tests
-  run: npx cobalt run experiments/
+  run: npx cobalt run experiments/ --ci
   env:
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
@@ -405,7 +421,7 @@ export default defineConfig({
 
 Built-in integrations:
 - **Autoevals** - 11 evaluator types (Levenshtein, BLEU, Answer Relevancy, etc.)
-- Custom plugins for RAGAS, LangSmith, and more
+- Custom plugins for domain-specific evaluators
 
 See [Plugin Documentation](docs/plugins.md) for a complete guide.
 
@@ -502,7 +518,7 @@ pnpm test:watch
 pnpm test:coverage
 ```
 
-Current test coverage: **231 tests** across 12 test suites covering all core functionality (80-100% coverage on tested modules).
+Current test coverage: **441 tests** across 24 test suites covering all core functionality (80-100% coverage on tested modules).
 
 ### Code Quality
 
@@ -568,7 +584,7 @@ Configure in your `~/.config/claude/claude_desktop_config.json`:
 **Core Functionality (P0-P1)**
 - [x] Core experiment runner with parallel execution
 - [x] LLM judge evaluator (OpenAI & Anthropic)
-- [x] Function and exact-match evaluators
+- [x] Function evaluators
 - [x] Dataset loading (JSON, JSONL, CSV)
 - [x] CLI commands (run, init, history, compare, clean, serve)
 - [x] Cost tracking and response caching
@@ -582,20 +598,21 @@ Configure in your `~/.config/claude/claude_desktop_config.json`:
 - [x] MCP server with 4 tools, 3 resources, 3 prompts
 - [x] Auto-generate experiments from agent code
 - [x] Statistical aggregations (avg, min, max, p50, p95)
+- [x] Boolean/scale scoring modes for LLM judge
+- [x] Chain of thought reasoning
+- [x] Similarity evaluator with cosine/dot product distance
 
 **Infrastructure**
 - [x] Dashboard backend API (Hono)
-- [x] Comprehensive test coverage (231 tests)
+- [x] Dashboard frontend UI (React + Tailwind)
+- [x] Comprehensive test coverage (441 tests)
 - [x] Example projects and templates
 - [x] Full documentation
 
 ### 🚧 In Progress
 
-- [ ] Dashboard frontend UI (backend API complete)
 - [ ] Remote dataset loaders (Dataset.fromRemote)
-- [ ] Similarity evaluator with embeddings
 - [ ] Multiple runs with statistical aggregation
-- [ ] RAGAS integration plugin
 
 ### 🔮 Future Plans
 

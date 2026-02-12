@@ -115,25 +115,22 @@ Cobalt includes several built-in evaluators that demonstrate the plugin system:
 
 ### llm-judge
 
-LLM-based evaluation:
+LLM-based evaluation with boolean (default) or scale scoring:
 
 ```typescript
+// Boolean scoring (default) — pass/fail
 new Evaluator({
   type: 'llm-judge',
   model: 'gpt-4o-mini',
-  prompt: 'Rate this output for quality: {{output}}'
+  prompt: 'Is this output high quality? {{output}}'
 })
-```
 
-### exact-match
-
-String matching:
-
-```typescript
+// Scale scoring — 0.0 to 1.0
 new Evaluator({
-  type: 'exact-match',
-  field: 'expectedOutput',
-  caseSensitive: false
+  type: 'llm-judge',
+  model: 'gpt-4o-mini',
+  scoring: 'scale',
+  prompt: 'Rate this output for quality: {{output}}'
 })
 ```
 
