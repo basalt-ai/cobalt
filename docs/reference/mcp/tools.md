@@ -688,7 +688,7 @@ cobalt_generate({
 ### Configuration
 
 **Uses Judge Config**:
-- Model: Uses `config.judge.model` (default: gpt-4o-mini)
+- Model: Uses `config.judge.model` (default: gpt-5-mini)
 - Provider: Uses `config.judge.provider`
 - API Key: Uses `config.judge.apiKey` or `OPENAI_API_KEY`
 

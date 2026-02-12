@@ -23,7 +23,7 @@ Rate completeness from 0.0 to 1.0:
 - 0.0 = Minimal or superficial coverage
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 
@@ -48,7 +48,7 @@ Check for:
 - Engaging and readable
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 
@@ -79,7 +79,7 @@ Check if:
 - No contradictions introduced
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 ];

@@ -98,19 +98,19 @@ export default defineConfig({
 
   // LLM judge configuration
   judge: {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai',
     // API key will be read from OPENAI_API_KEY environment variable
   },
 
   // Default concurrency for running experiments
-  concurrency: 5,
+  concurrency: 1,
 
   // Default timeout per item (ms)
   timeout: 30_000,
 
   // Reporters
-  reporters: ['cli', 'json'],
+  reporters: ['cli'],
 
   // Dashboard configuration
   dashboard: {

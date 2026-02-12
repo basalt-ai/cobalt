@@ -11,8 +11,8 @@ describe('estimateCost', () => {
 			expect(cost).toBeCloseTo(0.075, 3);
 		});
 
-		it('should estimate cost for GPT-4o-mini', () => {
-			const cost = estimateCost({ input: 10000, output: 5000 }, 'gpt-4o-mini');
+		it('should estimate cost for gpt-5-mini', () => {
+			const cost = estimateCost({ input: 10000, output: 5000 }, 'gpt-5-mini');
 
 			expect(cost).toBeGreaterThan(0);
 			expect(cost).toBeLessThan(0.01);
@@ -88,17 +88,17 @@ describe('estimateCost', () => {
 		it('should fall back to default pricing for unknown model', () => {
 			const cost = estimateCost({ input: 10000, output: 5000 }, 'unknown-model');
 
-			// Falls back to gpt-4o-mini pricing
+			// Falls back to gpt-5-mini pricing
 			expect(cost).toBeGreaterThan(0);
 		});
 	});
 
 	describe('cost comparisons', () => {
-		it('should show GPT-4o-mini is cheaper than GPT-4o', () => {
+		it('should show gpt-5-mini is cheaper than GPT-4o', () => {
 			const tokens = { input: 10000, output: 5000 };
 
 			const costGpt4o = estimateCost(tokens, 'gpt-4o');
-			const costGpt4oMini = estimateCost(tokens, 'gpt-4o-mini');
+			const costGpt4oMini = estimateCost(tokens, 'gpt-5-mini');
 
 			expect(costGpt4oMini).toBeLessThan(costGpt4o);
 		});
@@ -117,7 +117,7 @@ describe('estimateCost', () => {
 	describe('realistic usage', () => {
 		it('should estimate cost for typical experiment', () => {
 			const totalTokens = { input: 100 * 100, output: 100 * 50 };
-			const cost = estimateCost(totalTokens, 'gpt-4o-mini');
+			const cost = estimateCost(totalTokens, 'gpt-5-mini');
 
 			expect(cost).toBeGreaterThan(0);
 			expect(cost).toBeLessThan(1);

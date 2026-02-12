@@ -47,7 +47,7 @@ const evaluators = [
     name: 'relevance',
     type: 'llm-judge',
     prompt: 'Rate from 0 to 1 how relevant the output is.',
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai'
   })
 ]
@@ -266,7 +266,7 @@ Input: {{input}}
 Output: {{output}}
 
 Return JSON: {"score": <number>, "reason": "<explanation>"}`,
-  model: 'gpt-4o-mini',
+  model: 'gpt-5-mini',
   provider: 'openai'
 })
 ```
@@ -280,7 +280,7 @@ Return JSON: {"score": <number>, "reason": "<explanation>"}`,
 
 **OpenAI:**
 - `gpt-4o`
-- `gpt-4o-mini`
+- `gpt-5-mini`
 - `gpt-4-turbo`
 - `gpt-4`
 - `gpt-3.5-turbo`
@@ -689,7 +689,7 @@ export default defineConfig({
       name: 'relevance',
       type: 'llm-judge',
       prompt: 'Rate from 0 to 1',
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       provider: 'openai'
     }
   ],

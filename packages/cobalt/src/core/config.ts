@@ -10,7 +10,7 @@ const DEFAULT_CONFIG: CobaltConfig = {
 	testDir: './experiments',
 	testMatch: ['**/*.cobalt.ts', '**/*.experiment.ts'],
 	judge: {
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 		apiKey: process.env.OPENAI_API_KEY,
 	},

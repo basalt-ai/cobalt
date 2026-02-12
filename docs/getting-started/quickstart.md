@@ -218,7 +218,7 @@ const evaluators = [
 
 experiment('concise-llm', dataset, async ({ item }) => {
   const completion = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     messages: [
       { role: 'system', content: 'Be concise. Answer in one sentence.' },
       { role: 'user', content: item.input }
@@ -231,7 +231,7 @@ experiment('concise-llm', dataset, async ({ item }) => {
   return {
     output,
     metadata: {
-      model: 'gpt-4o-mini',
+      model: 'gpt-5-mini',
       tokens: completion.usage?.total_tokens || 0
     }
   }

@@ -134,10 +134,10 @@ import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
   testDir: './experiments',
-  judge: { model: 'gpt-4o-mini', provider: 'openai' },
+  judge: { model: 'gpt-5-mini', provider: 'openai' },
   concurrency: 5,
   timeout: 30_000,
-  reporters: ['cli', 'json'],
+  reporters: ['cli'],
   cache: { enabled: true, ttl: '7d' },
 })
 ```

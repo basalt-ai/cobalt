@@ -34,7 +34,7 @@ Respond with JSON:
   "score": <number between 0 and 1>,
   "reason": "<explanation focusing on accuracy>"
 }`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 
@@ -92,7 +92,7 @@ Respond with JSON:
   "score": <number between 0 and 1>,
   "reason": "<explanation focusing on clarity>"
 }`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 ];
@@ -121,6 +121,6 @@ experiment(
 		evaluators,
 		concurrency: 2, // Limit concurrency for longer requests
 		timeout: 45000, // 45 second timeout
-		tags: ['summarization', 'gpt-4o-mini', 'example'],
+		tags: ['summarization', 'gpt-5-mini', 'example'],
 	},
 );

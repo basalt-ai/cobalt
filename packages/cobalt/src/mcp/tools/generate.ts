@@ -85,7 +85,7 @@ export async function handleCobaltGenerate(args: any) {
 		const sourceCode = readFileSync(agentFilePath, 'utf-8');
 
 		// Initialize OpenAI client (using judge config for consistency)
-		const model = config.judge?.model || 'gpt-4o-mini';
+		const model = config.judge?.model || 'gpt-5-mini';
 		const client = new OpenAI({ apiKey });
 
 		// Step 1: Analyze agent code

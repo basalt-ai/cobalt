@@ -61,7 +61,7 @@ Respond with JSON:
   "score": <number between 0 and 1>,
   "reason": "<explanation of your rating>"
 }`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 ];
@@ -89,6 +89,6 @@ experiment(
 		evaluators,
 		concurrency: 3, // Run 3 questions at a time
 		timeout: 30000, // 30 second timeout per question
-		tags: ['qa', 'gpt-4o-mini', 'example'],
+		tags: ['qa', 'gpt-5-mini', 'example'],
 	},
 );

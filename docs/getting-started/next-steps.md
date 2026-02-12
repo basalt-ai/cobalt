@@ -234,7 +234,7 @@ npx cobalt compare baseline latest
 
 ```typescript
 // 1. Test multiple model variants
-const models = ['gpt-4o', 'gpt-4o-mini', 'claude-3-5-sonnet']
+const models = ['gpt-4o', 'gpt-5-mini', 'claude-3-5-sonnet']
 for (const model of models) {
   await experiment(`agent-${model}`, dataset, runner, {
     evaluators,
@@ -374,7 +374,7 @@ const treatmentScores = await loadResult('treatment')
 // Use cheaper models for evaluators
 new Evaluator({
   type: 'llm-judge',
-  model: 'gpt-4o-mini'  // vs gpt-4o
+  model: 'gpt-5-mini'  // vs gpt-4o
 })
 
 // Use function evaluators when possible

@@ -13,14 +13,12 @@ import type {
 const mockConfig: CobaltConfig = {
 	testDir: './experiments',
 	testMatch: ['**/*.cobalt.ts'],
-	judge: { model: 'gpt-4o-mini', provider: 'openai', apiKey: 'sk-test' },
-	outputDir: '.cobalt',
+	judge: { model: 'gpt-5-mini', provider: 'openai', apiKey: 'sk-test' },
 	concurrency: 5,
 	timeout: 30000,
 	reporters: ['cli'],
 	dashboard: { port: 4000, open: false },
 	cache: { enabled: false, ttl: '7d' },
-	ciMode: false,
 	plugins: [],
 };
 
@@ -28,14 +26,12 @@ vi.mock('../../../src/core/config.js', () => ({
 	loadConfig: vi.fn().mockResolvedValue({
 		testDir: './experiments',
 		testMatch: ['**/*.cobalt.ts'],
-		judge: { model: 'gpt-4o-mini', provider: 'openai', apiKey: 'sk-test' },
-		outputDir: '.cobalt',
+		judge: { model: 'gpt-5-mini', provider: 'openai', apiKey: 'sk-test' },
 		concurrency: 5,
 		timeout: 30000,
 		reporters: ['cli'],
 		dashboard: { port: 4000, open: false },
 		cache: { enabled: false, ttl: '7d' },
-		ciMode: false,
 		plugins: [],
 	}),
 	getApiKey: vi.fn().mockReturnValue('sk-test-key'),

@@ -293,7 +293,7 @@ Uses an LLM to score agent output. Best for subjective quality assessments.
   name: 'quality',
   type: 'llm-judge',
   prompt: 'Rate the quality of this answer.\nQuestion: {{input}}\nAnswer: {{output}}\nExpected: {{expectedOutput}}',
-  model: 'gpt-4o-mini',  // Optional. Defaults to config judge model.
+  model: 'gpt-5-mini',  // Optional. Defaults to config judge model.
 }
 ```
 
@@ -769,7 +769,6 @@ Enable CI mode globally in `cobalt.config.ts` to apply default thresholds to all
 import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
-  ciMode: true,
   thresholds: {
     correctness: { avg: 0.8, min: 0.5 },
   },
@@ -796,7 +795,7 @@ export default defineConfig({
 
   // LLM judge configuration
   judge: {
-    model: 'gpt-4o-mini',           // Model for LLM judge evaluators
+    model: 'gpt-5-mini',           // Model for LLM judge evaluators
     provider: 'openai',             // 'openai' or 'anthropic'
     apiKey: process.env.OPENAI_API_KEY,  // Or set via env var
   },
@@ -806,7 +805,7 @@ export default defineConfig({
   timeout: 30_000,                  // Per-item timeout in ms
 
   // Output reporters
-  reporters: ['cli', 'json'],       // 'cli', 'json', 'github-actions'
+  reporters: ['cli'],       // 'cli', 'json', 'github-actions'
 
   // Dashboard settings
   dashboard: {
@@ -821,7 +820,6 @@ export default defineConfig({
   },
 
   // CI mode
-  ciMode: false,
   thresholds: {},                   // Default thresholds when ciMode is true
 })
 ```

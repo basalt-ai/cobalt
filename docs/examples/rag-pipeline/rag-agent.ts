@@ -29,7 +29,7 @@ export async function answerWithRAG(
 	const context = retrievedDocs.map((d) => d.content).join('\n\n');
 
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',
@@ -49,7 +49,7 @@ export async function answerWithRAG(
 	return {
 		answer,
 		retrievedDocs,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		tokens: completion.usage?.total_tokens || 0,
 	};
 }

@@ -29,7 +29,6 @@ cobalt://config
 ```typescript
 {
   testDir: string              // Test directory path
-  outputDir: string            // Results output directory
   concurrency: number          // Max parallel executions
   timeout: number              // Per-item timeout (ms)
 
@@ -64,12 +63,11 @@ cobalt://config
 ```json
 {
   "testDir": "experiments",
-  "outputDir": ".cobalt",
   "concurrency": 5,
   "timeout": 30000,
   "judge": {
     "provider": "openai",
-    "model": "gpt-4o-mini",
+    "model": "gpt-5-mini",
     "apiKey": "[REDACTED]"
   },
   "cache": {
@@ -94,7 +92,7 @@ cobalt://config
    Configuration:
    - Test directory: experiments/
    - Concurrency: 5
-   - Judge model: gpt-4o-mini
+   - Judge model: gpt-5-mini
    - Cache: enabled (24h TTL)
    - CI mode: disabled
 ```
@@ -106,7 +104,7 @@ cobalt://config
 
 🤖 *Reads cobalt://config*
 
-   Your LLM judges use: gpt-4o-mini
+   Your LLM judges use: gpt-5-mini
 
    This is a cost-effective choice for evaluators.
    Consider upgrading to gpt-4o for:
@@ -481,7 +479,7 @@ qa-agent-test runs:
 
 🤖 Step 1: *Reads cobalt://config*
    - Concurrency: 5
-   - Judge: gpt-4o-mini
+   - Judge: gpt-5-mini
    - CI mode: disabled
 
 🤖 Step 2: *Reads cobalt://latest-results*
@@ -489,7 +487,7 @@ qa-agent-test runs:
    - chatbot: 0.91 avg
 
 🤖 Analysis:
-   You're using gpt-4o-mini for evaluations (cost-effective).
+   You're using gpt-5-mini for evaluations (cost-effective).
    All tests are passing with good scores.
    Consider enabling CI mode for production gates.
 ```

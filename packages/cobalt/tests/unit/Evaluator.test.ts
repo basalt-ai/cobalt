@@ -63,7 +63,7 @@ describe('Evaluator', () => {
 				name: 'relevance',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 			});
 
 			const result = await evaluator.evaluate(sampleEvalContext, 'fake-api-key');

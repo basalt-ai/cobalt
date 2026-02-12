@@ -125,7 +125,7 @@ Output: {{output}}
 Expected: {{expectedOutput}}
 
 Rate the relevance from 0.0 to 1.0. Respond with JSON: { "score": <number>, "reason": "<string>" }`,
-  model: 'gpt-4o-mini',    // optional, otherwise uses the model from global config
+  model: 'gpt-5-mini',    // optional, otherwise uses the model from global config
 })
 
 // --- Type 2: Custom function ---
@@ -231,13 +231,10 @@ export default defineConfig({
 
   // Default model for LLM judges
   judge: {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai',            // 'openai' | 'anthropic' | 'basalt' (future)
     apiKey: process.env.OPENAI_API_KEY, // or via automatic env var
   },
-
-  // Local storage directory
-  outputDir: '.cobalt',
 
   // Default concurrency
   concurrency: 5,
