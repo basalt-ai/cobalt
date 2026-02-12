@@ -56,12 +56,12 @@ Add Cobalt to an existing TypeScript project:
 
 **Using pnpm (recommended):**
 ```bash
-pnpm add cobalt
+pnpm add @basalt-ai/cobalt
 ```
 
 **Using npm:**
 ```bash
-npm install cobalt
+npm install @basalt-ai/cobalt
 ```
 
 **Using yarn:**
@@ -161,7 +161,7 @@ Update `package.json`:
 The `cobalt.config.ts` file allows you to set default options:
 
 ```typescript
-import { defineConfig } from 'cobalt'
+import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
   // Default test directory
@@ -257,9 +257,9 @@ npx cobalt results <run-id>
 
 **Solution**:
 ```bash
-pnpm add cobalt
+pnpm add @basalt-ai/cobalt
 # or
-npm install cobalt
+npm install @basalt-ai/cobalt
 ```
 
 ### "SyntaxError: Cannot use import statement"
@@ -358,9 +358,9 @@ npm update cobalt
 Upgrade to specific version:
 
 ```bash
-pnpm add cobalt@latest
+pnpm add @basalt-ai/cobalt@latest
 # or
-pnpm add cobalt@0.2.0
+pnpm add @basalt-ai/cobalt@0.2.0
 ```
 
 ## Uninstalling

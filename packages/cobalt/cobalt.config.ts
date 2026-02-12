@@ -1,4 +1,4 @@
-import { defineConfig } from 'cobalt';
+import { defineConfig } from '@basalt-ai/cobalt';
 
 export default defineConfig({
 	// Directory containing experiment files

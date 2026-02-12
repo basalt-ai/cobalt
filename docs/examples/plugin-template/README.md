@@ -65,7 +65,7 @@ export default defineConfig({
 **Option B: Load in experiment file**
 
 ```typescript
-import { experiment, Evaluator } from 'cobalt'
+import { experiment, Evaluator } from '@basalt-ai/cobalt'
 
 await experiment('test', dataset, runner, {
   evaluators: [
@@ -84,7 +84,7 @@ await experiment('test', dataset, runner, {
 ### Required Format
 
 ```typescript
-import type { PluginDefinition } from 'cobalt'
+import type { PluginDefinition } from '@basalt-ai/cobalt'
 
 const plugin: PluginDefinition = {
   name: string          // Plugin identifier

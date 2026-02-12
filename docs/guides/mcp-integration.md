@@ -14,7 +14,7 @@ The [Model Context Protocol](https://modelcontextprotocol.io) is an open protoco
 
 ## Prerequisites
 
-- **Cobalt installed**: `pnpm add cobalt`
+- **Cobalt installed**: `pnpm add @basalt-ai/cobalt`
 - **Claude Code**: Install from [claude.ai/code](https://claude.ai/code)
 - **OpenAI API key**: For LLM evaluators (optional but recommended)
 

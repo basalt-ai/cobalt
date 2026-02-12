@@ -334,7 +334,7 @@ npx cobalt results abc123 --filter "score<0.5"
 Or manually inspect the JSON:
 
 ```typescript
-import { loadResult } from 'cobalt'
+import { loadResult } from '@basalt-ai/cobalt'
 
 const result = await loadResult('abc123')
 
@@ -400,7 +400,7 @@ npx cobalt results abc123 --format csv > results.csv
 ### Export for Analysis
 
 ```typescript
-import { loadResult } from 'cobalt'
+import { loadResult } from '@basalt-ai/cobalt'
 import { writeFile } from 'fs/promises'
 
 const result = await loadResult('abc123')

@@ -299,7 +299,7 @@ experiment('study-001', dataset, runner, {
 })
 
 // 2. Export data for analysis
-import { loadResult } from 'cobalt'
+import { loadResult } from '@basalt-ai/cobalt'
 const results = await loadResult('abc123')
 // Analyze in Python, R, etc.
 

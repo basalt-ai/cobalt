@@ -50,7 +50,7 @@ export default defineConfig({
 **Option B: Per-Experiment**
 
 ```typescript
-import { experiment } from 'cobalt'
+import { experiment } from '@basalt-ai/cobalt'
 
 await experiment('test', dataset, runner, {
   evaluators: [
@@ -68,7 +68,7 @@ await experiment('test', dataset, runner, {
 ### Required Format
 
 ```typescript
-import type { PluginDefinition } from 'cobalt'
+import type { PluginDefinition } from '@basalt-ai/cobalt'
 
 const plugin: PluginDefinition = {
   // Plugin metadata
@@ -524,7 +524,7 @@ new Evaluator({ type: 'my-eval' })
 
 ```typescript
 // Use explicit typing
-import type { PluginDefinition, EvalContext, EvalResult } from 'cobalt'
+import type { PluginDefinition, EvalContext, EvalResult } from '@basalt-ai/cobalt'
 
 const plugin: PluginDefinition = { /* ... */ }
 export default plugin

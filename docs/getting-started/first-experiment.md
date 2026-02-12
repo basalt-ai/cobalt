@@ -130,7 +130,7 @@ export async function answerQuestion(question: string): Promise<AgentResponse> {
 Create `experiments/qa-agent.cobalt.ts`:
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 import { answerQuestion } from '../src/agent.js'
 
 // Load dataset from JSON file
@@ -217,7 +217,7 @@ experiment('qa-agent-test', dataset, async ({ item }) => {
 Create or update `cobalt.config.ts`:
 
 ```typescript
-import { defineConfig } from 'cobalt'
+import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
   testDir: 'experiments',

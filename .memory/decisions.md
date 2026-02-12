@@ -378,12 +378,14 @@ const filtered = dataset.filter(item => item.priority === 'high')
 **Date**: 2026-02-05  
 **Status**: Accepted  
 
-**Decision**: Experiment files are `.cobalt.ts` files with default export.
+**Decision**: Experiment files are `.cobalt.ts` files that call the `experiment()` function.
 
 **Example**:
 ```typescript
 // my-agent.cobalt.ts
-export default experiment('name', dataset, runner, options)
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
+
+experiment('name', dataset, runner, options)
 ```
 
 **Rationale**:
