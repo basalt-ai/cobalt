@@ -46,7 +46,7 @@ function getTemplatePath(): string {
  */
 export function extractSkillsVersion(content: string): string | null {
 	const match = content.match(SKILLS_VERSION_REGEX);
-	return match ? match[1] ?? null : null;
+	return match ? (match[1] ?? null) : null;
 }
 
 /**
