@@ -27,7 +27,7 @@ export function getPackageVersion(): string {
 		const pkg = JSON.parse(require('node:fs').readFileSync(packageJsonPath, 'utf-8'));
 		return pkg.version;
 	} catch {
-		return '0.1.0';
+		return '0.2.0';
 	}
 }
 
@@ -46,7 +46,7 @@ function getTemplatePath(): string {
  */
 export function extractSkillsVersion(content: string): string | null {
 	const match = content.match(SKILLS_VERSION_REGEX);
-	return match ? match[1] : null;
+	return match ? match[1] ?? null : null;
 }
 
 /**

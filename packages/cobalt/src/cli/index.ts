@@ -4,7 +4,7 @@ import { defineCommand, runMain } from 'citty';
 const main = defineCommand({
 	meta: {
 		name: 'cobalt',
-		version: '0.1.0',
+		version: '0.2.0',
 		description: 'Unit testing for AI Agents — test, evaluate, and track your AI experiments',
 	},
 	subCommands: {
