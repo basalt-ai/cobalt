@@ -1,0 +1,15 @@
+diff --git a/.npmignore b/.npmignore
+deleted file mode 100644
+index 96e9161fde31e9906718f689d5cc135e507a51e1..0000000000000000000000000000000000000000
+diff --git a/index.js b/index.js
+index 9ce12ca2d026fa202f7a0d32e0a7c8526660ed78..7c3b5d7ff1624d2bfbb5b83f69a9b460e38dbeab 100644
+--- a/index.js
++++ b/index.js
+@@ -1,6 +1,6 @@
+ "use strict";
+ 
+-var punycode = require("punycode");
++var punycode = require("punycode/");
+ var mappingTable = require("./lib/mappingTable.json");
+ 
+ var PROCESSING_OPTIONS = {
