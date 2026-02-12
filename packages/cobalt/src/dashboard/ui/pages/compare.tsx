@@ -12,7 +12,14 @@ import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useApi } from '../hooks/use-api';
-import { type ClientStats, cn, computeClientStats, formatDuration } from '../lib/utils';
+import {
+	type ClientStats,
+	cn,
+	computeClientStats,
+	detectBooleanEvaluators,
+	formatDuration,
+	formatScore,
+} from '../lib/utils';
 
 const RUN_COLORS = [
 	{
@@ -55,6 +62,17 @@ export function ComparePage() {
 		return compareRuns(runIds);
 	}, [runIds]);
 
+	const evaluatorNames = useMemo(() => (data ? Object.keys(data.scoreDiffs) : []), [data]);
+
+	// Detect boolean evaluators from all outputs across all runs
+	const booleanEvals = useMemo(() => {
+		if (!data) return new Set<string>();
+		const allOutputs = data.items.flatMap((item) =>
+			item.outputs.filter((o): o is NonNullable<typeof o> => o != null),
+		);
+		return detectBooleanEvaluators(allOutputs, evaluatorNames);
+	}, [data, evaluatorNames]);
+
 	if (runIds.length < 2) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 text-center">
@@ -89,8 +107,6 @@ export function ComparePage() {
 	}
 	if (!data) return null;
 
-	const evaluatorNames = Object.keys(data.scoreDiffs);
-
 	return (
 		<div className="space-y-6">
 			{/* Breadcrumb */}
@@ -122,9 +138,15 @@ export function ComparePage() {
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
 				{evaluatorNames.map((name) => {
 					const diff = data.scoreDiffs[name];
+					const isBool = booleanEvals.has(name);
 					return (
 						<div key={name} className="rounded-xl border bg-card shadow-sm p-4">
-							<p className="text-xs font-medium text-muted-foreground mb-3">{name}</p>
+							<p className="text-xs font-medium text-muted-foreground mb-3">
+								{name}
+								{isBool && (
+									<span className="ml-1.5 text-[10px] text-muted-foreground/70">(pass rate)</span>
+								)}
+							</p>
 							<div className="space-y-2">
 								{diff.scores.map((score, i) => (
 									<ScoreRow
@@ -162,7 +184,7 @@ export function ComparePage() {
 			<CompareStatsTabs data={data} />
 
 			{/* Items Table */}
-			<CompareItemsTable data={data} evaluatorNames={evaluatorNames} />
+			<CompareItemsTable data={data} evaluatorNames={evaluatorNames} booleanEvals={booleanEvals} />
 		</div>
 	);
 }
@@ -328,9 +350,11 @@ function CompareStatsTable({
 function CompareItemsTable({
 	data,
 	evaluatorNames,
+	booleanEvals,
 }: {
 	data: CompareResponse;
 	evaluatorNames: string[];
+	booleanEvals: Set<string>;
 }) {
 	const [filters, setFilters] = useState<FilterValue[]>([]);
 	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
@@ -474,9 +498,15 @@ function CompareItemsTable({
 										<div className="flex flex-col items-end gap-0.5">
 											<span>{name}</span>
 											<ColumnCell className="items-end">
-												{avgScores[name].map((s, i) => (
-													<ScoreBadge key={RUN_COLORS[i].label} score={s} />
-												))}
+												{avgScores[name].map((s, i) =>
+													booleanEvals.has(name) ? (
+														<span key={RUN_COLORS[i].label} className="text-[10px] tabular-nums">
+															{formatScore(s)}% pass
+														</span>
+													) : (
+														<ScoreBadge key={RUN_COLORS[i].label} score={s} />
+													),
+												)}
 											</ColumnCell>
 										</div>
 									</th>
@@ -551,8 +581,12 @@ function CompareItemsTable({
 												{item.outputs.map((out, idx) => {
 													const ev = out?.evaluations[name];
 													return ev ? (
-														// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
-														<ScoreBadge key={idx} score={ev.score} />
+														<ScoreBadge
+															// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+															key={idx}
+															score={ev.score}
+															boolean={booleanEvals.has(name)}
+														/>
 													) : (
 														// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
 														<span key={idx} className="text-muted-foreground text-xs">

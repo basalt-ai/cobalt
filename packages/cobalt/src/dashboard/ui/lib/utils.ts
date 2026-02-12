@@ -37,6 +37,26 @@ export function formatPercent(value: number): string {
 	return `${sign}${value.toFixed(1)}%`;
 }
 
+/**
+ * Detect if an evaluator uses boolean scoring (all scores are exactly 0 or 1).
+ * Returns a Set of evaluator names that are boolean.
+ */
+export function detectBooleanEvaluators(
+	items: Array<{ evaluations: Record<string, { score: number }> }>,
+	evaluatorNames: string[],
+): Set<string> {
+	const booleanEvals = new Set<string>();
+	for (const name of evaluatorNames) {
+		const scores = items
+			.map((item) => item.evaluations[name]?.score)
+			.filter((s): s is number => s != null);
+		if (scores.length > 0 && scores.every((s) => s === 0 || s === 1)) {
+			booleanEvals.add(name);
+		}
+	}
+	return booleanEvals;
+}
+
 /** Client-side percentile calculation (mirrors backend calculateStats) */
 function percentile(sorted: number[], p: number): number {
 	if (sorted.length === 0) return 0;

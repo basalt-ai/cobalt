@@ -6,6 +6,7 @@ interface ScoreBadgeProps {
 	score: number;
 	className?: string;
 	showPercent?: boolean;
+	boolean?: boolean;
 }
 
 function scoreToColor(score: number): BadgeColor {
@@ -15,7 +16,21 @@ function scoreToColor(score: number): BadgeColor {
 	return 'tomato';
 }
 
-export function ScoreBadge({ score, className, showPercent = false }: ScoreBadgeProps) {
+export function ScoreBadge({
+	score,
+	className,
+	showPercent = false,
+	boolean: isBoolean = false,
+}: ScoreBadgeProps) {
+	if (isBoolean) {
+		const passed = score === 1;
+		const color: BadgeColor = passed ? 'lime' : 'tomato';
+		return (
+			<Badge size="xs" color={color} className={cn('tabular-nums', className)}>
+				{passed ? 'Pass' : 'Fail'}
+			</Badge>
+		);
+	}
 	const color = scoreToColor(score);
 	const display = showPercent ? `${(score * 100).toFixed(0)}%` : `${(score * 100).toFixed(1)}%`;
 	return (
