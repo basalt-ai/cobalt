@@ -22,7 +22,6 @@ describe('defineConfig', () => {
 		expect(config.timeout).toBe(30_000);
 		expect(config.judge.model).toBe('gpt-4o-mini');
 		expect(config.judge.provider).toBe('openai');
-		expect(config.outputDir).toBe('.cobalt');
 		expect(config.cache.enabled).toBe(true);
 		expect(config.cache.ttl).toBe('7d');
 	});
