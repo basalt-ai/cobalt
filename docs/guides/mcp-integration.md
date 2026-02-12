@@ -171,7 +171,7 @@ If connected, Claude will use the `cobalt://experiments` resource and show your 
 
    Run tests with:
    ```bash
-   npx cobalt run experiments/summarizer.cobalt.ts
+   npx cobalt run --file experiments/summarizer.cobalt.ts
    ```
 
    Should I run these tests now?
@@ -507,7 +507,7 @@ Integrate with cron/schedulers:
 
 ```bash
 # Daily regression check
-0 9 * * * cd /project && npx cobalt run experiments/ && \
+0 9 * * * cd /project && npx cobalt run && \
   echo "Check for regressions" | claude-code
 ```
 
@@ -517,7 +517,7 @@ Use in GitHub Actions:
 
 ```yaml
 - name: Run Cobalt Tests
-  run: npx cobalt run experiments/
+  run: npx cobalt run
 
 - name: Check Regressions
   run: |

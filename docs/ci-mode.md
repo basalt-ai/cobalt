@@ -40,7 +40,7 @@ Use the `--ci` flag to enable threshold validation and exit codes:
 ```bash
 # Exit code 0 if all thresholds pass
 # Exit code 1 if any threshold fails
-pnpm cobalt run experiments/ --ci
+pnpm cobalt run --ci
 ```
 
 ### 3. Add to CI Pipeline
@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
       - run: pnpm install
-      - run: pnpm cobalt run experiments/ --ci
+      - run: pnpm cobalt run --ci
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
@@ -135,11 +135,11 @@ CI mode is activated by the `--ci` flag. Without the flag, thresholds are ignore
 
 ```bash
 # Success (exit 0)
-pnpm cobalt run experiments/ --ci
+pnpm cobalt run --ci
 # ✓ All thresholds passed
 
 # Failure (exit 1)
-pnpm cobalt run experiments/ --ci
+pnpm cobalt run --ci
 # ✗ CI Mode: 2 threshold(s) failed
 #   score: avg score 0.650 < threshold 0.700
 #   evaluators.accuracy: pass rate 85.0% (17/20) < threshold 90.0%
@@ -207,7 +207,7 @@ jobs:
       - run: pnpm install
 
       - name: Run AI Tests
-        run: pnpm cobalt run experiments/ --ci
+        run: pnpm cobalt run --ci
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
@@ -228,7 +228,7 @@ ai-quality-check:
     - npm install -g pnpm
     - pnpm install
   script:
-    - pnpm cobalt run experiments/ --ci
+    - pnpm cobalt run --ci
   artifacts:
     when: always
     paths:
@@ -250,7 +250,7 @@ jobs:
       - checkout
       - run: npm install -g pnpm
       - run: pnpm install
-      - run: pnpm cobalt run experiments/ --ci
+      - run: pnpm cobalt run --ci
       - store_artifacts:
           path: .cobalt/results
 
@@ -280,7 +280,7 @@ pipeline {
 
     stage('AI Quality Check') {
       steps {
-        sh 'pnpm cobalt run experiments/ --ci'
+        sh 'pnpm cobalt run --ci'
       }
     }
 
@@ -468,7 +468,7 @@ Run specific experiments in CI:
 
 ```bash
 # Only run critical experiments
-pnpm cobalt run experiments/critical/*.cobalt.ts --ci
+pnpm cobalt run --file experiments/critical/*.cobalt.ts --ci
 ```
 
 ```typescript
@@ -609,7 +609,7 @@ await fetch('https://api.datadoghq.com/api/v1/metrics', {
 pnpm cobalt history --limit 10
 
 # View detailed results
-pnpm cobalt results <run-id>
+pnpm cobalt history --limit 10
 
 # Adjust threshold based on data
 thresholds: {
@@ -632,18 +632,18 @@ thresholds: {
    ```typescript
    cache: {
      enabled: true,
-     ttl: 86400000  // 24 hours
+     ttl: '24h'  // 24 hours
    }
    ```
 
 3. **Split test runs**:
    ```bash
-   pnpm cobalt run experiments/batch1/
-   pnpm cobalt run experiments/batch2/
+   pnpm cobalt run --file experiments/batch1/
+   pnpm cobalt run --file experiments/batch2/
    ```
 
 ## Resources
 
-- **Example Configs**: `examples/ci-config/`
-- **API Reference**: `docs/api.md`
+- **[Configuration](configuration.md)** — Full configuration reference
+- **[Experiments](experiments.md)** — Experiment runner guide
 - **Dashboard**: Use `pnpm cobalt serve` to visualize trends

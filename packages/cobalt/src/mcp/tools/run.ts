@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { loadConfig } from '../../core/config.js';
+import { drainPendingExperiments } from '../../core/experiment.js';
 import type { ExperimentReport } from '../../types/index.js';
 
 /**
@@ -65,6 +66,9 @@ export async function handleCobaltRun(args: any) {
 			// Import and execute - the experiment() call will run automatically
 			// Results will be captured via the global callback
 			await jiti.import(file, { default: true });
+
+			// Wait for all experiment() calls that started during import
+			await drainPendingExperiments();
 		}
 
 		// Verify we captured results

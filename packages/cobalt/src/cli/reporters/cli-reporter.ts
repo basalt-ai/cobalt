@@ -13,8 +13,12 @@ export class CLIReporter extends BaseReporter {
 	onStart(info: ExperimentStartInfo): void {
 		this.experimentName = info.name;
 		console.log(
-			`\n  ${pc.bold(info.name)} ${pc.dim(`(${info.datasetSize} items, ${info.evaluators.length} evaluators)`)}\n`,
+			`\n  ${pc.bold(info.name)} ${pc.dim(`(${info.datasetSize} items, ${info.evaluators.length} evaluators)`)}`,
 		);
+		if (info.tags && info.tags.length > 0) {
+			console.log(`  ${pc.dim(`Tags: ${info.tags.join(', ')}`)}`);
+		}
+		console.log('');
 	}
 
 	onProgress(info: ProgressInfo): void {

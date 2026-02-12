@@ -91,7 +91,7 @@ experiment('qa-agent', dataset, async ({ item }) => {
 ```
 
 ```bash
-npx cobalt run experiments/my-agent.cobalt.ts
+npx cobalt run --file experiments/my-agent.cobalt.ts
 ```
 
 ## Core Concepts
@@ -171,14 +171,14 @@ The built-in [MCP](https://modelcontextprotocol.io/) server gives Claude Code (a
 Cobalt is built to run in your CI pipeline. Define quality thresholds for your agents, and Cobalt will enforce them on every commit — ensuring your AI systems stay reliable over time, not just at launch.
 
 ```bash
-npx cobalt run experiments/ --ci
+npx cobalt run --ci
 # Exit code 1 if any threshold is violated
 ```
 
 ```yaml
 # .github/workflows/test-agent.yml
 - name: Run AI Agent Tests
-  run: npx cobalt run experiments/ --ci
+  run: npx cobalt run --ci
   env:
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```

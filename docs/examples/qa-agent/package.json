@@ -4,8 +4,8 @@
 	"description": "Cobalt example: Testing a Q&A agent",
 	"type": "module",
 	"scripts": {
-		"test": "cobalt run qa-agent.cobalt.ts",
-		"test:debug": "cobalt run qa-agent.cobalt.ts --concurrency 1"
+		"test": "cobalt run --file qa-agent.cobalt.ts",
+		"test:debug": "cobalt run --file qa-agent.cobalt.ts --concurrency 1"
 	},
 	"dependencies": {
 		"cobalt": "latest",

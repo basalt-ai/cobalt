@@ -185,7 +185,7 @@ await experiment('ci-test', dataset, runner, {
 | `evaluators` | Same metrics, keyed by evaluator name | Per-evaluator overrides |
 
 ```bash
-npx cobalt run experiments/ --ci
+npx cobalt run --ci
 # Exit code 1 if any threshold is violated
 ```
 
@@ -271,11 +271,11 @@ experiments/
 Run all experiments:
 
 ```bash
-npx cobalt run experiments/
+npx cobalt run
 ```
 
 Run a specific file:
 
 ```bash
-npx cobalt run experiments/qa-agent.cobalt.ts
+npx cobalt run --file experiments/qa-agent.cobalt.ts
 ```

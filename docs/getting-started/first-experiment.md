@@ -223,7 +223,7 @@ export default defineConfig({
   testDir: 'experiments',
   cache: {
     enabled: true,
-    ttl: 86400000  // 24 hours - reuse responses for same inputs
+    ttl: '24h'  // reuse responses for same inputs
   },
   judge: {
     model: 'gpt-5-mini',
@@ -242,7 +242,7 @@ export default defineConfig({
 export OPENAI_API_KEY="sk-..."
 
 # Run the experiment
-npx cobalt run experiments/qa-agent.cobalt.ts
+npx cobalt run --file experiments/qa-agent.cobalt.ts
 ```
 
 You should see output like:
@@ -282,11 +282,7 @@ Recent Runs:
 
 ### View Detailed Results
 
-```bash
-npx cobalt results 20250206_143022
-```
-
-This shows item-by-item results:
+Result JSON files are saved in `.cobalt/data/results/`. You can inspect them directly:
 
 ```json
 {
@@ -401,7 +397,7 @@ export default defineConfig({
 Use the `--ci` flag to enable exit codes:
 
 ```bash
-npx cobalt run experiments/qa-agent.cobalt.ts --ci
+npx cobalt run --file experiments/qa-agent.cobalt.ts --ci
 # Exit code 0 = passed, 1 = failed
 ```
 
@@ -410,10 +406,10 @@ npx cobalt run experiments/qa-agent.cobalt.ts --ci
 Congratulations! You've created a complete AI testing experiment. Now explore:
 
 1. **[Understanding Results](understanding-results.md)** — Deep dive into result analysis
-2. **[Multiple Evaluators](../guides/evaluators/overview.md)** — Learn about all evaluator types
-3. **[Dataset Transformations](../guides/datasets/transformations.md)** — Advanced dataset manipulation
-4. **[CI/CD Integration](../guides/ci-mode.md)** — Automate testing in your pipeline
-5. **[Cost Optimization](../guides/cost-optimization.md)** — Reduce LLM costs with caching
+2. **[Multiple Evaluators](../evaluators.md)** — Learn about all evaluator types
+3. **[Dataset Transformations](../datasets.md)** — Advanced dataset manipulation
+4. **[CI/CD Integration](../ci-mode.md)** — Automate testing in your pipeline
+5. **[Cost Optimization](../configuration.md)** — Reduce LLM costs with caching
 
 ## Common Issues
 

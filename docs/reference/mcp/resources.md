@@ -72,7 +72,7 @@ cobalt://config
   },
   "cache": {
     "enabled": true,
-    "ttl": 86400000
+    "ttl": "24h"
   },
   "thresholds": {},
   "tags": [],
@@ -557,8 +557,8 @@ for (const exp of outdated) {
 - [MCP Tools](tools.md) — cobalt_run, cobalt_results, cobalt_compare, cobalt_generate
 - [MCP Prompts](prompts.md) — improve-agent, generate-tests, regression-check
 - [MCP Overview](overview.md) — Setup and configuration
-- [Integration Guide](../guides/mcp-integration.md) — Common workflows
+- [Integration Guide](../../guides/mcp-integration.md) — Common workflows
 
 ---
 
-**Need help?** Check the [MCP Integration Guide](../guides/mcp-integration.md) for examples of combining resources with tools.
+**Need help?** Check the [MCP Integration Guide](../../guides/mcp-integration.md) for examples of combining resources with tools.

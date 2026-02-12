@@ -6,106 +6,79 @@ You've completed the getting started guides! Here's where to go next based on yo
 
 | I want to... | Go to |
 |-------------|--------|
-| **Add more evaluators** | [Evaluator Guide](../guides/evaluators/overview.md) |
-| **Load data from files** | [Dataset Loading](../guides/datasets/loading-data.md) |
-| **Set up CI/CD** | [CI/CD Integration](../guides/ci-mode.md) |
-| **Reduce costs** | [Cost Optimization](../guides/cost-optimization.md) |
-| **Create custom evaluators** | [Plugin System](../guides/plugins.md) |
+| **Add more evaluators** | [Evaluator Guide](../evaluators.md) |
+| **Load data from files** | [Dataset Guide](../datasets.md) |
+| **Set up CI/CD** | [CI/CD Integration](../ci-mode.md) |
+| **Reduce costs** | [Configuration](../configuration.md) |
+| **Create custom evaluators** | [Plugin System](../plugins.md) |
 | **Use with Claude Code** | [MCP Integration](../reference/mcp/overview.md) |
 | **See working examples** | [Example Projects](../examples/README.md) |
 
 ## Learning Paths
 
-### 🎯 Path 1: Improve Your Tests
+### Path 1: Improve Your Tests
 
 **Goal**: Write better evaluations with multiple evaluator types
 
-1. **[Evaluator Overview](../guides/evaluators/overview.md)**
+1. **[Evaluator Guide](../evaluators.md)**
    - Understand evaluator types
    - Choose the right evaluator for your needs
+   - LLM judges, function evaluators, autoevals
 
-2. **[LLM Judge](../guides/evaluators/llm-judge.md)**
-   - Create AI-powered evaluations
-   - Write effective prompts
-
-3. **[Function Evaluators](../guides/evaluators/function-evaluators.md)**
-   - Write custom JavaScript evaluators
-   - Implement deterministic checks
-
-4. **[Autoevals Integration](../guides/evaluators/autoevals.md)**
-   - Use Braintrust's battle-tested evaluators
-   - Access 11+ evaluation types
+2. **[Plugin System](../plugins.md)**
+   - Build custom evaluator plugins
+   - Extend Cobalt with new evaluator types
 
 **Time**: 1-2 hours
 
 ---
 
-### 📊 Path 2: Organize Your Data
+### Path 2: Organize Your Data
 
 **Goal**: Manage test datasets effectively
 
-1. **[Dataset Overview](../guides/datasets/overview.md)**
+1. **[Dataset Guide](../datasets.md)**
    - Dataset structure and formats
-   - Best practices
-
-2. **[Loading Data](../guides/datasets/loading-data.md)**
    - Load from JSON, JSONL, CSV
-   - Handle different formats
-
-3. **[Transformations](../guides/datasets/transformations.md)**
    - Filter, map, sample datasets
-   - Build data pipelines
-
-4. **[Best Practices](../guides/datasets/best-practices.md)**
-   - Organize test data
-   - Version datasets
 
 **Time**: 1 hour
 
 ---
 
-### 🚀 Path 3: Production Readiness
+### Path 3: Production Readiness
 
 **Goal**: Deploy AI testing in CI/CD pipelines
 
-1. **[CI/CD Integration](../guides/ci-mode.md)**
+1. **[CI/CD Integration](../ci-mode.md)**
    - Set up quality gates
    - Configure thresholds
    - Exit codes for pipelines
 
-2. **[Cost Optimization](../guides/cost-optimization.md)**
+2. **[Configuration](../configuration.md)**
    - Enable caching
    - Reduce token usage
    - Monitor spending
 
-3. **[Multiple Runs](../guides/multiple-runs.md)**
+3. **[Experiments Guide](../experiments.md)**
    - Run experiments multiple times
    - Statistical aggregation
    - Handle LLM variance
-
-4. **[CI/CD Setup Tutorial](../tutorials/ci-cd-setup.md)**
-   - GitHub Actions example
-   - GitLab CI example
-   - Jenkins example
 
 **Time**: 2 hours
 
 ---
 
-### 🔧 Path 4: Extend Cobalt
+### Path 4: Extend Cobalt
 
 **Goal**: Build custom evaluators and integrations
 
-1. **[Plugin System](../guides/plugins.md)**
+1. **[Plugin System](../plugins.md)**
    - Plugin architecture
    - Creating plugins
    - Publishing plugins
 
-2. **[Custom Evaluators Tutorial](../tutorials/custom-evaluators.md)**
-   - Step-by-step plugin development
-   - Real-world examples
-
-3. **[Plugin Template](../../examples/plugin-template/README.md)**
+2. **[Plugin Template](../examples/plugin-template/README.md)**
    - Working plugin template
    - Best practices
    - Testing plugins
@@ -114,7 +87,7 @@ You've completed the getting started guides! Here's where to go next based on yo
 
 ---
 
-### 🤖 Path 5: Use with Claude Code
+### Path 5: Use with Claude Code
 
 **Goal**: Integrate Cobalt with Claude Code via MCP
 
@@ -168,39 +141,10 @@ Test coordinated multi-agent workflows
 - **What you'll learn**: End-to-end testing, agent orchestration
 - **Time**: 25 minutes
 
-### [Custom Plugin](../examples/custom-plugin/README.md)
+### [Custom Plugin](../examples/plugin-template/README.md)
 Build a custom evaluator plugin
 - **What you'll learn**: Plugin development, evaluator patterns
 - **Time**: 20 minutes
-
----
-
-## Advanced Topics
-
-Once you're comfortable with the basics:
-
-### Tutorials
-
-- **[Testing a Chatbot](../tutorials/testing-chatbot.md)** — End-to-end chatbot evaluation
-- **[Evaluating RAG Systems](../tutorials/evaluating-rag.md)** — RAG-specific metrics
-- **[Custom Evaluators](../tutorials/custom-evaluators.md)** — Build your own evaluators
-- **[CI/CD Setup](../tutorials/ci-cd-setup.md)** — Automate AI testing
-- **[Plugin Development](../tutorials/plugin-development.md)** — Create reusable plugins
-
-### Best Practices
-
-- **[Evaluator Design](../best-practices/evaluator-design.md)** — Designing effective evaluators
-- **[Dataset Organization](../best-practices/dataset-organization.md)** — Structuring test data
-- **[Performance](../best-practices/performance.md)** — Optimization techniques
-- **[Cost Management](../best-practices/cost-management.md)** — Controlling expenses
-- **[Testing Strategies](../best-practices/testing-strategies.md)** — AI testing patterns
-
-### Reference
-
-- **[API Documentation](../reference/api/experiment.md)** — Complete API reference
-- **[CLI Commands](../reference/cli/overview.md)** — All CLI commands
-- **[Configuration](../reference/configuration.md)** — Config file reference
-- **[TypeScript Types](../reference/typescript-types.md)** — Type definitions
 
 ---
 
@@ -226,7 +170,7 @@ export default defineConfig({
 npx cobalt compare baseline latest
 ```
 
-**Next**: [CI/CD Integration](../guides/ci-mode.md)
+**Next**: [CI/CD Integration](../ci-mode.md)
 
 ---
 
@@ -250,11 +194,11 @@ new Evaluator({
 
 // 3. Optimize costs with caching
 export default defineConfig({
-  cache: { enabled: true, ttl: 86400000 }
+  cache: { enabled: true, ttl: '24h' }
 })
 ```
 
-**Next**: [Cost Optimization](../guides/cost-optimization.md)
+**Next**: [Configuration](../configuration.md)
 
 ---
 
@@ -309,31 +253,7 @@ const treatmentScores = await loadResult('treatment')
 // Statistical testing
 ```
 
-**Next**: [Multiple Runs](../guides/multiple-runs.md)
-
----
-
-## Community & Support
-
-### Get Help
-
-- **[Troubleshooting Guide](../troubleshooting/common-errors.md)** — Common issues
-- **[API Issues](../troubleshooting/api-issues.md)** — API keys, rate limits
-- **[GitHub Issues](https://github.com/yourusername/cobalt/issues)** — Report bugs
-- **[Discussions](https://github.com/yourusername/cobalt/discussions)** — Ask questions
-
-### Contribute
-
-- **[Development Setup](../contributing/development-setup.md)** — Set up dev environment
-- **[Architecture](../contributing/architecture.md)** — Understand the codebase
-- **[Adding Evaluators](../contributing/adding-evaluators.md)** — Contribute evaluators
-- **[Testing Guidelines](../contributing/testing.md)** — Write tests
-
-### Stay Updated
-
-- Watch the GitHub repository for releases
-- Follow development discussions
-- Check the roadmap for upcoming features
+**Next**: [Experiments Guide](../experiments.md)
 
 ---
 
@@ -341,20 +261,15 @@ const treatmentScores = await loadResult('treatment')
 
 ### Documentation
 
-- **[Full Documentation Index](../index.md)** — All documentation
-- **[API Reference](../reference/api/experiment.md)** — Complete API docs
-- **[CLI Reference](../reference/cli/overview.md)** — All commands
+- **[Documentation Index](../README.md)** — All documentation
+- **[Evaluators](../evaluators.md)** — Evaluator guide
+- **[Datasets](../datasets.md)** — Dataset guide
+- **[Configuration](../configuration.md)** — Config reference
 
 ### Examples
 
 - **[Example Projects](../examples/README.md)** — Working code examples
-- **[Plugin Template](../../examples/plugin-template/README.md)** — Plugin starter
-
-### Guides
-
-- **[Core Guides](../guides/evaluators/overview.md)** — Essential concepts
-- **[Tutorials](../tutorials/testing-chatbot.md)** — Step-by-step guides
-- **[Best Practices](../best-practices/evaluator-design.md)** — Proven patterns
+- **[Plugin Template](../examples/plugin-template/README.md)** — Plugin starter
 
 ---
 
@@ -399,4 +314,4 @@ experiment('chatbot-response-quality-v2', ...)
 
 ---
 
-**Ready to dive deeper?** Choose a learning path above or explore the [full documentation](../index.md)!
+**Ready to dive deeper?** Choose a learning path above or explore the [full documentation](../README.md)!

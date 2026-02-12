@@ -660,7 +660,7 @@ cobalt_generate({
      3. length-check (function)
 
    Run tests with:
-   npx cobalt run summarizer.cobalt.ts
+   npx cobalt run --file summarizer.cobalt.ts
 ```
 
 **2. Bootstrap Testing**
