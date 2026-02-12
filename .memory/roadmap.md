@@ -1,8 +1,8 @@
 # Roadmap
 
-## Current Status: P0–P3 Complete, P4 In Progress
+## Current Status: P0–P3 Complete, P4 ~85%
 
-Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"). Core features are production-ready. Dashboard frontend is being scaffolded.
+Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"). Core features are production-ready. Dashboard frontend has design system, styled pages, and all 4 views.
 
 ## Completed
 
@@ -43,12 +43,18 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"
 - [x] Hono backend API (`cobalt serve`)
 - [x] SQLite history.db for dashboard queries
 - [x] Dashboard frontend scaffolding (Vite + React SPA)
-- [x] Runs list page (with data fetching)
-- [x] Run detail page (summary, scores, items table)
-- [ ] UI library integration + styled pages
-- [ ] Compare page (2 runs side-by-side)
-- [ ] Trends page (evolution graphs)
-- [ ] Tags and filtering in dashboard
+- [x] Design system: Tailwind CSS 4 + Radix colors + dark mode
+- [x] Core UI components (Button, Badge, Card, Dialog, Select, Tabs, Tooltip, Popover, Switch, etc.)
+- [x] Layout: TopBar with navigation + dark mode toggle
+- [x] RunsListPage: sortable table, search, multi-select, filters, display options, score badges
+- [x] RunDetailPage: metric cards, tabs (Scores/Latency/Tokens), AVG headers, items table with drill-down, filters, display options, compare selector
+- [x] ComparePage: A/B/C stacked items, evolution rate diffs, stats tabs (Latency/Tokens with percentiles), filters, display options, tokens/metadata columns
+- [x] TrendsPage: experiment selector, Recharts line chart, runs summary table
+- [x] Code splitting (recharts, radix-ui as separate chunks)
+- [x] P99 metric (backend + frontend)
+- [x] FilterBar and DisplayOptions components (client-side)
+- [x] Multi-run compare API (2 or 3 runs)
+- [ ] AI chat integration (Phase 6 of DASHBOARD_PLAN)
 - [ ] Export results (CSV, Markdown)
 
 ## Future
@@ -64,4 +70,3 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"
 
 - Fix pre-existing llm-judge.ts DTS warnings
 - Add CLI command integration tests
-- Dashboard pages need UI library styling (user will provide)

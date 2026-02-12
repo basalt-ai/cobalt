@@ -19,6 +19,7 @@ export interface ScoreStats {
 	max: number;
 	p50: number;
 	p95: number;
+	p99: number;
 }
 
 export interface ItemEvaluation {
@@ -38,6 +39,7 @@ export interface RunAggregation {
 	max: number;
 	p50: number;
 	p95: number;
+	p99: number;
 	scores: number[];
 }
 
@@ -111,22 +113,27 @@ export interface RunDetailResponse {
 	run: ExperimentReport;
 }
 
+export interface CompareRunInfo {
+	id: string;
+	name: string;
+	timestamp: string;
+	summary: ExperimentSummary;
+}
+
+export interface CompareItemOutput {
+	output: unknown;
+	latencyMs: number;
+	evaluations: Record<string, ItemEvaluation>;
+	error?: string;
+}
+
 export interface CompareResponse {
-	runA: { id: string; name: string; timestamp: string };
-	runB: { id: string; name: string; timestamp: string };
-	scoreDiffs: Record<
-		string,
-		{
-			baseline: number;
-			candidate: number;
-			diff: number;
-			percentChange: number;
-		}
-	>;
-	topChanges: Array<{
+	runs: CompareRunInfo[];
+	scoreDiffs: Record<string, { scores: number[]; diffs: number[] }>;
+	items: Array<{
 		index: number;
 		input: Record<string, unknown>;
-		changes: Record<string, number>;
+		outputs: (CompareItemOutput | null)[];
 	}>;
 }
 

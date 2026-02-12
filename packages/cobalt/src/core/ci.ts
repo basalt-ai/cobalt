@@ -2,7 +2,7 @@
  * CI Mode - Threshold validation for continuous integration
  *
  * Enables quality gates by validating experiment results against configured thresholds.
- * Supports multiple threshold types: avg, min, max, p50, p95, and pass rate.
+ * Supports multiple threshold types: avg, min, max, p50, p95, p99, and pass rate.
  */
 
 import type {
@@ -70,7 +70,7 @@ export function validateThresholds(
 }
 
 /**
- * Check score-based thresholds (avg, min, max, p50, p95)
+ * Check score-based thresholds (avg, min, max, p50, p95, p99)
  *
  * @param evaluatorName - Name of the evaluator
  * @param stats - Score statistics from experiment summary
@@ -134,6 +134,17 @@ function checkScoreThreshold(
 			expected: threshold.p95,
 			actual: stats.p95,
 			message: `${evaluatorName}: p95 score ${stats.p95.toFixed(3)} < threshold ${threshold.p95.toFixed(3)}`,
+		};
+	}
+
+	// Check p99 threshold
+	if (threshold.p99 !== undefined && stats.p99 < threshold.p99) {
+		return {
+			evaluator: evaluatorName,
+			metric: 'p99',
+			expected: threshold.p99,
+			actual: stats.p99,
+			message: `${evaluatorName}: p99 score ${stats.p99.toFixed(3)} < threshold ${threshold.p99.toFixed(3)}`,
 		};
 	}
 

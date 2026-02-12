@@ -121,6 +121,7 @@ export interface ScoreStats {
 	max: number;
 	p50: number;
 	p95: number;
+	p99: number;
 }
 
 export interface ItemEvaluation {
@@ -135,6 +136,7 @@ export interface RunAggregation {
 	max: number;
 	p50: number;
 	p95: number;
+	p99: number;
 	scores: number[];
 }
 
@@ -295,6 +297,7 @@ export interface ThresholdMetric {
 	max?: number;
 	p50?: number;
 	p95?: number;
+	p99?: number;
 	passRate?: number; // Percentage of items that must pass (0-1)
 	minScore?: number; // Minimum score required (used with passRate)
 }
