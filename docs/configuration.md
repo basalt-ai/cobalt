@@ -12,7 +12,7 @@ export default defineConfig({
   testDir: './experiments',
   testMatch: ['**/*.cobalt.ts', '**/*.experiment.ts'],
   judge: {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai',
     apiKey: process.env.OPENAI_API_KEY,
   },
@@ -41,7 +41,7 @@ Cobalt searches for config files in the following order: `cobalt.config.ts`, `co
 |--------|------|---------|-------------|
 | `testDir` | `string` | `'./experiments'` | Directory containing experiment files |
 | `testMatch` | `string[]` | `['**/*.cobalt.ts', '**/*.experiment.ts']` | Glob patterns for experiment files |
-| `judge.model` | `string` | `'gpt-4o-mini'` | Default model for LLM judge evaluators |
+| `judge.model` | `string` | `'gpt-5-mini'` | Default model for LLM judge evaluators |
 | `judge.provider` | `'openai' \| 'anthropic'` | `'openai'` | Default LLM provider |
 | `judge.apiKey` | `string` | `process.env.OPENAI_API_KEY` | API key for the judge provider |
 | `concurrency` | `number` | `5` | Max parallel executions |

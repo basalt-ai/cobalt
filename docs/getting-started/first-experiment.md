@@ -97,7 +97,7 @@ export async function answerQuestion(question: string): Promise<AgentResponse> {
   const startTime = Date.now()
 
   const completion = await client.chat.completions.create({
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     messages: [
       {
         role: 'system',
@@ -118,7 +118,7 @@ export async function answerQuestion(question: string): Promise<AgentResponse> {
 
   return {
     answer,
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     tokens,
     duration
   }
@@ -183,7 +183,7 @@ Agent's Answer: {{output}}
 Expected Answer: {{expectedOutput}}
 
 The answer should contain the expected information and be factually correct.`,
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai'
     // scoring defaults to 'boolean' — returns pass/fail with chain of thought
   })
@@ -208,7 +208,7 @@ experiment('qa-agent-test', dataset, async ({ item }) => {
   evaluators,
   concurrency: 3,        // Run 3 questions at a time
   timeout: 30000,        // 30 second timeout per question
-  tags: ['qa', 'gpt-4o-mini', 'v1']
+  tags: ['qa', 'gpt-5-mini', 'v1']
 })
 ```
 
@@ -226,7 +226,7 @@ export default defineConfig({
     ttl: 86400000  // 24 hours - reuse responses for same inputs
   },
   judge: {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai',
     apiKey: process.env.OPENAI_API_KEY
   },
@@ -314,7 +314,7 @@ This shows item-by-item results:
         "factual-accuracy": 1.0
       },
       "metadata": {
-        "model": "gpt-4o-mini",
+        "model": "gpt-5-mini",
         "tokens": 45,
         "duration": 890
       }

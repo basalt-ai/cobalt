@@ -103,7 +103,7 @@ The JSON result file contains:
   "id": "abc123",
   "name": "qa-agent-test",
   "timestamp": "2025-02-06T14:30:22.000Z",
-  "tags": ["qa", "gpt-4o-mini", "v1"],
+  "tags": ["qa", "gpt-5-mini", "v1"],
   "config": {
     "concurrency": 3,
     "timeout": 30000
@@ -182,7 +182,7 @@ The JSON result file contains:
 
       // Metadata from runner
       "metadata": {
-        "model": "gpt-4o-mini",
+        "model": "gpt-5-mini",
         "tokens": 45,
         "duration": 890,
         "category": "geography"
@@ -281,7 +281,7 @@ Total cost: $0.02 / 5 items = $0.004 per item
 
 **Optimization Tips**:
 1. Use caching for repeated inputs
-2. Choose cheaper models for evaluators (gpt-4o-mini vs gpt-4o)
+2. Choose cheaper models for evaluators (gpt-5-mini vs gpt-4o)
 3. Use function evaluators instead of LLM judges where possible
 4. Reduce concurrency to avoid rate limits
 

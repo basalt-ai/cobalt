@@ -27,7 +27,7 @@ export async function summarize(
 	const startTime = Date.now();
 
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',
@@ -54,7 +54,7 @@ Do not include opinions or information not in the source.`,
 
 	return {
 		summary,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		tokens,
 		duration,
 	};

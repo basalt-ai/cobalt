@@ -35,7 +35,7 @@ Used by default for LLM judge and similarity evaluators.
 
 Any model available through the OpenAI chat completions API, including:
 
-- `gpt-4o-mini` (default)
+- `gpt-5-mini` (default)
 - `gpt-4o`
 - `gpt-4-turbo`
 - `o1`, `o1-mini`
@@ -51,7 +51,7 @@ Or in `cobalt.config.ts`:
 ```typescript
 export default defineConfig({
   judge: {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai',
     apiKey: process.env.OPENAI_API_KEY,
   },
@@ -111,7 +111,7 @@ await experiment('test', dataset, runner, {
       name: 'Quick Check',
       type: 'llm-judge',
       prompt: 'Is this correct? {{output}}',
-      model: 'gpt-4o-mini',        // Fast, cheap
+      model: 'gpt-5-mini',        // Fast, cheap
     }),
     new Evaluator({
       name: 'Deep Analysis',

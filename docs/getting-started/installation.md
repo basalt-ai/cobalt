@@ -172,7 +172,7 @@ export default defineConfig({
 
   // Judge configuration (for LLM evaluators)
   judge: {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5-mini',
     provider: 'openai',
     apiKey: process.env.OPENAI_API_KEY
   },

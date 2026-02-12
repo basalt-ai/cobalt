@@ -26,7 +26,7 @@ Rate relevance from 0.0 to 1.0:
 - 0.0 = Not relevant
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 
@@ -47,7 +47,7 @@ Rate faithfulness from 0.0 to 1.0:
 - 0.0 = Major hallucinations or contradictions
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 
@@ -66,7 +66,7 @@ Rate relevance from 0.0 to 1.0:
 - 0.0 = Doesn't address query
 
 Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
 ];

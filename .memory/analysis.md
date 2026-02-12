@@ -184,8 +184,8 @@ Helper functions used throughout the codebase.
 
 **Cost Estimation:**
 - Pricing per 1M tokens (input/output)
-- Supports: GPT-4o, GPT-4o-mini, Claude Opus, Sonnet, Haiku, etc.
-- Fallback to GPT-4o-mini pricing for unknown models
+- Supports: GPT-4o, gpt-5-mini, Claude Opus, Sonnet, Haiku, etc.
+- Fallback to gpt-5-mini pricing for unknown models
 
 ## Type System (`src/types/index.ts`)
 
@@ -369,7 +369,7 @@ tests/
 ### 5. Cost Estimation Strategy
 - Pricing table in code (not fetched from API)
 - Prices as of February 2026
-- Unknown models fall back to GPT-4o-mini pricing
+- Unknown models fall back to gpt-5-mini pricing
 
 ### 6. Cache Implementation
 - Hash-based: hash(evaluator prompt + model + content)

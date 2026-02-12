@@ -12,7 +12,7 @@ export interface QAResponse {
 }
 
 /**
- * Answer a question using OpenAI GPT-4o-mini
+ * Answer a question using OpenAI gpt-5-mini
  *
  * @param question - The question to answer
  * @returns The answer with metadata
@@ -21,7 +21,7 @@ export async function answerQuestion(question: string): Promise<QAResponse> {
 	const startTime = Date.now();
 
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',
@@ -43,7 +43,7 @@ export async function answerQuestion(question: string): Promise<QAResponse> {
 
 	return {
 		answer,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		tokens,
 		duration,
 	};

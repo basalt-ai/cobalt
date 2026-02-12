@@ -50,7 +50,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'relevance',
 				type: 'llm-judge',
 				prompt: 'Is this relevant?',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -83,7 +83,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'relevance',
 				type: 'llm-judge',
 				prompt: 'Is this relevant?',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -114,7 +114,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -150,7 +150,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -183,7 +183,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'relevance',
 				type: 'llm-judge',
 				prompt: 'Rate the relevance from 0 to 1',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				scoring: 'scale',
 			};
@@ -245,7 +245,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				scoring: 'scale',
 			};
@@ -280,7 +280,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Evaluate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				// boolean default has CoT enabled
 			};
@@ -318,7 +318,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				scoring: 'scale',
 				chainOfThought: true,
@@ -356,7 +356,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Is this relevant?',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				chainOfThought: false,
 			};
@@ -391,7 +391,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Criteria: {{criteria}}, Input: {{input}}',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				context: (ctx) => ({
 					...ctx,
@@ -426,7 +426,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Input: {{input}}, Output: {{output}}',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -460,7 +460,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'relevance',
 				type: 'llm-judge',
 				prompt: 'Input: {{input}}, Output: {{output}}',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -493,7 +493,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Expected: {{expectedOutput}}',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -524,7 +524,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Model: {{metadata.model}}',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -653,7 +653,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				scoring: 'scale',
 			};
@@ -687,7 +687,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -716,7 +716,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -744,7 +744,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 				scoring: 'scale',
 			};
@@ -773,7 +773,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 
@@ -787,7 +787,7 @@ describe('evaluateLLMJudge', () => {
 				name: 'test',
 				type: 'llm-judge',
 				prompt: 'Rate this',
-				model: 'gpt-4o-mini',
+				model: 'gpt-5-mini',
 				provider: 'openai',
 			};
 

@@ -20,7 +20,7 @@ describe('defineConfig', () => {
 		expect(config.testDir).toBe('./experiments');
 		expect(config.concurrency).toBe(5);
 		expect(config.timeout).toBe(30_000);
-		expect(config.judge.model).toBe('gpt-4o-mini');
+		expect(config.judge.model).toBe('gpt-5-mini');
 		expect(config.judge.provider).toBe('openai');
 		expect(config.cache.enabled).toBe(true);
 		expect(config.cache.ttl).toBe('7d');
@@ -36,7 +36,7 @@ describe('defineConfig', () => {
 		expect(config.timeout).toBe(60_000);
 		// Defaults preserved
 		expect(config.testDir).toBe('./experiments');
-		expect(config.judge.model).toBe('gpt-4o-mini');
+		expect(config.judge.model).toBe('gpt-5-mini');
 	});
 
 	it('should override nested config fields', () => {

@@ -13,7 +13,7 @@ import type {
 const mockConfig: CobaltConfig = {
 	testDir: './experiments',
 	testMatch: ['**/*.cobalt.ts'],
-	judge: { model: 'gpt-4o-mini', provider: 'openai', apiKey: 'sk-test' },
+	judge: { model: 'gpt-5-mini', provider: 'openai', apiKey: 'sk-test' },
 	outputDir: '.cobalt',
 	concurrency: 5,
 	timeout: 30000,
@@ -28,7 +28,7 @@ vi.mock('../../../src/core/config.js', () => ({
 	loadConfig: vi.fn().mockResolvedValue({
 		testDir: './experiments',
 		testMatch: ['**/*.cobalt.ts'],
-		judge: { model: 'gpt-4o-mini', provider: 'openai', apiKey: 'sk-test' },
+		judge: { model: 'gpt-5-mini', provider: 'openai', apiKey: 'sk-test' },
 		outputDir: '.cobalt',
 		concurrency: 5,
 		timeout: 30000,

@@ -42,7 +42,7 @@ Uses an LLM to evaluate outputs. Supports template variables: `{{input}}`, `{{ou
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `prompt` | `string` | *required* | Evaluation prompt with template variables |
-| `model` | `string` | `'gpt-4o-mini'` | Model to use |
+| `model` | `string` | `'gpt-5-mini'` | Model to use |
 | `scoring` | `'boolean' \| 'scale'` | `'boolean'` | Scoring mode |
 | `chainOfThought` | `boolean` | `true` for boolean, `false` for scale | Step-by-step reasoning |
 | `context` | `(ctx) => ctx` | -- | Custom context mapping |

@@ -300,7 +300,7 @@ You are an evaluator. Return JSON: {"score": <0 to 1>, "reason": "<explanation>"
 {
   type: 'llm-judge',
   provider: 'openai' | 'anthropic',
-  model: 'gpt-4o-mini' | 'claude-sonnet-4-5',
+  model: 'gpt-5-mini' | 'claude-sonnet-4-5',
   ...
 }
 ```
@@ -560,7 +560,7 @@ vi.mock('openai', () => ({
 - ❌ Requires manual updates when pricing changes
 - ❌ May become outdated
 
-**Fallback**: Unknown models use GPT-4o-mini pricing
+**Fallback**: Unknown models use gpt-5-mini pricing
 
 ---
 

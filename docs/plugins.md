@@ -121,14 +121,14 @@ LLM-based evaluation with boolean (default) or scale scoring:
 // Boolean scoring (default) — pass/fail
 new Evaluator({
   type: 'llm-judge',
-  model: 'gpt-4o-mini',
+  model: 'gpt-5-mini',
   prompt: 'Is this output high quality? {{output}}'
 })
 
 // Scale scoring — 0.0 to 1.0
 new Evaluator({
   type: 'llm-judge',
-  model: 'gpt-4o-mini',
+  model: 'gpt-5-mini',
   scoring: 'scale',
   prompt: 'Rate this output for quality: {{output}}'
 })
@@ -215,7 +215,7 @@ export default {
       const client = new OpenAI({ apiKey })
 
       const response = await client.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-mini',
         messages: [{
           role: 'user',
           content: `Rate toxicity 0-1: ${context.output}`

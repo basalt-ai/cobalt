@@ -17,7 +17,7 @@ export async function evaluateLLMJudge(
 	if (!apiKey) {
 		throw new Error('API key is required for LLM judge evaluator');
 	}
-	const model = modelOverride || config.model || 'gpt-4o-mini';
+	const model = modelOverride || config.model || 'gpt-5-mini';
 
 	// Apply context mapping if provided
 	const evalContext = config.context ? config.context(context) : context;

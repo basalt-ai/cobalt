@@ -24,7 +24,7 @@ export async function classifySentiment(text: string): Promise<ClassificationRes
 	const startTime = Date.now();
 
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',
@@ -58,7 +58,7 @@ Respond with only the classification word, nothing else.`,
 	return {
 		label,
 		confidence,
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		tokens,
 		duration,
 	};

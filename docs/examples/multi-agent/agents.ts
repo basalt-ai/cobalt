@@ -14,7 +14,7 @@ export interface WorkflowResult {
  */
 async function researchAgent(topic: string): Promise<string> {
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',
@@ -38,7 +38,7 @@ async function researchAgent(topic: string): Promise<string> {
  */
 async function writerAgent(topic: string, research: string): Promise<string> {
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',
@@ -62,7 +62,7 @@ async function writerAgent(topic: string, research: string): Promise<string> {
  */
 async function reviewerAgent(article: string): Promise<string> {
 	const completion = await client.chat.completions.create({
-		model: 'gpt-4o-mini',
+		model: 'gpt-5-mini',
 		messages: [
 			{
 				role: 'system',

@@ -49,7 +49,7 @@ pnpm test
 
 A simple Q&A agent that:
 - Takes a question as input
-- Calls OpenAI GPT-4o-mini
+- Calls OpenAI gpt-5-mini
 - Returns a concise, factual answer
 
 ### 2. The Dataset (`dataset.json`)
@@ -76,7 +76,7 @@ A simple Q&A agent that:
    - Encourages brief answers
 
 3. **factual-accuracy** (LLM Judge)
-   - Uses GPT-4o-mini to judge accuracy
+   - Uses gpt-5-mini to judge accuracy
    - Compares answer to expected output
    - Catches paraphrasing and near-misses
 
@@ -98,8 +98,8 @@ A simple Q&A agent that:
 Edit `agent.ts`:
 
 ```typescript
-// Current: GPT-4o-mini
-model: 'gpt-4o-mini'
+// Current: gpt-5-mini
+model: 'gpt-5-mini'
 
 // Try: GPT-4o for better accuracy
 model: 'gpt-4o'

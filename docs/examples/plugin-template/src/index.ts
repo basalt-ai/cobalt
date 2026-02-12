@@ -105,7 +105,7 @@ Respond with JSON: { "score": <0-1>, "reasoning": "<explanation>" }
 `;
 
 					const response = await client.chat.completions.create({
-						model: config.model || 'gpt-4o-mini',
+						model: config.model || 'gpt-5-mini',
 						messages: [{ role: 'user', content: prompt }],
 						response_format: { type: 'json_object' },
 					});
