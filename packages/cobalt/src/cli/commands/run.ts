@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { defineCommand } from 'citty';
 import { createJiti } from 'jiti';
 import pc from 'picocolors';
@@ -81,7 +81,7 @@ export default defineCommand({
 			try {
 				for (const file of files) {
 					try {
-						console.log(pc.bold(`Running: ${file}\n`));
+						console.log(pc.bold(`Running: ${relative(process.cwd(), file)}\n`));
 
 						// Import and execute the file
 						// The experiment() call inside the file will execute automatically
@@ -114,9 +114,7 @@ export default defineCommand({
 				process.exit(1);
 			}
 
-			console.log(pc.green(pc.bold('\n✅ All experiments completed!\n')));
-			console.log(pc.dim('View results: ls .cobalt/data/results/'));
-			console.log(pc.dim('Run dashboard: npx cobalt serve (coming in P1)\n'));
+			console.log(pc.green(pc.bold('✅ All experiments completed!\n')));
 		} catch (error) {
 			console.error(pc.red('\n❌ Failed to run experiments:'), error);
 			process.exit(1);

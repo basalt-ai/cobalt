@@ -5,90 +5,130 @@ import { formatCost } from '../../utils/cost.js';
 import { BaseReporter, type ExperimentStartInfo } from './base-reporter.js';
 
 /**
- * CLI reporter for terminal output with colors
+ * CLI reporter for terminal output — pytest-inspired compact format
  */
 export class CLIReporter extends BaseReporter {
-	private lastProgressLog = 0;
+	private experimentName = '';
 
 	onStart(info: ExperimentStartInfo): void {
-		console.log(`\nRunning experiment: ${info.name}`);
-		console.log(`Dataset: ${info.datasetSize} items`);
-		console.log(`Evaluators: ${info.evaluators.join(', ')}`);
-		console.log(`Concurrency: ${info.concurrency} | Timeout: ${info.timeout}ms\n`);
+		this.experimentName = info.name;
+		console.log(
+			`\n  ${pc.bold(info.name)} ${pc.dim(`(${info.datasetSize} items, ${info.evaluators.length} evaluators)`)}\n`,
+		);
 	}
 
 	onProgress(info: ProgressInfo): void {
-		const now = Date.now();
-		if (now - this.lastProgressLog > 1000 || info.completedExecutions === info.totalExecutions) {
-			if (info.totalRuns > 1) {
-				// Hybrid progress for multiple runs
-				console.log(
-					`Progress: ${info.completedExecutions}/${info.totalExecutions} completed | ` +
-						`Item ${info.itemIndex + 1}/${info.totalItems} (run ${info.runIndex + 1}/${info.totalRuns})`,
-				);
-			} else {
-				// Simple progress for single run
-				console.log(
-					`Progress: ${info.completedExecutions}/${info.totalExecutions} items completed`,
-				);
-			}
-			this.lastProgressLog = now;
+		if (!info.itemResult) return;
+
+		const result = info.itemResult;
+		const evals = Object.entries(result.evaluations);
+		const hasFailure = evals.some(([, e]) => e.score < 0.5) || !!result.error;
+
+		const icon = result.error ? pc.red('  ✗') : hasFailure ? pc.yellow('  ✗') : pc.green('  ✓');
+		const label = `Item #${result.index + 1}`;
+		const latency = pc.dim(`[${result.latencyMs.toFixed(0)}ms]`);
+
+		if (result.error) {
+			console.log(`${icon} ${label} ${pc.red('ERROR')} ${latency}`);
+		} else {
+			const scores = evals.map(([name, e]) => {
+				const val = e.score.toFixed(2);
+				return e.score < 0.5 ? pc.red(`${name}: ${val}`) : `${name}: ${val}`;
+			});
+			console.log(`${icon} ${label} — ${scores.join(', ')} ${latency}`);
 		}
 	}
 
 	onCIStatus(ciStatus: CIResult): void {
-		console.log(`\nCI Status: ${ciStatus.passed ? 'PASSED ✓' : 'FAILED ✗'}`);
-		if (!ciStatus.passed) {
-			console.error('Threshold violations:');
+		if (ciStatus.passed) {
+			console.log(pc.green('\n  CI: PASSED'));
+		} else {
+			console.log(pc.red('\n  CI: FAILED'));
 			for (const violation of ciStatus.violations) {
-				console.error(`  ✗ ${violation.message}`);
+				console.log(pc.red(`    ✗ ${violation.message}`));
 			}
 		}
 	}
 
-	onComplete(report: ExperimentReport, resultPath: string): void {
+	onComplete(report: ExperimentReport): void {
 		const { summary } = report;
 
-		console.log(`\nExperiment completed in ${(summary.totalDurationMs / 1000).toFixed(2)}s`);
-		console.log(`Average latency: ${summary.avgLatencyMs.toFixed(0)}ms`);
-
-		// Display cost if available
-		if (summary.estimatedCost !== undefined) {
-			console.log(`Estimated cost: ${formatCost(summary.estimatedCost)}`);
-		}
-
-		// Display summary scores
-		console.log('\nScores:');
-		for (const [evaluator, stats] of Object.entries(summary.scores)) {
-			console.log(
-				`  ${evaluator}: avg=${stats.avg.toFixed(2)} min=${stats.min.toFixed(2)} ` +
-					`max=${stats.max.toFixed(2)} p50=${stats.p50.toFixed(2)} p95=${stats.p95.toFixed(2)}`,
-			);
-		}
-
-		// Warn about low scores
-		const lowScoreItems = report.items.filter((r) =>
-			Object.values(r.evaluations).some((e) => e.score < 0.5),
+		// Failure details
+		const failedItems = report.items.filter(
+			(r) => r.error || Object.values(r.evaluations).some((e) => e.score < 0.5),
 		);
-		if (lowScoreItems.length > 0) {
-			console.warn(`\n⚠ ${lowScoreItems.length} item(s) scored below 0.5`);
+		if (failedItems.length > 0) {
+			console.log('');
+			for (const item of failedItems) {
+				if (item.error) {
+					console.log(pc.red(`  ✗ Item #${item.index + 1} error: ${item.error}`));
+				} else {
+					const lowEvals = Object.entries(item.evaluations).filter(([, e]) => e.score < 0.5);
+					for (const [name, e] of lowEvals) {
+						console.log(
+							pc.red(`  ✗ Item #${item.index + 1} ${name}: ${e.score.toFixed(2)}`) +
+								(e.reason ? pc.dim(` — ${e.reason}`) : ''),
+						);
+					}
+				}
+			}
 		}
 
-		// Warn about errors
-		const errorItems = report.items.filter((r) => r.error);
-		if (errorItems.length > 0) {
-			console.error(`\n❌ ${errorItems.length} item(s) had errors`);
+		// Summary table
+		const evaluatorNames = Object.keys(summary.scores);
+		if (evaluatorNames.length > 0) {
+			this.printScoreTable(summary.scores);
 		}
 
-		console.log(`\nResults saved to: ${resultPath}`);
-		console.log(`Run ID: ${report.id}`);
+		// Footer
+		const passed = report.items.length - failedItems.length;
+		const parts: string[] = [];
+		if (passed > 0) parts.push(pc.green(`${passed} passed`));
+		if (failedItems.length > 0) parts.push(pc.red(`${failedItems.length} failed`));
+		parts.push(`${(summary.totalDurationMs / 1000).toFixed(2)}s`);
+		if (summary.estimatedCost !== undefined) {
+			parts.push(formatCost(summary.estimatedCost));
+		}
+
+		console.log(`\n  ${parts.join(pc.dim(' | '))}\n`);
 	}
 
 	onError(error: Error, context?: string): void {
 		if (context) {
-			console.error(pc.red(`\n❌ ${context}:`), error.message);
+			console.error(pc.red(`\n  ✗ ${context}:`), error.message);
 		} else {
-			console.error(pc.red('\n❌ Error:'), error.message);
+			console.error(pc.red('\n  ✗ Error:'), error.message);
 		}
+	}
+
+	private printScoreTable(
+		scores: Record<string, { avg: number; min: number; max: number; p50: number; p95: number }>,
+	): void {
+		const names = Object.keys(scores);
+		const nameWidth = Math.max(9, ...names.map((n) => n.length));
+		const colWidth = 7;
+
+		const pad = (s: string, w: number) => s.padStart(w);
+		const padName = (s: string) => s.padEnd(nameWidth);
+
+		const topBorder = `  ┌${'─'.repeat(nameWidth + 2)}┬${(`${'─'.repeat(colWidth)}┬`).repeat(3)}${'─'.repeat(colWidth)}┐`;
+		const headerSep = `  ├${'─'.repeat(nameWidth + 2)}┼${(`${'─'.repeat(colWidth)}┼`).repeat(3)}${'─'.repeat(colWidth)}┤`;
+		const bottomBorder = `  └${'─'.repeat(nameWidth + 2)}┴${(`${'─'.repeat(colWidth)}┴`).repeat(3)}${'─'.repeat(colWidth)}┘`;
+
+		console.log(`\n${topBorder}`);
+		console.log(
+			`  │ ${pc.bold(padName('Evaluator'))} │${pad('Avg', colWidth)}│${pad('Min', colWidth)}│${pad('Max', colWidth)}│${pad('P95', colWidth)}│`,
+		);
+		console.log(headerSep);
+
+		for (const [name, stats] of Object.entries(scores)) {
+			const avg = pad(stats.avg.toFixed(2), colWidth);
+			const min = pad(stats.min.toFixed(2), colWidth);
+			const max = pad(stats.max.toFixed(2), colWidth);
+			const p95 = pad(stats.p95.toFixed(2), colWidth);
+			console.log(`  │ ${padName(name)} │${avg}│${min}│${max}│${p95}│`);
+		}
+
+		console.log(bottomBorder);
 	}
 }

@@ -6,22 +6,17 @@ describe('CLIReporter', () => {
 	let reporter: CLIReporter;
 	let consoleLogs: string[];
 	let consoleErrors: string[];
-	let consoleWarns: string[];
 
 	beforeEach(() => {
 		reporter = new CLIReporter();
 		consoleLogs = [];
 		consoleErrors = [];
-		consoleWarns = [];
 
 		vi.spyOn(console, 'log').mockImplementation((...args) => {
 			consoleLogs.push(args.join(' '));
 		});
 		vi.spyOn(console, 'error').mockImplementation((...args) => {
 			consoleErrors.push(args.join(' '));
-		});
-		vi.spyOn(console, 'warn').mockImplementation((...args) => {
-			consoleWarns.push(args.join(' '));
 		});
 	});
 
@@ -30,7 +25,7 @@ describe('CLIReporter', () => {
 	});
 
 	describe('onStart', () => {
-		it('should output experiment start info', () => {
+		it('should output compact experiment header', () => {
 			reporter.onStart({
 				name: 'Test Experiment',
 				datasetSize: 10,
@@ -40,55 +35,60 @@ describe('CLIReporter', () => {
 				runs: 1,
 			});
 
-			expect(consoleLogs.some((log) => log.includes('Running experiment: Test Experiment'))).toBe(
-				true,
-			);
-			expect(consoleLogs).toContain('Dataset: 10 items');
-			expect(consoleLogs).toContain('Evaluators: accuracy, relevance');
-			expect(consoleLogs.some((log) => log.includes('Concurrency: 5 | Timeout: 30000ms'))).toBe(
-				true,
-			);
+			expect(consoleLogs.some((log) => log.includes('Test Experiment'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('10 items'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('2 evaluators'))).toBe(true);
 		});
 	});
 
 	describe('onProgress', () => {
-		it('should output progress for single run', () => {
+		it('should output per-item result with scores', () => {
 			reporter.onProgress({
 				itemIndex: 0,
 				runIndex: 0,
 				totalItems: 10,
 				totalRuns: 1,
-				completedExecutions: 5,
+				completedExecutions: 1,
 				totalExecutions: 10,
+				itemResult: {
+					index: 0,
+					input: {},
+					output: {},
+					latencyMs: 120,
+					evaluations: { accuracy: { score: 0.9 }, relevance: { score: 0.85 } },
+					runs: [],
+				},
 			});
 
-			expect(consoleLogs.some((log) => log.includes('Progress: 5/10 items completed'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('Item #1'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('accuracy: 0.90'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('relevance: 0.85'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('120ms'))).toBe(true);
 		});
 
-		it('should output progress for multiple runs', () => {
+		it('should show error items', () => {
 			reporter.onProgress({
-				itemIndex: 2,
-				runIndex: 1,
-				totalItems: 5,
-				totalRuns: 3,
-				completedExecutions: 8,
-				totalExecutions: 15,
+				itemIndex: 0,
+				runIndex: 0,
+				totalItems: 10,
+				totalRuns: 1,
+				completedExecutions: 1,
+				totalExecutions: 10,
+				itemResult: {
+					index: 0,
+					input: {},
+					output: {},
+					latencyMs: 100,
+					evaluations: {},
+					runs: [],
+					error: 'Timeout',
+				},
 			});
 
-			expect(
-				consoleLogs.some(
-					(log) =>
-						log.includes('Progress: 8/15 completed') &&
-						log.includes('Item 3/5') &&
-						log.includes('run 2/3'),
-				),
-			).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('ERROR'))).toBe(true);
 		});
 
-		it('should throttle progress updates', () => {
-			vi.useFakeTimers();
-
-			// First update
+		it('should skip when no itemResult', () => {
 			reporter.onProgress({
 				itemIndex: 0,
 				runIndex: 0,
@@ -98,50 +98,7 @@ describe('CLIReporter', () => {
 				totalExecutions: 10,
 			});
 
-			expect(consoleLogs).toHaveLength(1);
-
-			// Second update within 1 second - should be throttled
-			reporter.onProgress({
-				itemIndex: 1,
-				runIndex: 0,
-				totalItems: 10,
-				totalRuns: 1,
-				completedExecutions: 2,
-				totalExecutions: 10,
-			});
-
-			expect(consoleLogs).toHaveLength(1);
-
-			// Advance time by 1.1 seconds
-			vi.advanceTimersByTime(1100);
-
-			// Third update after 1 second - should output
-			reporter.onProgress({
-				itemIndex: 2,
-				runIndex: 0,
-				totalItems: 10,
-				totalRuns: 1,
-				completedExecutions: 3,
-				totalExecutions: 10,
-			});
-
-			expect(consoleLogs).toHaveLength(2);
-
-			vi.useRealTimers();
-		});
-
-		it('should always output final progress', () => {
-			// Final progress update (completedExecutions === totalExecutions)
-			reporter.onProgress({
-				itemIndex: 9,
-				runIndex: 0,
-				totalItems: 10,
-				totalRuns: 1,
-				completedExecutions: 10,
-				totalExecutions: 10,
-			});
-
-			expect(consoleLogs.some((log) => log.includes('Progress: 10/10'))).toBe(true);
+			expect(consoleLogs).toHaveLength(0);
 		});
 	});
 
@@ -153,7 +110,7 @@ describe('CLIReporter', () => {
 				violations: [],
 			});
 
-			expect(consoleLogs.some((log) => log.includes('CI Status: PASSED'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('CI: PASSED'))).toBe(true);
 		});
 
 		it('should output failed CI status with violations', () => {
@@ -168,29 +125,18 @@ describe('CLIReporter', () => {
 						actual: '0.65',
 						message: 'accuracy average score 0.65 below threshold 0.8',
 					},
-					{
-						evaluator: 'relevance',
-						threshold: 'p95',
-						expected: '0.7',
-						actual: '0.55',
-						message: 'relevance p95 score 0.55 below threshold 0.7',
-					},
 				],
 			});
 
-			expect(consoleLogs.some((log) => log.includes('CI Status: FAILED'))).toBe(true);
-			expect(consoleErrors.some((err) => err.includes('Threshold violations'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('CI: FAILED'))).toBe(true);
 			expect(
-				consoleErrors.some((err) => err.includes('accuracy average score 0.65 below threshold')),
-			).toBe(true);
-			expect(
-				consoleErrors.some((err) => err.includes('relevance p95 score 0.55 below threshold')),
+				consoleLogs.some((log) => log.includes('accuracy average score 0.65 below threshold')),
 			).toBe(true);
 		});
 	});
 
 	describe('onComplete', () => {
-		it('should output completion summary', () => {
+		it('should output summary table and footer', () => {
 			const report: ExperimentReport = {
 				id: 'test-123',
 				name: 'Test Experiment',
@@ -217,22 +163,29 @@ describe('CLIReporter', () => {
 						},
 					},
 				},
-				items: [],
+				items: [
+					{
+						index: 0,
+						input: {},
+						output: {},
+						latencyMs: 500,
+						evaluations: { accuracy: { score: 0.85 } },
+						runs: [],
+					},
+				],
 			};
 
 			reporter.onComplete(report, '.cobalt/results/test-123.json');
 
-			expect(consoleLogs.some((log) => log.includes('Experiment completed in 5.50s'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('Average latency: 550ms'))).toBe(true);
-			expect(
-				consoleLogs.some((log) =>
-					log.includes('accuracy: avg=0.85 min=0.65 max=0.95 p50=0.85 p95=0.92'),
-				),
-			).toBe(true);
-			expect(
-				consoleLogs.some((log) => log.includes('Results saved to: .cobalt/results/test-123.json')),
-			).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('Run ID: test-123'))).toBe(true);
+			// Should have score table
+			expect(consoleLogs.some((log) => log.includes('Evaluator'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('0.85'))).toBe(true);
+			// Should have footer with passed count and duration
+			expect(consoleLogs.some((log) => log.includes('1 passed'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('5.50s'))).toBe(true);
+			// Should NOT have old verbose output
+			expect(consoleLogs.some((log) => log.includes('Results saved to:'))).toBe(false);
+			expect(consoleLogs.some((log) => log.includes('Run ID:'))).toBe(false);
 		});
 
 		it('should display cost if available', () => {
@@ -259,10 +212,10 @@ describe('CLIReporter', () => {
 
 			reporter.onComplete(report, '.cobalt/results/test-123.json');
 
-			expect(consoleLogs.some((log) => log.includes('Estimated cost:'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('$'))).toBe(true);
 		});
 
-		it('should warn about low scores', () => {
+		it('should show failure details for low scores', () => {
 			const report: ExperimentReport = {
 				id: 'test-123',
 				name: 'Test Experiment',
@@ -275,7 +228,7 @@ describe('CLIReporter', () => {
 					evaluators: ['accuracy'],
 				},
 				summary: {
-					totalItems: 10,
+					totalItems: 2,
 					totalDurationMs: 5500,
 					avgLatencyMs: 550,
 					scores: {},
@@ -306,10 +259,12 @@ describe('CLIReporter', () => {
 
 			reporter.onComplete(report, '.cobalt/results/test-123.json');
 
-			expect(consoleWarns.some((warn) => warn.includes('1 item(s) scored below 0.5'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('Item #1') && log.includes('0.30'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('1 failed'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('1 passed'))).toBe(true);
 		});
 
-		it('should warn about errors', () => {
+		it('should show error items in failure details', () => {
 			const report: ExperimentReport = {
 				id: 'test-123',
 				name: 'Test Experiment',
@@ -322,7 +277,7 @@ describe('CLIReporter', () => {
 					evaluators: ['accuracy'],
 				},
 				summary: {
-					totalItems: 10,
+					totalItems: 2,
 					totalDurationMs: 5500,
 					avgLatencyMs: 550,
 					scores: {},
@@ -350,7 +305,8 @@ describe('CLIReporter', () => {
 
 			reporter.onComplete(report, '.cobalt/results/test-123.json');
 
-			expect(consoleErrors.some((err) => err.includes('1 item(s) had errors'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('Timeout error'))).toBe(true);
+			expect(consoleLogs.some((log) => log.includes('1 failed'))).toBe(true);
 		});
 	});
 
