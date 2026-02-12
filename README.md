@@ -10,7 +10,7 @@
 
 **Unit testing for AI Agents** — Test, evaluate, and improve your AI systems.
 
-[Documentation](docs/evaluators.md)
+**[Documentation](docs/evaluators.md)** · **[Join Discord](https://discord.gg/yW2RyZKY)**
 
 <br>
 
