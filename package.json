@@ -18,6 +18,24 @@
 		"@biomejs/biome": "^1.9.4",
 		"turbo": "^2.3.3"
 	},
+	"pnpm": {
+		"packageExtensions": {
+			"whatwg-url@5": {
+				"dependencies": {
+					"punycode": "^2.3.0"
+				}
+			},
+			"tr46@0": {
+				"dependencies": {
+					"punycode": "^2.3.0"
+				}
+			}
+		},
+		"patchedDependencies": {
+			"whatwg-url@5.0.0": "patches/whatwg-url@5.0.0.patch",
+			"tr46@0.0.3": "patches/tr46@0.0.3.patch"
+		}
+	},
 	"engines": {
 		"node": ">=20.0.0",
 		"pnpm": ">=8.0.0"

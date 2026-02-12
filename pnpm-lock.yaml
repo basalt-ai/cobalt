@@ -4,6 +4,16 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+packageExtensionsChecksum: 86f2a34c2e5e6bbed0c471d9c32d9053
+
+patchedDependencies:
+  tr46@0.0.3:
+    hash: bpj6gcw6zugqpvk6vn5cnxkdsq
+    path: patches/tr46@0.0.3.patch
+  whatwg-url@5.0.0:
+    hash: qm5bqxbojl4aucv5lfj4d2vjuu
+    path: patches/whatwg-url@5.0.0.patch
+
 importers:
 
   .:
@@ -4219,7 +4229,7 @@ packages:
       encoding:
         optional: true
     dependencies:
-      whatwg-url: 5.0.0
+      whatwg-url: 5.0.0(patch_hash=qm5bqxbojl4aucv5lfj4d2vjuu)
     dev: false
 
   /node-releases@2.0.27:
@@ -4432,6 +4442,11 @@ packages:
     dependencies:
       end-of-stream: 1.4.5
       once: 1.4.0
+    dev: false
+
+  /punycode@2.3.1:
+    resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
+    engines: {node: '>=6'}
     dev: false
 
   /qs@6.14.1:
@@ -5023,9 +5038,12 @@ packages:
     engines: {node: '>=0.6'}
     dev: false
 
-  /tr46@0.0.3:
+  /tr46@0.0.3(patch_hash=bpj6gcw6zugqpvk6vn5cnxkdsq):
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
+    dependencies:
+      punycode: 2.3.1
     dev: false
+    patched: true
 
   /tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
@@ -5447,12 +5465,14 @@ packages:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
     dev: false
 
-  /whatwg-url@5.0.0:
+  /whatwg-url@5.0.0(patch_hash=qm5bqxbojl4aucv5lfj4d2vjuu):
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
     dependencies:
-      tr46: 0.0.3
+      punycode: 2.3.1
+      tr46: 0.0.3(patch_hash=bpj6gcw6zugqpvk6vn5cnxkdsq)
       webidl-conversions: 3.0.1
     dev: false
+    patched: true
 
   /which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
