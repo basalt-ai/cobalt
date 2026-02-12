@@ -226,6 +226,24 @@ function MetricsTabs({
 	evaluatorNames: string[];
 	booleanEvals: Set<string>;
 }) {
+	// Compute pass/total counts for boolean evaluators
+	const booleanCounts = useMemo(() => {
+		const counts: Record<string, { passed: number; total: number }> = {};
+		for (const name of booleanEvals) {
+			let passed = 0;
+			let total = 0;
+			for (const item of run.items) {
+				const ev = item.evaluations[name];
+				if (ev != null) {
+					total++;
+					if (ev.score === 1) passed++;
+				}
+			}
+			counts[name] = { passed, total };
+		}
+		return counts;
+	}, [run.items, booleanEvals]);
+
 	const latencyStats = useMemo(
 		() => computeClientStats(run.items.map((i) => i.latencyMs)),
 		[run.items],
@@ -271,10 +289,15 @@ function MetricsTabs({
 											<td className="px-4 py-2.5 font-medium">{name}</td>
 											{isBool ? (
 												<>
-													<td className="px-4 py-2.5 text-right" colSpan={6}>
-														<span className="text-sm tabular-nums">
-															Pass Rate: {formatScore(stats.avg)}%
-														</span>
+													<td className="px-4 py-2.5 text-right">
+														<ScoreBadge score={stats.avg} showPercent />
+													</td>
+													<td className="px-4 py-2.5 text-right" colSpan={5}>
+														{booleanCounts[name] && (
+															<span className="text-sm tabular-nums text-muted-foreground">
+																{booleanCounts[name].passed} / {booleanCounts[name].total} passed
+															</span>
+														)}
 													</td>
 												</>
 											) : (
