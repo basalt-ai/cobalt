@@ -214,7 +214,7 @@ npx cobalt --help
 You should see:
 
 ```
-Cobalt v0.1.0
+Cobalt
 Unit testing for AI Agents
 ```
 
