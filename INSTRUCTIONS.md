@@ -236,9 +236,6 @@ export default defineConfig({
     apiKey: process.env.OPENAI_API_KEY, // or via automatic env var
   },
 
-  // Local storage directory
-  outputDir: '.cobalt',
-
   // Default concurrency
   concurrency: 5,
 

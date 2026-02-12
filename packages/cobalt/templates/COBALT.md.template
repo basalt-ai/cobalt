@@ -769,7 +769,6 @@ Enable CI mode globally in `cobalt.config.ts` to apply default thresholds to all
 import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
-  ciMode: true,
   thresholds: {
     correctness: { avg: 0.8, min: 0.5 },
   },
@@ -806,7 +805,7 @@ export default defineConfig({
   timeout: 30_000,                  // Per-item timeout in ms
 
   // Output reporters
-  reporters: ['cli', 'json'],       // 'cli', 'json', 'github-actions'
+  reporters: ['cli'],       // 'cli', 'json', 'github-actions'
 
   // Dashboard settings
   dashboard: {
@@ -821,7 +820,6 @@ export default defineConfig({
   },
 
   // CI mode
-  ciMode: false,
   thresholds: {},                   // Default thresholds when ciMode is true
 })
 ```

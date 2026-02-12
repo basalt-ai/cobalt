@@ -137,7 +137,7 @@ export default defineConfig({
   judge: { model: 'gpt-5-mini', provider: 'openai' },
   concurrency: 5,
   timeout: 30_000,
-  reporters: ['cli', 'json'],
+  reporters: ['cli'],
   cache: { enabled: true, ttl: '7d' },
 })
 ```

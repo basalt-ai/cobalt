@@ -18,5 +18,5 @@ export default defineConfig({
 	dashboard: {
 		port: 4000,
 		open: true,
-	}
+	},
 });

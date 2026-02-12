@@ -29,7 +29,6 @@ cobalt://config
 ```typescript
 {
   testDir: string              // Test directory path
-  outputDir: string            // Results output directory
   concurrency: number          // Max parallel executions
   timeout: number              // Per-item timeout (ms)
 
@@ -64,7 +63,6 @@ cobalt://config
 ```json
 {
   "testDir": "experiments",
-  "outputDir": ".cobalt",
   "concurrency": 5,
   "timeout": 30000,
   "judge": {
