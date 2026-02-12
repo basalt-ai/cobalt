@@ -148,6 +148,7 @@ export default defineCommand({
 				(global as any).__cobaltCIThresholds = undefined;
 				(global as any).__cobaltConcurrencyOverride = undefined;
 				(global as any).__cobaltFilter = undefined;
+				(globalThis as any).__cobaltPendingExperiments = undefined;
 			}
 
 			// Check for CI mode failures (only exit with code 1 when --ci is active)

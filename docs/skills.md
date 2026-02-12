@@ -4,7 +4,7 @@ Cobalt auto-generates a skills file (`.cobalt/SKILLS.md`) that teaches AI coding
 
 ## How It Works
 
-When you run `cobalt init`, Cobalt:
+When you run `cobalt init` (or `cobalt update`), Cobalt:
 
 1. Generates `.cobalt/SKILLS.md` from a built-in template
 2. Scans for AI instruction files in your project
@@ -40,7 +40,7 @@ The skills file includes a version comment:
 <!-- cobalt-skills-version: 0.1.0 -->
 ```
 
-On subsequent runs of `cobalt init`, the file is only regenerated if the version has changed, avoiding unnecessary overwrites.
+On subsequent runs of `cobalt init` or `cobalt update`, the file is only regenerated if the version has changed, avoiding unnecessary overwrites. Run `cobalt update` after upgrading the SDK to refresh the skills file and check for new versions.
 
 ## What the Skills File Contains
 

@@ -107,5 +107,6 @@ export async function handleCobaltRun(args: any) {
 	} finally {
 		// Clean up global callback
 		(global as any).__cobaltMCPResultCallback = undefined;
+		(globalThis as any).__cobaltPendingExperiments = undefined;
 	}
 }

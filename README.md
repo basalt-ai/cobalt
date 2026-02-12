@@ -162,7 +162,7 @@ The built-in [MCP](https://modelcontextprotocol.io/) server gives Claude Code (a
 
 ### Skills
 
-`cobalt init` generates a `.cobalt/SKILLS.md` file and integrates with your AI instruction files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) so your assistant knows how to use Cobalt from day one.
+`cobalt init` generates a `.cobalt/SKILLS.md` file and integrates with your AI instruction files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`) so your assistant knows how to use Cobalt from day one. After upgrading the SDK, run `cobalt update` to regenerate the skills file and check for updates.
 
 [Read the Skills docs →](docs/skills.md)
 
@@ -235,6 +235,7 @@ export default defineConfig({
 ```bash
 cobalt run <file|dir>          # Run experiments
 cobalt init                    # Initialize project
+cobalt update                  # Update skills file & check for SDK updates
 cobalt history                 # View past runs
 cobalt compare <id1> <id2>     # Compare two runs
 cobalt serve                   # Start dashboard

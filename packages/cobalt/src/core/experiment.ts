@@ -17,9 +17,15 @@ import { getApiKey, loadConfig } from './config.js';
 import { loadPlugins } from './plugin-loader.js';
 import { runExperiment } from './runner.js';
 
-// Global array to track in-flight experiment promises.
-// Used by run.ts and MCP tools to await experiments after jiti.import resolves.
-const pendingExperiments: Promise<ExperimentReport>[] = [];
+// Access the shared global array for tracking in-flight experiment promises.
+// Uses globalThis so CLI and SDK bundles share the same array even when
+// tsup produces separate bundles with their own module-level state.
+function getPendingExperiments(): Promise<ExperimentReport>[] {
+	if (!(globalThis as any).__cobaltPendingExperiments) {
+		(globalThis as any).__cobaltPendingExperiments = [];
+	}
+	return (globalThis as any).__cobaltPendingExperiments;
+}
 
 /**
  * Get all pending experiment promises and clear the tracking array.
@@ -27,8 +33,9 @@ const pendingExperiments: Promise<ExperimentReport>[] = [];
  * called without `await` to finish.
  */
 export function drainPendingExperiments(): Promise<ExperimentReport[]> {
-	const promises = [...pendingExperiments];
-	pendingExperiments.length = 0;
+	const pending = getPendingExperiments();
+	const promises = [...pending];
+	pending.length = 0;
 	return Promise.all(promises);
 }
 
@@ -49,7 +56,7 @@ export function experiment(
 	options: ExperimentOptions,
 ): Promise<ExperimentReport> {
 	const promise = _experimentImpl(name, dataset, runner, options);
-	pendingExperiments.push(promise);
+	getPendingExperiments().push(promise);
 	return promise;
 }
 

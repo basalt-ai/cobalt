@@ -106,7 +106,7 @@ OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 
 # Cobalt configuration (optional)
-COBALT_CACHE_TTL=86400000  # Cache TTL in ms (default: 24 hours)
+COBALT_CACHE_TTL=24h        # Cache TTL (default: 24 hours)
 COBALT_CONCURRENCY=5        # Max concurrent executions (default: 5)
 ```
 
