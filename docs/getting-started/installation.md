@@ -88,7 +88,7 @@ pnpm add -g cobalt
 This lets you run `cobalt` commands without `npx`:
 
 ```bash
-cobalt run experiments/
+cobalt run
 cobalt history
 ```
 
@@ -106,7 +106,7 @@ OPENAI_API_KEY=sk-...
 ANTHROPIC_API_KEY=sk-ant-...
 
 # Cobalt configuration (optional)
-COBALT_CACHE_TTL=86400000  # Cache TTL in ms (default: 24 hours)
+COBALT_CACHE_TTL=24h        # Cache TTL (default: 24 hours)
 COBALT_CONCURRENCY=5        # Max concurrent executions (default: 5)
 ```
 
@@ -150,8 +150,7 @@ Update `package.json`:
 {
   "type": "module",
   "scripts": {
-    "test": "cobalt run experiments/",
-    "test:watch": "cobalt run experiments/ --watch"
+    "test": "cobalt run"
   }
 }
 ```
@@ -180,7 +179,7 @@ export default defineConfig({
   // Cache configuration
   cache: {
     enabled: true,
-    ttl: 86400000  // 24 hours
+    ttl: '24h'
   },
 
   // Default concurrency
@@ -206,7 +205,7 @@ Verify your installation:
 npx cobalt --version
 
 # Run example experiment
-npx cobalt run experiments/example.cobalt.ts
+npx cobalt run --file experiments/example.cobalt.ts
 
 # View command help
 npx cobalt --help
@@ -230,7 +229,7 @@ export OPENAI_API_KEY="sk-..."
 ### 2. Run Your First Experiment
 
 ```bash
-npx cobalt run experiments/example.cobalt.ts
+npx cobalt run --file experiments/example.cobalt.ts
 ```
 
 ### 3. Explore the Results
@@ -239,15 +238,15 @@ npx cobalt run experiments/example.cobalt.ts
 # View history
 npx cobalt history
 
-# View detailed results
-npx cobalt results <run-id>
+# Inspect detailed results
+# Result JSON files are saved in .cobalt/data/results/
 ```
 
 ### 4. Learn More
 
 - [Quickstart Guide](quickstart.md) — 5-minute tutorial
 - [Your First Experiment](first-experiment.md) — Detailed walkthrough
-- [Configuration Reference](../reference/configuration.md) — All config options
+- [Configuration Reference](../configuration.md) — All config options
 
 ## Troubleshooting
 
@@ -305,7 +304,7 @@ export OPENAI_API_KEY="sk-..."
 ```bash
 chmod +x node_modules/.bin/cobalt
 # or use npx
-npx cobalt run experiments/
+npx cobalt run
 ```
 
 ## System Requirements

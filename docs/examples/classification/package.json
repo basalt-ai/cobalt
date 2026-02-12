@@ -4,7 +4,7 @@
 	"description": "Cobalt example: Testing text classification",
 	"type": "module",
 	"scripts": {
-		"test": "cobalt run classifier.cobalt.ts"
+		"test": "cobalt run --file classifier.cobalt.ts"
 	},
 	"dependencies": {
 		"cobalt": "latest",

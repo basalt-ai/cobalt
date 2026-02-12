@@ -1,10 +1,11 @@
 import { existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
-import { join, relative, resolve } from 'node:path';
+import { basename, join, relative, resolve } from 'node:path';
 import { defineCommand } from 'citty';
 import { createJiti } from 'jiti';
 import pc from 'picocolors';
 import { loadConfig } from '../../core/config.js';
+import { drainPendingExperiments } from '../../core/experiment.js';
 import type { ExperimentReport } from '../../types/index.js';
 
 export default defineCommand({
@@ -20,7 +21,7 @@ export default defineCommand({
 		},
 		filter: {
 			type: 'string',
-			description: 'Filter experiments by name',
+			description: 'Filter experiments by name or tags',
 			alias: 'n',
 		},
 		concurrency: {
@@ -28,8 +29,21 @@ export default defineCommand({
 			description: 'Override concurrency setting',
 			alias: 'c',
 		},
+		ci: {
+			type: 'boolean',
+			description: 'Enable CI mode with threshold validation and exit codes',
+			default: false,
+		},
 	},
 	async run({ args }) {
+		// Auto-load .env file if present
+		try {
+			const dotenv = await import('dotenv');
+			dotenv.config();
+		} catch {
+			// dotenv not available, skip
+		}
+
 		console.log(pc.bold('\n🔷 Cobalt v0.1.0\n'));
 
 		try {
@@ -63,6 +77,17 @@ export default defineCommand({
 				}
 			}
 
+			// Apply file-level filtering by filename
+			if (args.filter) {
+				const filterLower = args.filter.toLowerCase();
+				files = files.filter((f) => basename(f).toLowerCase().includes(filterLower));
+
+				if (files.length === 0) {
+					console.error(pc.red(`\n❌ No experiment files matching filter: ${args.filter}\n`));
+					process.exit(1);
+				}
+			}
+
 			console.log(pc.dim(`Found ${files.length} experiment file(s)\n`));
 
 			// Execute each experiment file
@@ -78,6 +103,22 @@ export default defineCommand({
 				reports.push(report);
 			};
 
+			// Set up global overrides for experiment()
+			if (args.ci && config.thresholds) {
+				(global as any).__cobaltCIThresholds = config.thresholds;
+			}
+			if (args.concurrency) {
+				const concurrencyValue = Number.parseInt(args.concurrency, 10);
+				if (Number.isNaN(concurrencyValue) || concurrencyValue < 1) {
+					console.error(pc.red('\n❌ Invalid concurrency value. Must be a positive integer.\n'));
+					process.exit(1);
+				}
+				(global as any).__cobaltConcurrencyOverride = concurrencyValue;
+			}
+			if (args.filter) {
+				(global as any).__cobaltFilter = args.filter;
+			}
+
 			try {
 				for (const file of files) {
 					try {
@@ -87,31 +128,45 @@ export default defineCommand({
 						// The experiment() call inside the file will execute automatically
 						await jiti.import(file, { default: true });
 
+						// Wait for all experiment() calls that started during import
+						await drainPendingExperiments();
+
 						console.log('');
 					} catch (error) {
-						console.error(pc.red(`\n❌ Error running ${file}:`), error);
+						if (error instanceof Error && error.message === 'Dataset is empty') {
+							console.error(pc.red(`\n❌ Dataset is empty in ${file}`));
+							console.log(pc.dim('  Ensure your dataset has at least one item.\n'));
+						} else {
+							console.error(pc.red(`\n❌ Error running ${file}:`), error);
+						}
 						console.log('');
 					}
 				}
 			} finally {
-				// Clean up global callback
+				// Clean up globals
 				(global as any).__cobaltCLIResultCallback = undefined;
+				(global as any).__cobaltCIThresholds = undefined;
+				(global as any).__cobaltConcurrencyOverride = undefined;
+				(global as any).__cobaltFilter = undefined;
+				(globalThis as any).__cobaltPendingExperiments = undefined;
 			}
 
-			// Check for CI mode failures
-			const ciFailures = reports.filter((r) => r.ciStatus && !r.ciStatus.passed);
+			// Check for CI mode failures (only exit with code 1 when --ci is active)
+			if (args.ci) {
+				const ciFailures = reports.filter((r) => r.ciStatus && !r.ciStatus.passed);
 
-			if (ciFailures.length > 0) {
-				console.log(
-					pc.red(
-						pc.bold(`\n❌ CI Mode: ${ciFailures.length} experiment(s) failed threshold checks\n`),
-					),
-				);
-				for (const report of ciFailures) {
-					console.log(pc.red(`   ${report.name}: ${report.ciStatus!.summary}`));
+				if (ciFailures.length > 0) {
+					console.log(
+						pc.red(
+							pc.bold(`\n❌ CI Mode: ${ciFailures.length} experiment(s) failed threshold checks\n`),
+						),
+					);
+					for (const report of ciFailures) {
+						console.log(pc.red(`   ${report.name}: ${report.ciStatus!.summary}`));
+					}
+					console.log('');
+					process.exit(1);
 				}
-				console.log('');
-				process.exit(1);
 			}
 
 			console.log(pc.green(pc.bold('✅ All experiments completed!\n')));

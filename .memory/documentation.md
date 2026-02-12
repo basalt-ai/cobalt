@@ -734,23 +734,26 @@ Run an experiment file.
 
 **Usage:**
 ```bash
-cobalt run <file> [options]
+cobalt run [options]
 ```
 
 **Options:**
+- `--file <path>` - Path to experiment file(s)
 - `--filter <pattern>` - Filter experiments by name or tag
+- `--concurrency <n>` - Override concurrency level
+- `--ci` - Enable CI mode with threshold validation
 - `--config <path>` - Path to config file
 
 **Examples:**
 ```bash
 # Run single experiment
-cobalt run experiments/my-agent.cobalt.ts
+cobalt run --file experiments/my-agent.cobalt.ts
 
-# Filter by name pattern
-cobalt run experiments/ --filter "gpt-4*"
+# Filter by name or tag
+cobalt run --filter "gpt-4"
 
-# Filter by tag
-cobalt run experiments/ --filter "v2"
+# Run in CI mode
+cobalt run --ci
 ```
 
 ---
@@ -774,7 +777,7 @@ cobalt init [directory]
 ```bash
 cobalt init my-project
 cd my-project
-cobalt run experiments/example.cobalt.ts
+cobalt run --file experiments/example.cobalt.ts
 ```
 
 ---

@@ -4,8 +4,8 @@
 	"description": "Cobalt example: Testing document summarization",
 	"type": "module",
 	"scripts": {
-		"test": "cobalt run summarizer.cobalt.ts",
-		"test:debug": "cobalt run summarizer.cobalt.ts --concurrency 1"
+		"test": "cobalt run --file summarizer.cobalt.ts",
+		"test:debug": "cobalt run --file summarizer.cobalt.ts --concurrency 1"
 	},
 	"dependencies": {
 		"cobalt": "latest",

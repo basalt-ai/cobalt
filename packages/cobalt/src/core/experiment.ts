@@ -17,6 +17,28 @@ import { getApiKey, loadConfig } from './config.js';
 import { loadPlugins } from './plugin-loader.js';
 import { runExperiment } from './runner.js';
 
+// Access the shared global array for tracking in-flight experiment promises.
+// Uses globalThis so CLI and SDK bundles share the same array even when
+// tsup produces separate bundles with their own module-level state.
+function getPendingExperiments(): Promise<ExperimentReport>[] {
+	if (!(globalThis as any).__cobaltPendingExperiments) {
+		(globalThis as any).__cobaltPendingExperiments = [];
+	}
+	return (globalThis as any).__cobaltPendingExperiments;
+}
+
+/**
+ * Get all pending experiment promises and clear the tracking array.
+ * Call this after jiti.import() to wait for experiments that were
+ * called without `await` to finish.
+ */
+export function drainPendingExperiments(): Promise<ExperimentReport[]> {
+	const pending = getPendingExperiments();
+	const promises = [...pending];
+	pending.length = 0;
+	return Promise.all(promises);
+}
+
 /**
  * Main experiment function
  * Run experiments on a dataset with specified evaluators
@@ -27,7 +49,18 @@ import { runExperiment } from './runner.js';
  * @param options - Experiment options (evaluators, concurrency, etc.)
  * @returns Experiment report with results
  */
-export async function experiment(
+export function experiment(
+	name: string,
+	dataset: Dataset,
+	runner: RunnerFunction,
+	options: ExperimentOptions,
+): Promise<ExperimentReport> {
+	const promise = _experimentImpl(name, dataset, runner, options);
+	getPendingExperiments().push(promise);
+	return promise;
+}
+
+async function _experimentImpl(
 	name: string,
 	dataset: Dataset,
 	runner: RunnerFunction,
@@ -43,10 +76,38 @@ export async function experiment(
 
 	// Merge options with config defaults
 	const runs = options.runs || 1;
-	const concurrency = options.concurrency || config.concurrency;
+	const concurrency =
+		(global as any).__cobaltConcurrencyOverride || options.concurrency || config.concurrency;
 	const timeout = options.timeout || config.timeout;
 	const tags = options.tags || [];
 	const experimentName = options.name || name;
+
+	// Tag/name-level filtering: skip experiment if --filter is set and doesn't match
+	const filterValue = (global as any).__cobaltFilter as string | undefined;
+	if (filterValue) {
+		const nameMatches = experimentName.toLowerCase().includes(filterValue.toLowerCase());
+		const tagMatches = tags.some((t) => t.toLowerCase().includes(filterValue.toLowerCase()));
+		if (!nameMatches && !tagMatches) {
+			console.log(
+				`Skipping experiment "${experimentName}" (does not match filter "${filterValue}")`,
+			);
+			const skippedReport: ExperimentReport = {
+				id: generateRunId(),
+				name: experimentName,
+				timestamp: new Date().toISOString(),
+				tags,
+				config: { runs, concurrency, timeout, evaluators: [] },
+				summary: {
+					totalItems: 0,
+					totalDurationMs: 0,
+					avgLatencyMs: 0,
+					scores: {},
+				},
+				items: [],
+			};
+			return skippedReport;
+		}
+	}
 
 	// Create evaluator instances (handle both Evaluator instances and configs)
 	const evaluators = options.evaluators.map((evalConfig) =>
@@ -78,6 +139,7 @@ export async function experiment(
 		concurrency,
 		timeout,
 		runs,
+		tags,
 	};
 	for (const reporter of reporters) {
 		reporter.onStart(startInfo);
@@ -125,9 +187,15 @@ export async function experiment(
 	};
 
 	// CI Mode: Validate thresholds if configured
+	// Use experiment-level thresholds, or fall back to config-level thresholds when --ci is active
 	let ciStatus: CIResult | undefined;
-	if (options.thresholds) {
-		ciStatus = validateThresholds(report, options.thresholds);
+	const thresholds =
+		options.thresholds ||
+		((global as any).__cobaltCIThresholds as
+			| import('../types/index.js').ThresholdConfig
+			| undefined);
+	if (thresholds) {
+		ciStatus = validateThresholds(report, thresholds);
 		report.ciStatus = ciStatus;
 
 		for (const reporter of reporters) {
@@ -210,15 +278,28 @@ async function calculateSummary(
 	let totalOutputTokens = 0;
 	let totalTokens = 0;
 
+	const addTokens = (tokens: number | { input: number; output: number }) => {
+		if (typeof tokens === 'number') {
+			totalTokens += tokens;
+		} else if (tokens.input && tokens.output) {
+			totalInputTokens += tokens.input;
+			totalOutputTokens += tokens.output;
+			totalTokens += tokens.input + tokens.output;
+		}
+	};
+
 	for (const result of results) {
-		if (result.output.metadata?.tokens) {
-			// Support both simple token count and detailed input/output breakdown
-			if (typeof result.output.metadata.tokens === 'number') {
-				totalTokens += result.output.metadata.tokens;
-			} else if (result.output.metadata.tokens.input && result.output.metadata.tokens.output) {
-				totalInputTokens += result.output.metadata.tokens.input;
-				totalOutputTokens += result.output.metadata.tokens.output;
-				totalTokens += result.output.metadata.tokens.input + result.output.metadata.tokens.output;
+		if (runs === 1) {
+			// Single run: use top-level output metadata
+			if (result.output.metadata?.tokens) {
+				addTokens(result.output.metadata.tokens);
+			}
+		} else {
+			// Multiple runs: sum tokens from all individual runs
+			for (const run of result.runs) {
+				if (run.output.metadata?.tokens) {
+					addTokens(run.output.metadata.tokens);
+				}
 			}
 		}
 	}

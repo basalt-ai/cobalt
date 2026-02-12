@@ -107,7 +107,7 @@ experiment('my-first-test', dataset, async ({ item }) => {
 ## Step 5: Run Your Experiment
 
 ```bash
-npx cobalt run experiments/my-first-test.cobalt.ts
+npx cobalt run --file experiments/my-first-test.cobalt.ts
 ```
 
 You should see output like:
@@ -133,11 +133,7 @@ npx cobalt history
 
 This shows all your past runs with their scores and metadata.
 
-For detailed results:
-
-```bash
-npx cobalt results <run-id>
-```
+Result JSON files are saved in `.cobalt/data/results/`.
 
 ## What's Next?
 
@@ -149,15 +145,15 @@ Congratulations! You've run your first Cobalt experiment. Now you can:
 
 2. **Add More Evaluators**
    - Try the LLM Judge evaluator for subjective metrics
-   - See [Evaluator Overview](../guides/evaluators/overview.md)
+   - See [Evaluator Overview](../evaluators.md)
 
 3. **Load Real Datasets**
    - Load test data from JSON, JSONL, or CSV files
-   - See [Dataset Guide](../guides/datasets/loading-data.md)
+   - See [Dataset Guide](../datasets.md)
 
 4. **Set Up CI/CD**
    - Integrate Cobalt into your testing pipeline
-   - See [CI/CD Integration](../guides/ci-mode.md)
+   - See [CI/CD Integration](../ci-mode.md)
 
 5. **Use with Claude Code**
    - Connect Cobalt via MCP for AI-assisted testing
@@ -181,8 +177,7 @@ pnpm add @basalt-ai/cobalt
 
 ### Need more help?
 
-- [Troubleshooting Guide](../troubleshooting/common-errors.md)
-- [Full Documentation](../index.md)
+- [Full Documentation](../README.md)
 
 ## Example: Testing a Real LLM
 
@@ -245,7 +240,7 @@ experiment('concise-llm', dataset, async ({ item }) => {
 Run it:
 
 ```bash
-npx cobalt run experiments/concise-llm.cobalt.ts
+npx cobalt run --file experiments/concise-llm.cobalt.ts
 ```
 
 ---

@@ -13,6 +13,10 @@ export { Dataset } from './datasets/Dataset.js';
 // Configuration
 export { defineConfig, loadConfig } from './core/config.js';
 
+// Storage utilities
+export { loadResult, listResults } from './storage/results.js';
+export { HistoryDB } from './storage/db.js';
+
 // Register built-in evaluators (side-effect imports)
 import './evaluators/llm-judge.js';
 import './evaluators/function.js';

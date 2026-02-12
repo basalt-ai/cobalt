@@ -103,5 +103,5 @@ const [research1, research2] = await Promise.all([
 
 After completing all examples:
 - [Create Your Own](../../getting-started/first-experiment.md)
-- [Evaluator Guide](../../guides/evaluators/overview.md)
+- [Evaluator Guide](../../evaluators.md)
 - [MCP Integration](../../guides/mcp-integration.md)

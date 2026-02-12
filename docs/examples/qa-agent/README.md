@@ -140,10 +140,10 @@ new Evaluator({
 
 ```bash
 # Run faster (more parallel requests)
-npx cobalt run qa-agent.cobalt.ts --concurrency 10
+npx cobalt run --file qa-agent.cobalt.ts --concurrency 10
 
 # Run slower (avoid rate limits)
-npx cobalt run qa-agent.cobalt.ts --concurrency 1
+npx cobalt run --file qa-agent.cobalt.ts --concurrency 1
 ```
 
 ## Understanding Results
@@ -174,7 +174,7 @@ Total Cost: $0.02
 
 If you hit OpenAI rate limits:
 ```bash
-npx cobalt run qa-agent.cobalt.ts --concurrency 1
+npx cobalt run --file qa-agent.cobalt.ts --concurrency 1
 ```
 
 ### Wrong Answers
@@ -197,16 +197,16 @@ After completing this example:
 
 1. **[Summarization Example](../summarization/)** — Test document summarization
 2. **[Classification Example](../classification/)** — Test text classification
-3. **[Evaluator Guide](../../guides/evaluators/overview.md)** — Learn more about evaluators
+3. **[Evaluator Guide](../../evaluators.md)** — Learn more about evaluators
 4. **[Your Own Experiment](../../getting-started/first-experiment.md)** — Build from scratch
 
 ## Related Documentation
 
-- [Evaluator Overview](../../guides/evaluators/overview.md)
-- [LLM Judge Guide](../../guides/evaluators/llm-judge.md)
-- [Dataset Loading](../../guides/datasets/loading-data.md)
+- [Evaluator Overview](../../evaluators.md)
+- [LLM Judge Guide](../../evaluators.md)
+- [Dataset Loading](../../datasets.md)
 - [Understanding Results](../../getting-started/understanding-results.md)
 
 ---
 
-**Questions?** Check the [Troubleshooting Guide](../../troubleshooting/common-errors.md)
+**Questions?** Check the [Getting Started Guide](../../getting-started/quickstart.md)

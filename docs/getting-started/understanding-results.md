@@ -31,7 +31,7 @@ After running an experiment, results are saved to:
 After running an experiment, you'll see a summary:
 
 ```bash
-npx cobalt run experiments/qa-agent.cobalt.ts
+npx cobalt run --file experiments/qa-agent.cobalt.ts
 ```
 
 Output:
@@ -85,13 +85,7 @@ npx cobalt history --limit 10
 
 ### Detailed Results
 
-View item-by-item details:
-
-```bash
-npx cobalt results abc123
-```
-
-This displays the full JSON report (see [Result Structure](#result-structure) below).
+View item-by-item details by inspecting the result JSON files in `.cobalt/data/results/` (see [Result Structure](#result-structure) below).
 
 ## Result Structure
 
@@ -285,7 +279,7 @@ Total cost: $0.02 / 5 items = $0.004 per item
 3. Use function evaluators instead of LLM judges where possible
 4. Reduce concurrency to avoid rate limits
 
-See [Cost Optimization Guide](../guides/cost-optimization.md) for more strategies.
+See [Configuration Guide](../configuration.md) for more strategies.
 
 ## Comparing Results
 
@@ -325,13 +319,7 @@ Summary:
 
 ### Finding Low Scores
 
-To find items that scored poorly:
-
-```bash
-npx cobalt results abc123 --filter "score<0.5"
-```
-
-Or manually inspect the JSON:
+To find items that scored poorly, inspect the result JSON programmatically:
 
 ```typescript
 import { loadResult } from '@basalt-ai/cobalt'
@@ -391,12 +379,6 @@ Features:
 
 ## Exporting Results
 
-### Export to CSV
-
-```bash
-npx cobalt results abc123 --format csv > results.csv
-```
-
 ### Export for Analysis
 
 ```typescript
@@ -441,10 +423,10 @@ await writeFile('analysis.json', JSON.stringify(data, null, 2))
 
 Now that you understand results:
 
-1. **[Evaluators Guide](../guides/evaluators/overview.md)** — Improve your evaluation strategy
-2. **[Dataset Guide](../guides/datasets/overview.md)** — Organize your test data better
-3. **[CI/CD Integration](../guides/ci-mode.md)** — Set up automated quality gates
-4. **[Cost Optimization](../guides/cost-optimization.md)** — Reduce expenses
+1. **[Evaluators Guide](../evaluators.md)** — Improve your evaluation strategy
+2. **[Dataset Guide](../datasets.md)** — Organize your test data better
+3. **[CI/CD Integration](../ci-mode.md)** — Set up automated quality gates
+4. **[Configuration](../configuration.md)** — Optimize costs and settings
 5. **[Next Steps](next-steps.md)** — Where to go from here
 
 ## Troubleshooting

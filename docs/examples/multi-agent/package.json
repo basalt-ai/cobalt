@@ -4,7 +4,7 @@
 	"description": "Cobalt example: Testing multi-agent workflows",
 	"type": "module",
 	"scripts": {
-		"test": "cobalt run multi-agent.cobalt.ts"
+		"test": "cobalt run --file multi-agent.cobalt.ts"
 	},
 	"dependencies": {
 		"cobalt": "latest",

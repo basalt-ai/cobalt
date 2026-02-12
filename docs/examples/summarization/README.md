@@ -113,4 +113,4 @@ model: 'gpt-4o'
 
 - [Classification Example](../classification/) — Test text classification
 - [RAG Pipeline Example](../rag-pipeline/) — Test retrieval systems
-- [Evaluator Guide](../../guides/evaluators/llm-judge.md) — Master LLM judges
+- [Evaluator Guide](../../evaluators.md) — Master LLM judges

@@ -30,7 +30,7 @@ export OPENAI_API_KEY="sk-..."
 # 4. Run the experiment
 pnpm test
 # or
-npx cobalt run qa-agent.cobalt.ts
+npx cobalt run --file qa-agent.cobalt.ts
 ```
 
 ## Example Structure
@@ -122,10 +122,10 @@ Some examples may need:
 
 ```bash
 # Run an example
-npx cobalt run example.cobalt.ts
+npx cobalt run --file example.cobalt.ts
 
 # Run with custom concurrency
-npx cobalt run example.cobalt.ts --concurrency 10
+npx cobalt run --file example.cobalt.ts --concurrency 5
 
 # View results
 npx cobalt history
@@ -152,11 +152,11 @@ Each example is designed to be easily customized:
 **3. Adjust Evaluators**
 - Change thresholds and prompts
 - Add/remove evaluators
-- See [Evaluator Guide](../guides/evaluators/overview.md)
+- See [Evaluator Guide](../evaluators.md)
 
 **4. Configure Options**
 - Adjust `concurrency`, `timeout`, `runs`
-- See [Configuration Reference](../reference/configuration.md)
+- See [Configuration Reference](../configuration.md)
 
 ## Running All Examples
 
@@ -221,13 +221,13 @@ node --loader tsx agent.ts
 After trying these examples:
 
 1. **[Create Your Own](../getting-started/first-experiment.md)** — Build a custom experiment
-2. **[Learn Evaluators](../guides/evaluators/overview.md)** — Master evaluation strategies
+2. **[Learn Evaluators](../evaluators.md)** — Master evaluation strategies
 3. **[Explore MCP](../guides/mcp-integration.md)** — Use with Claude Code
-4. **[CI/CD Integration](../guides/ci-mode.md)** — Automate testing
+4. **[CI/CD Integration](../ci-mode.md)** — Automate testing
 
 ## Contributing
 
-Have a great example to share? See our [Contributing Guide](../contributing/development-setup.md) to add it!
+Have a great example to share? See our [Contributing Guide](../README.md) to add it!
 
 ---
 

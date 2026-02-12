@@ -4,7 +4,7 @@
 	"description": "Cobalt example: Testing RAG systems",
 	"type": "module",
 	"scripts": {
-		"test": "cobalt run rag.cobalt.ts"
+		"test": "cobalt run --file rag.cobalt.ts"
 	},
 	"dependencies": {
 		"cobalt": "latest",

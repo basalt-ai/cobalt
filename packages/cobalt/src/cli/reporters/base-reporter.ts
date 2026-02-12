@@ -41,6 +41,7 @@ export interface ExperimentStartInfo {
 	concurrency: number;
 	timeout: number;
 	runs: number;
+	tags: string[];
 }
 
 /**
