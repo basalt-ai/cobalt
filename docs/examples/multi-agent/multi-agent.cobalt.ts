@@ -1,4 +1,4 @@
-import { Dataset, Evaluator, experiment } from 'cobalt';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
 import { runWorkflow } from './agents.js';
 
 // Load topics to research

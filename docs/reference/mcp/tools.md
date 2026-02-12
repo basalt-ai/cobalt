@@ -574,7 +574,7 @@ cobalt_generate({
 **Generated File** (`src/chatbot.cobalt.ts`):
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 import { chatbot } from './chatbot.js'
 
 const dataset = new Dataset({

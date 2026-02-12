@@ -123,7 +123,7 @@ When you use `runs > 1`, Cobalt calculates these statistics per evaluator:
 ### Basic Template
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 
 const dataset = new Dataset({
   items: [

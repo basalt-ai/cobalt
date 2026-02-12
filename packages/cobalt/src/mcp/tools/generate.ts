@@ -250,7 +250,7 @@ function generateExperimentFile(params: {
  * Generated: ${new Date().toISOString()}
  */
 
-import { experiment, Dataset, Evaluator } from 'cobalt'
+import { experiment, Dataset, Evaluator } from '@basalt-ai/cobalt'
 
 // Import your agent
 // TODO: Update this import path to match your agent's export

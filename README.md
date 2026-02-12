@@ -4,117 +4,72 @@
 
 # Cobalt
 
+**Jest for AI Agents** — Test, evaluate, and improve your AI systems.
+
 ![Build Status](https://github.com/basalt-ai/cobalt/actions/workflows/test.yml/badge.svg)
-[![npm version](https://img.shields.io/npm/v/cobalt.svg)](https://www.npmjs.com/package/cobalt)
+[![npm version](https://img.shields.io/npm/v/@basalt-ai/cobalt.svg)](https://www.npmjs.com/package/@basalt-ai/cobalt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
 
-**Jest for AI Agents** — A TypeScript testing framework for evaluating AI systems.
+**Works with** &nbsp; [Langfuse](https://langfuse.com) · [LangSmith](https://smith.langchain.com) · [Braintrust](https://www.braintrust.dev) · [Basalt](https://basalt.ai)
+
+<!-- TODO: Add demo GIF -->
 
 </div>
 
 ---
 
-> **⚠️ Alpha Version Notice**
->
-> Cobalt is currently in **alpha** and under active development. The API may change as we refine features and gather feedback. We welcome early adopters to try it out and help shape its future!
->
-> 💬 **Want to contribute or provide feedback?**
-> - Join our [Discord community](https://discord.gg/yW2RyZKY)
-> - Report issues or suggest features on [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
-> - Star the repo to follow development progress
+## Table of Contents
 
----
+- [Why Cobalt](#why-cobalt)
+- [Quickstart](#quickstart)
+- [Core Concepts](#core-concepts)
+- [AI-First](#ai-first)
+- [Integrations](#integrations)
+- [Configuration](#configuration)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Community](#community)
+- [License](#license)
 
-## Overview
+## Why Cobalt
 
-Cobalt is a testing and evaluation framework designed specifically for AI agents and LLM-powered applications. It provides:
+Cobalt is a TypeScript testing framework built for AI agents and LLM-powered applications. Define datasets, run your agent, and evaluate outputs with LLM judges, custom functions, or pre-built evaluators — all from the command line. Results are tracked in SQLite with built-in comparison tools, cost estimation, and CI/CD quality gates. Cobalt ships with an MCP server so AI coding assistants can run experiments and improve your agents directly.
 
-- 🧪 **Experiment Runner** - Run your agent on datasets with parallel execution
-- 📊 **Multiple Evaluators** - LLM judges (boolean/scale), custom functions, similarity, and 11 Autoevals types
-- 🔌 **Plugin System** - Extend with custom evaluators and integrations
-- 💰 **Cost Tracking** - Automatic token counting and cost estimation with caching
-- 📁 **Dataset Support** - Load from JSON, JSONL, CSV, or define inline
-- 🔄 **Result History** - SQLite-based history with comparison tools
-- 🎯 **CLI Tools** - Full command-line interface for running experiments
-- ⚙️ **CI/CD Ready** - Quality thresholds with exit codes for pipelines
-- 🔌 **MCP Integration** - Model Context Protocol server for Claude Code with 4 tools + 3 prompts
-- 📈 **Dashboard API** - RESTful API for results (UI in development)
-- ✅ **Production Ready** - 441 tests with 80-100% coverage on core modules
-
-## Installation
+## Quickstart
 
 ```bash
-npm install cobalt
-# or
-pnpm add cobalt
-```
-
-## Quick Start
-
-### 1. Initialize a new project
-
-```bash
+npm install @basalt-ai/cobalt
 npx cobalt init
 ```
-
-This creates:
-- `experiments/` - Folder for your experiment files
-- `cobalt.config.ts` - Configuration file
-- `.cobalt/` - Local storage for results and cache
-
-### 2. Create your first experiment
 
 Create `experiments/my-agent.cobalt.ts`:
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Dataset, Evaluator } from '@basalt-ai/cobalt'
 
-// Define evaluators
-const evaluators = [
-  new Evaluator({
-    name: 'relevance',
-    type: 'llm-judge',
-    prompt: 'Is the output relevant to the input query?',
-    model: 'gpt-4o-mini',
-    provider: 'openai'
-    // scoring defaults to 'boolean' — returns pass/fail
-  }),
-  new Evaluator({
-    name: 'length-check',
-    type: 'function',
-    fn: ({ output }) => ({
-      score: output.split(' ').length <= 100 ? 1 : 0,
-      reason: `${output.split(' ').length} words`
-    })
-  })
-]
-
-// Load dataset
-const dataset = Dataset.fromJSON('./datasets/qa-pairs.json')
-
-// Run experiment
-experiment('qa-agent', dataset, async ({ item }) => {
-  // Call your agent here
-  const response = await myAgent.run(item.input)
-
-  return {
-    output: response.text,
-    metadata: {
-      model: 'gpt-4o',
-      tokens: response.usage.totalTokens
-    }
-  }
-}, {
-  evaluators,
-  concurrency: 5,
-  timeout: 30000,
-  tags: ['v1', 'gpt-4o']
-})
+await experiment(
+  'qa-agent',
+  new Dataset({ items: [
+    { input: 'What is 2+2?', expectedOutput: '4' },
+    { input: 'Capital of France?', expectedOutput: 'Paris' },
+  ]}),
+  async ({ item }) => {
+    const result = await myAgent(item.input)
+    return { output: result }
+  },
+  {
+    evaluators: [
+      new Evaluator({
+        name: 'Correctness',
+        type: 'llm-judge',
+        prompt: 'Is the output correct?\nExpected: {{expectedOutput}}\nActual: {{output}}',
+      }),
+    ],
+  },
+)
 ```
-
-### 3. Run the experiment
 
 ```bash
 npx cobalt run experiments/my-agent.cobalt.ts
@@ -122,265 +77,109 @@ npx cobalt run experiments/my-agent.cobalt.ts
 
 ## Core Concepts
 
-### Experiments
-
-An experiment runs your agent on a dataset and evaluates the outputs. Each run:
-1. Loads items from a dataset
-2. Executes your agent function for each item
-3. Evaluates outputs using configured evaluators
-4. Saves results to `.cobalt/results/`
-5. Stores history in `.cobalt/history.db`
-
-### Evaluators
-
-Evaluators score your agent's outputs. Cobalt supports multiple types:
-
-#### LLM Judge
-Uses another LLM to evaluate outputs. Supports **boolean** (default) and **scale** scoring modes:
-
-```typescript
-// Boolean mode (default) — pass/fail with chain of thought
-new Evaluator({
-  name: 'relevance',
-  type: 'llm-judge',
-  prompt: 'Is the output relevant to the input query?',
-  model: 'gpt-4o-mini',
-  provider: 'openai' // or 'anthropic'
-})
-
-// Scale mode — 0.0 to 1.0 scores
-new Evaluator({
-  name: 'quality',
-  type: 'llm-judge',
-  prompt: 'Rate the quality of this output.',
-  scoring: 'scale',
-  model: 'gpt-4o-mini',
-  provider: 'openai'
-})
+```mermaid
+graph LR
+    D[Dataset] --> E[Experiment]
+    E --> R[Runner<br/>Your Agent]
+    R --> V[Evaluators]
+    V --> P[Report]
 ```
 
-Options:
-- `scoring`: `'boolean'` (default) or `'scale'`
-- `chainOfThought`: Enable step-by-step reasoning (default: `true` for boolean)
-- `context`: Custom context mapping function for template variables
+**Dataset** — Test data loaded from JSON, JSONL, CSV, inline objects, or remote platforms. Chainable transformations: `filter()`, `map()`, `sample()`, `slice()`. → [Docs](docs/datasets.md)
 
-#### Custom Function
-Write your own evaluation logic:
+**Evaluator** — Scores your agent's output. Four built-in types: LLM judge (boolean/scale), custom functions, semantic similarity, and Autoevals (11 types from Braintrust). → [Docs](docs/evaluators.md)
 
-```typescript
-new Evaluator({
-  name: 'length-check',
-  type: 'function',
-  fn: ({ output }) => {
-    const wordCount = output.split(' ').length
-    return {
-      score: wordCount <= 100 ? 1 : 0,
-      reason: `Output has ${wordCount} words`
+**Experiment** — Runs your agent against a dataset, evaluates every output, and produces a report with per-evaluator statistics (avg, min, max, p50, p95). Supports parallel execution, multiple runs, timeout, and CI thresholds. → [Docs](docs/experiments.md)
+
+## AI-First
+
+Cobalt is designed to work with AI coding assistants out of the box.
+
+### MCP Server
+
+The built-in [MCP](https://modelcontextprotocol.io/) server gives Claude Code (and other MCP clients) direct access to your experiments:
+
+```json
+{
+  "mcpServers": {
+    "cobalt": {
+      "command": "npx",
+      "args": ["cobalt", "mcp"]
     }
   }
-})
+}
 ```
 
-### Datasets
+| Tools | Resources | Prompts |
+|-------|-----------|---------|
+| `cobalt_run` — Run experiments | `cobalt://config` — Current config | `improve-agent` — Analyze failures |
+| `cobalt_results` — View results | `cobalt://experiments` — List experiments | `generate-tests` — Add test cases |
+| `cobalt_compare` — Diff two runs | `cobalt://latest-results` — Latest results | `regression-check` — Detect regressions |
+| `cobalt_generate` — Generate experiments | | |
 
-Load datasets from multiple formats:
+→ [MCP Docs](docs/mcp.md)
 
-```typescript
-// From JSON array
-const dataset = Dataset.fromJSON('./data.json')
+### Skills
 
-// From JSONL (line-delimited JSON)
-const dataset = Dataset.fromJSONL('./data.jsonl')
+`cobalt init` generates a `.cobalt/SKILLS.md` file and integrates with your AI instruction files (`CLAUDE.md`, `AGENTS.md`, `.github/copilot-instructions.md`). → [Skills Docs](docs/skills.md)
 
-// From CSV
-const dataset = Dataset.fromCSV('./data.csv')
+### Example Prompts
 
-// Inline
-const dataset = new Dataset({
-  items: [
-    { input: 'Question 1', expectedOutput: 'Answer 1' },
-    { input: 'Question 2', expectedOutput: 'Answer 2' }
-  ]
-})
-```
+> "Run my QA experiment and tell me which test cases are failing"
+>
+> "Generate a Cobalt experiment for my agent at `src/agents/summarizer.ts`"
+>
+> "Compare my last two runs and check for regressions"
 
-Transform datasets:
+## Integrations
 
-```typescript
-dataset
-  .filter(item => item.category === 'important')
-  .sample(10)  // Random sample
-  .slice(0, 5)  // First 5 items
-  .map(item => ({ ...item, priority: 'high' }))
-```
+Load datasets from your existing evaluation platforms:
 
-## CLI Commands
+| Platform | Loader | Docs |
+|----------|--------|------|
+| **Langfuse** | `await Dataset.fromLangfuse('dataset-name')` | [Setup](docs/integrations/langfuse.md) |
+| **LangSmith** | `await Dataset.fromLangsmith('dataset-name')` | [Setup](docs/integrations/langsmith.md) |
+| **Braintrust** | `await Dataset.fromBraintrust('project', 'dataset')` | [Setup](docs/integrations/braintrust.md) |
+| **Basalt** | `await Dataset.fromBasalt('dataset-id')` | [Setup](docs/integrations/basalt.md) |
 
-### \`cobalt run\`
+File formats: JSON, JSONL, CSV, HTTP/HTTPS remote URLs.
 
-Run an experiment:
-
-```bash
-# Run a specific experiment
-npx cobalt run experiments/my-agent.cobalt.ts
-
-# Filter by experiment name pattern
-npx cobalt run --filter "gpt-4*"
-
-# Filter by tags
-npx cobalt run --filter "v2"
-```
-
-### \`cobalt init\`
-
-Initialize a new Cobalt project:
-
-```bash
-npx cobalt init
-```
-
-Creates project structure and configuration files.
-
-### \`cobalt history\`
-
-View past experiment runs:
-
-```bash
-npx cobalt history
-```
-
-Shows run ID, name, timestamp, scores, and cost.
-
-### \`cobalt compare\`
-
-Compare two experiment runs:
-
-```bash
-npx cobalt compare <run-id-1> <run-id-2>
-```
-
-Shows side-by-side comparison of scores and evaluator results.
-
-### \`cobalt serve\`
-
-Start the dashboard server:
-
-```bash
-npx cobalt serve
-```
-
-Launches web UI at http://localhost:4000 for visualizing results.
-
-### \`cobalt clean\`
-
-Clean up old cache and results:
-
-```bash
-# Remove cache older than 30 days
-npx cobalt clean --cache --days 30
-
-# Remove results older than 90 days
-npx cobalt clean --results --days 90
-```
-
-### \`cobalt mcp\`
-
-Start MCP (Model Context Protocol) server for Claude Code integration:
-
-```bash
-npx cobalt mcp
-```
-
-Enables Claude to run experiments, view results, and compare runs.
+LLM providers: [OpenAI and Anthropic](docs/providers.md) (auto-detected from model name).
 
 ## Configuration
 
-Create \`cobalt.config.ts\` in your project root:
-
 ```typescript
-import { defineConfig } from 'cobalt'
+// cobalt.config.ts
+import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
-  // Default evaluators (can be overridden per experiment)
-  evaluators: [
-    {
-      name: 'relevance',
-      type: 'llm-judge',
-      prompt: 'Rate relevance from 0 to 1',
-      model: 'gpt-4o-mini'
-    }
-  ],
-
-  // Execution settings
+  testDir: './experiments',
+  judge: { model: 'gpt-4o-mini', provider: 'openai' },
   concurrency: 5,
-  timeout: 30000,
-
-  // API keys (or use environment variables)
-  openaiApiKey: process.env.OPENAI_API_KEY,
-  anthropicApiKey: process.env.ANTHROPIC_API_KEY,
-
-  // Storage paths
-  resultsDir: '.cobalt/results',
-  cacheDir: '.cobalt/cache',
-  historyDb: '.cobalt/history.db'
+  timeout: 30_000,
+  cache: { enabled: true, ttl: '7d' },
 })
 ```
 
-## Environment Variables
+| Option | Default | Description |
+|--------|---------|-------------|
+| `testDir` | `'./experiments'` | Experiment file directory |
+| `judge.model` | `'gpt-4o-mini'` | Default LLM judge model |
+| `concurrency` | `5` | Max parallel executions |
+| `timeout` | `30000` | Per-item timeout (ms) |
+| `reporters` | `['cli', 'json']` | Output reporters |
+| `cache.ttl` | `'7d'` | LLM response cache TTL |
+| `plugins` | `[]` | Custom evaluator plugins |
+| `thresholds` | -- | CI quality gates |
+
+→ [Full Configuration Reference](docs/configuration.md)
+
+### CI/CD
 
 ```bash
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-## Project Structure
-
-```
-your-project/
-├── experiments/           # Your experiment files
-│   ├── qa-agent.cobalt.ts
-│   └── summarizer.cobalt.ts
-├── datasets/             # Your datasets
-│   ├── questions.json
-│   └── articles.jsonl
-├── cobalt.config.ts      # Configuration
-└── .cobalt/              # Generated by Cobalt
-    ├── results/          # JSON results per run
-    ├── cache/            # LLM response cache
-    └── history.db        # SQLite history database
-```
-
-## Features
-
-### CI/CD Integration
-
-Run Cobalt in your CI/CD pipeline with quality thresholds:
-
-```typescript
-export default defineConfig({
-  thresholds: {
-    // Global thresholds (across all evaluators)
-    score: { avg: 0.7 },
-    latency: { avg: 5000 },
-    cost: { max: 1.0 },
-
-    // Per-evaluator thresholds
-    evaluators: {
-      'relevance': { avg: 0.8, passRate: 0.9 },
-      'accuracy': { avg: 0.85 }
-    }
-  }
-})
-```
-
-Use the `--ci` flag to enable exit codes in CI/CD:
-
-```bash
-# Exit code 0 if all thresholds pass, 1 if any fail
 npx cobalt run experiments/ --ci
+# Exit code 1 if any threshold is violated
 ```
-
-Use in GitHub Actions, GitLab CI, or any CI/CD platform:
 
 ```yaml
 # .github/workflows/test-agent.yml
@@ -390,276 +189,50 @@ Use in GitHub Actions, GitLab CI, or any CI/CD platform:
     OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
 
-See [CI Mode Documentation](docs/ci-mode.md) for details.
-
-### Plugin System
-
-Extend Cobalt with custom evaluators:
-
-```typescript
-// my-plugin.ts
-import { EvaluatorRegistry } from 'cobalt'
-
-export default function myPlugin(registry: EvaluatorRegistry) {
-  registry.register('custom-metric', async (config, context) => {
-    // Your evaluation logic
-    return {
-      score: 0.85,
-      reason: 'Custom evaluation passed'
-    }
-  })
-}
-```
-
-Load plugins in your config:
-
-```typescript
-export default defineConfig({
-  plugins: ['./my-plugin.ts']
-})
-```
-
-Built-in integrations:
-- **Autoevals** - 11 evaluator types (Levenshtein, BLEU, Answer Relevancy, etc.)
-- Custom plugins for domain-specific evaluators
-
-See [Plugin Documentation](docs/plugins.md) for a complete guide.
-
-### Cost Tracking
-
-Cobalt automatically tracks token usage and estimates costs:
-
-```typescript
-// After running an experiment
-console.log(\`Total cost: \${result.cost}\`)
-console.log(\`Total tokens: \${result.totalTokens}\`)
-```
-
-Supports pricing for:
-- OpenAI (GPT-4o, GPT-4o-mini, GPT-4 Turbo, etc.)
-- Anthropic (Claude Opus, Sonnet, Haiku)
-
-### Result Caching
-
-LLM judge responses are cached to avoid redundant API calls:
-
-```typescript
-// Cache is based on:
-// - Evaluator prompt
-// - Model
-// - Input/output content
-// Results are automatically reused across runs
-```
-
-### Statistics
-
-Results include statistical summaries:
-
-```json
-{
-  "statistics": {
-    "relevance": {
-      "avg": 0.85,
-      "min": 0.70,
-      "max": 0.95,
-      "p50": 0.85,
-      "p95": 0.93
-    }
-  }
-}
-```
-
-### Progress Tracking
-
-Monitor experiment progress in real-time:
-
-```typescript
-experiment('test', dataset, runner, {
-  evaluators,
-  onProgress: (current, total) => {
-    console.log(\`Progress: \${current}/\${total}\`)
-  }
-})
-```
-
-## Development
-
-### Prerequisites
-
-- Node.js 20+
-- pnpm 8+
-
-### Setup
+## CLI
 
 ```bash
-# Install dependencies
-pnpm install
-
-# Run tests
-pnpm test
-
-# Build
-pnpm build
-
-# Run in development
-pnpm dev
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-pnpm test
-
-# Watch mode
-pnpm test:watch
-
-# Coverage
-pnpm test:coverage
-```
-
-Current test coverage: **441 tests** across 24 test suites covering all core functionality (80-100% coverage on tested modules).
-
-### Code Quality
-
-```bash
-# Lint and format
-pnpm check
-
-# Lint only
-pnpm lint
-
-# Format only
-pnpm format
-```
-
-## MCP Integration
-
-Cobalt provides a complete Model Context Protocol server for integration with Claude Code and other MCP clients:
-
-```bash
-# Start MCP server
-npx cobalt mcp
-```
-
-### Available Tools
-
-- **`cobalt_run`** - Run experiments and return full results
-- **`cobalt_generate`** - Auto-generate experiments from agent code
-- **`cobalt_results`** - View detailed experiment results
-- **`cobalt_compare`** - Compare two experiment runs
-
-### Available Resources
-
-- **`config`** - View current Cobalt configuration
-- **`experiments`** - List all available experiments
-- **`latest-results`** - Get the most recent experiment results
-
-### Available Prompts
-
-- **`improve-agent`** - Get suggestions to improve your agent based on results
-- **`generate-tests`** - Generate new test cases from existing experiments
-- **`regression-check`** - Compare runs to detect regressions
-
-### Configuration
-
-Configure in your `~/.config/claude/claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "cobalt": {
-      "command": "npx",
-      "args": ["cobalt", "mcp"],
-      "cwd": "/path/to/your/project"
-    }
-  }
-}
+cobalt run <file|dir>          # Run experiments
+cobalt init                    # Initialize project
+cobalt history                 # View past runs
+cobalt compare <id1> <id2>     # Compare two runs
+cobalt serve                   # Start dashboard
+cobalt clean                   # Clean cache/results
+cobalt mcp                     # Start MCP server
 ```
 
 ## Roadmap
 
-### ✅ Completed Features (v0.1.0-alpha)
+<!-- TODO: Add link to GitHub Discussions -->
 
-**Core Functionality (P0-P1)**
 - [x] Core experiment runner with parallel execution
-- [x] LLM judge evaluator (OpenAI & Anthropic)
-- [x] Function evaluators
-- [x] Dataset loading (JSON, JSONL, CSV)
-- [x] CLI commands (run, init, history, compare, clean, serve)
-- [x] Cost tracking and response caching
-- [x] SQLite history storage
-
-**Advanced Features (P2-P3)**
+- [x] LLM judge evaluators (OpenAI & Anthropic, boolean/scale, chain of thought)
+- [x] Custom function evaluators
+- [x] Dataset loading (JSON, JSONL, CSV, remote platforms)
 - [x] CI mode with quality thresholds
-- [x] Exit code handling for CI/CD pipelines
-- [x] Plugin system for custom evaluators
-- [x] Autoevals integration (11 evaluator types)
-- [x] MCP server with 4 tools, 3 resources, 3 prompts
+- [x] Plugin system with Autoevals integration
+- [x] MCP server (4 tools, 3 resources, 3 prompts)
 - [x] Auto-generate experiments from agent code
-- [x] Statistical aggregations (avg, min, max, p50, p95)
-- [x] Boolean/scale scoring modes for LLM judge
-- [x] Chain of thought reasoning
-- [x] Similarity evaluator with cosine/dot product distance
-
-**Infrastructure**
-- [x] Dashboard backend API (Hono)
-- [x] Dashboard frontend UI (React + Tailwind)
-- [x] Comprehensive test coverage (441 tests)
-- [x] Example projects and templates
-- [x] Full documentation
-
-### 🚧 In Progress
-
-- [ ] Remote dataset loaders (Dataset.fromRemote)
-- [ ] Multiple runs with statistical aggregation
-
-### 🔮 Future Plans
-
+- [x] Statistical aggregations (avg, min, max, p50, p95, p99)
+- [x] Dashboard backend API
+- [ ] Dashboard frontend UI
+- [ ] Similarity evaluator with embeddings
 - [ ] GitHub Actions reporter
 - [ ] VS Code extension
-- [ ] Real-time experiment monitoring
-- [ ] Export results to external platforms
-- [ ] Advanced visualization components
-- [ ] Multi-model evaluator comparison
-
-## Documentation
-
-See the \`.memory/\` folder for detailed project documentation:
-- [Technical decisions](.memory/decisions.md)
-- [Project structure](.memory/analysis.md)
-- [Development progress](.memory/progress.md)
-- [API documentation](.memory/documentation.md)
 
 ## Contributing
 
-We welcome contributions from the community! Whether you're fixing bugs, adding features, improving documentation, or sharing feedback, your help is appreciated.
+We welcome contributions! See our **[Contributing Guide](CONTRIBUTING.md)** for development setup, code standards, and PR process.
 
-### Quick Start
+- **Report bugs**: [Open an issue](https://github.com/basalt-ai/cobalt/issues)
+- **Suggest features**: [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
+- **Create plugins**: Extend Cobalt with custom evaluators ([Plugin docs](docs/plugins.md))
 
-- 🐛 **Report bugs**: [Open an issue](https://github.com/basalt-ai/cobalt/issues)
-- ✨ **Suggest features**: Share your ideas in [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
-- 💻 **Submit code**: Follow our [Contributing Guide](CONTRIBUTING.md)
-- 🔌 **Create plugins**: Extend Cobalt with custom evaluators
-- 📝 **Improve docs**: Help make our documentation better
+## Community
 
-### For Contributors
-
-Please read our **[Contributing Guide](CONTRIBUTING.md)** for:
-- Development setup instructions
-- Code standards and guidelines
-- Testing requirements
-- Pull request process
-- Community guidelines
-
-For detailed development workflows, see [CLAUDE.md](CLAUDE.md).
-
-### Community
-
-- 💬 Discord: [Join our community](https://discord.gg/cobalt-ai) _(coming soon)_
-- 🐛 Issues: [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
-- 📖 Docs: [Documentation](.memory/)
+- [Discord](https://discord.gg/yW2RyZKY)
+- [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE) for details.

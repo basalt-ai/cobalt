@@ -1,4 +1,4 @@
-import { Dataset, Evaluator, experiment } from 'cobalt';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
 import { classifySentiment } from './classifier.js';
 
 // Load dataset from CSV file

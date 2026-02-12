@@ -1,4 +1,4 @@
-import { Dataset, Evaluator, experiment } from 'cobalt';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
 import { answerQuestion } from './agent.js';
 
 // Load dataset from JSON file

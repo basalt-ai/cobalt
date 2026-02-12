@@ -40,7 +40,7 @@ function experiment<T extends ExperimentItem = ExperimentItem>(
 
 **Example:**
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 
 const evaluators = [
   new Evaluator({
@@ -681,7 +681,7 @@ interface CobaltConfig {
 **Example:**
 ```typescript
 // cobalt.config.ts
-import { defineConfig } from 'cobalt'
+import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
   evaluators: [
@@ -718,7 +718,7 @@ async function loadConfig(cwd?: string): Promise<CobaltConfig>
 
 **Example:**
 ```typescript
-import { loadConfig } from 'cobalt'
+import { loadConfig } from '@basalt-ai/cobalt'
 
 const config = await loadConfig()
 console.log(`Concurrency: ${config.concurrency}`)

@@ -391,7 +391,7 @@ packages/cobalt/
 
 ### Get Help
 
-- 💬 **Discord**: [Join our community](https://discord.gg/cobalt-ai) _(coming soon)_
+- 💬 **Discord**: [Join our community](https://discord.gg/yW2RyZKY) _(coming soon)_
 - 🐛 **Issues**: [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
 - 📖 **Docs**: [Documentation](.memory/)
 

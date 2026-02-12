@@ -506,7 +506,7 @@ export default defineConfig({
 
 ```typescript
 // After experiment runs
-import { HistoryDB } from 'cobalt'
+import { HistoryDB } from '@basalt-ai/cobalt'
 
 const db = new HistoryDB('.cobalt/history.db')
 const runs = db.getRuns({ since: new Date(Date.now() - 86400000) })
@@ -525,7 +525,7 @@ if (trend < -0.05) {
 
 ```typescript
 // Send metrics to Datadog, New Relic, etc.
-import { experiment } from 'cobalt'
+import { experiment } from '@basalt-ai/cobalt'
 
 const report = await experiment(/* ... */)
 

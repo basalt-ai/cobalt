@@ -5,9 +5,9 @@
 ## Installation
 
 ```bash
-npm install cobalt
+npm install @basalt-ai/cobalt
 # or
-pnpm add cobalt
+pnpm add @basalt-ai/cobalt
 # or
 yarn add cobalt
 ```
@@ -15,7 +15,7 @@ yarn add cobalt
 ## Quick Start
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 
 // Define evaluators
 const evaluators = [
@@ -267,7 +267,7 @@ Define configuration file.
 
 ```typescript
 // cobalt.config.ts
-import { defineConfig } from 'cobalt'
+import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
   evaluators: [{
@@ -605,7 +605,7 @@ npx cobalt clean --cache --days 30
 ### Basic Example
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 
 const evaluators = [
   new Evaluator({
@@ -733,6 +733,5 @@ Contributions are welcome! Please read the [contributing guidelines](../../CONTR
 
 ## Support
 
-- 📧 Email: support@cobalt.dev (placeholder)
-- 💬 Discord: https://discord.gg/cobalt (placeholder)
-- 📖 Docs: https://docs.cobalt.dev (placeholder)
+- 💬 Discord: https://discord.gg/yW2RyZKY
+- 🐛 Issues: https://github.com/basalt-ai/cobalt/issues

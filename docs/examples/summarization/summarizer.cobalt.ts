@@ -1,4 +1,4 @@
-import { Dataset, Evaluator, experiment } from 'cobalt';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
 import { summarize } from './summarizer.js';
 
 // Load dataset from JSONL file (one JSON object per line)

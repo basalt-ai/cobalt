@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { Dataset, Evaluator, experiment } from 'cobalt';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
 import { type Document, answerWithRAG } from './rag-agent.js';
 
 // Load knowledge base

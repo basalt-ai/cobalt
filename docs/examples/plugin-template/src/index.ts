@@ -11,7 +11,7 @@
  * - Specialized scoring algorithms
  */
 
-import type { PluginDefinition } from 'cobalt';
+import type { PluginDefinition } from '@basalt-ai/cobalt';
 
 /**
  * STEP 1: Define your plugin

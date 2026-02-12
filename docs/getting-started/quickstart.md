@@ -11,9 +11,9 @@ Get your first Cobalt experiment running in 5 minutes.
 ## Step 1: Install Cobalt
 
 ```bash
-pnpm add cobalt
+pnpm add @basalt-ai/cobalt
 # or
-npm install cobalt
+npm install @basalt-ai/cobalt
 ```
 
 ## Step 2: Initialize Your Project
@@ -44,7 +44,7 @@ OPENAI_API_KEY=your-api-key-here
 Create `experiments/my-first-test.cobalt.ts`:
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 
 // 1. Define your test data
 const dataset = new Dataset({
@@ -176,7 +176,7 @@ export OPENAI_API_KEY="sk-..."
 
 Make sure you've installed Cobalt:
 ```bash
-pnpm add cobalt
+pnpm add @basalt-ai/cobalt
 ```
 
 ### Need more help?
@@ -189,7 +189,7 @@ pnpm add cobalt
 Here's how to test an actual OpenAI call:
 
 ```typescript
-import { experiment, Evaluator, Dataset } from 'cobalt'
+import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 import OpenAI from 'openai'
 
 const client = new OpenAI()
