@@ -43,8 +43,14 @@ export async function evaluateSimilarity(
 		getEmbedding(expected, apiKey, model),
 	]);
 
-	// Calculate cosine similarity
-	const similarity = cosineSimilarity(outputEmbedding, expectedEmbedding);
+	// Calculate similarity using configured distance metric
+	const distanceMetric = config.distance ?? 'cosine';
+	const similarity =
+		distanceMetric === 'dot'
+			? dotProductSimilarity(outputEmbedding, expectedEmbedding)
+			: cosineSimilarity(outputEmbedding, expectedEmbedding);
+
+	const metricName = distanceMetric === 'dot' ? 'Dot product' : 'Cosine';
 
 	// Apply threshold logic if specified
 	if (config.threshold !== undefined) {
@@ -52,15 +58,15 @@ export async function evaluateSimilarity(
 		return {
 			score: passes ? 1 : 0,
 			reason: passes
-				? `Similarity ${similarity.toFixed(3)} meets threshold ${config.threshold}`
-				: `Similarity ${similarity.toFixed(3)} below threshold ${config.threshold}`,
+				? `${metricName} similarity ${similarity.toFixed(3)} meets threshold ${config.threshold}`
+				: `${metricName} similarity ${similarity.toFixed(3)} below threshold ${config.threshold}`,
 		};
 	}
 
 	// Return raw similarity score
 	return {
 		score: similarity,
-		reason: `Cosine similarity: ${similarity.toFixed(3)}`,
+		reason: `${metricName} similarity: ${similarity.toFixed(3)}`,
 	};
 }
 
@@ -126,6 +132,24 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
 	// Cosine similarity is typically in [-1, 1], but for text embeddings
 	// it's usually positive, so we clamp to [0, 1]
 	return Math.max(0, Math.min(1, cosineSim));
+}
+
+/**
+ * Calculate dot product similarity between two vectors
+ * Returns a value clamped to [0, 1]
+ */
+function dotProductSimilarity(vecA: number[], vecB: number[]): number {
+	if (vecA.length !== vecB.length) {
+		throw new Error('Vectors must have the same length');
+	}
+
+	let dotProduct = 0;
+	for (let i = 0; i < vecA.length; i++) {
+		dotProduct += vecA[i]! * vecB[i]!;
+	}
+
+	// Clamp to [0, 1] for score compatibility
+	return Math.max(0, Math.min(1, dotProduct));
 }
 
 // Register with global registry

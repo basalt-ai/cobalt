@@ -1,22 +1,10 @@
-import type {
-	EvalContext,
-	EvalResult,
-	EvaluatorConfig,
-	ExactMatchEvaluatorConfig,
-	FunctionEvaluatorConfig,
-	LLMJudgeEvaluatorConfig,
-	SimilarityEvaluatorConfig,
-} from '../types/index.js';
+import type { EvalContext, EvalResult, EvaluatorConfig } from '../types/index.js';
 
-import { evaluateExactMatch } from '../evaluators/exact-match.js';
-import { evaluateFunction } from '../evaluators/function.js';
-import { evaluateLLMJudge } from '../evaluators/llm-judge.js';
-import { evaluateSimilarity } from '../evaluators/similarity.js';
 import { registry } from './EvaluatorRegistry.js';
 
 /**
  * Evaluator class for scoring agent outputs
- * Supports multiple evaluation strategies (LLM judge, function, similarity, exact-match)
+ * Supports multiple evaluation strategies via the registry
  */
 export class Evaluator {
 	private config: EvaluatorConfig;
@@ -36,41 +24,14 @@ export class Evaluator {
 	 * @param model - Model to use (optional, uses config default)
 	 * @returns Evaluation result with score and reason
 	 */
-	async evaluate(context: EvalContext, apiKey?: string, model?: string): Promise<EvalResult> {
+	async evaluate(context: EvalContext, apiKey?: string, _model?: string): Promise<EvalResult> {
 		try {
-			// Try registry first (supports custom plugins)
-			if (registry.has(this.config.type)) {
-				const handler = registry.get(this.config.type)!;
-				return await handler(this.config, context, apiKey);
+			if (!registry.has(this.config.type)) {
+				throw new Error(`Unknown evaluator type: ${this.config.type}`);
 			}
 
-			// Fallback to built-in evaluators (backward compatibility)
-			// This switch statement will be deprecated in v1.0 and removed in v2.0
-			switch (this.config.type) {
-				case 'llm-judge':
-					return await evaluateLLMJudge(
-						this.config as LLMJudgeEvaluatorConfig,
-						context,
-						apiKey!,
-						model,
-					);
-
-				case 'function':
-					return await evaluateFunction(this.config as FunctionEvaluatorConfig, context);
-
-				case 'exact-match':
-					return evaluateExactMatch(this.config as ExactMatchEvaluatorConfig, context);
-
-				case 'similarity':
-					return await evaluateSimilarity(
-						this.config as SimilarityEvaluatorConfig,
-						context,
-						apiKey,
-					);
-
-				default:
-					throw new Error(`Unknown evaluator type: ${(this.config as any).type}`);
-			}
+			const handler = registry.get(this.config.type)!;
+			return await handler(this.config, context, apiKey);
 		} catch (error) {
 			console.error(`Evaluator "${this.config.name}" failed:`, error);
 			return {

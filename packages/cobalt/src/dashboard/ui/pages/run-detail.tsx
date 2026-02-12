@@ -9,7 +9,7 @@ import {
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { getRunDetail, getRuns } from '../api/runs';
-import type { ItemResult, RunDetailResponse, RunsResponse } from '../api/types';
+import type { ItemEvaluation, ItemResult, RunDetailResponse, RunsResponse } from '../api/types';
 import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
 import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
 import { MetricCard } from '../components/data/metric-card';
@@ -38,6 +38,7 @@ import {
 	type ClientStats,
 	cn,
 	computeClientStats,
+	detectBooleanEvaluators,
 	formatDate,
 	formatDuration,
 	formatScore,
@@ -80,6 +81,12 @@ export function RunDetailPage() {
 		[runsData, id],
 	);
 
+	const evaluatorNames = data?.run ? Object.keys(data.run.summary.scores) : [];
+	const booleanEvals = useMemo(
+		() => (data?.run ? detectBooleanEvaluators(data.run.items, evaluatorNames) : new Set<string>()),
+		[data?.run, evaluatorNames],
+	);
+
 	if (loading) return <LoadingSkeleton />;
 	if (error) {
 		return (
@@ -105,7 +112,6 @@ export function RunDetailPage() {
 	}
 
 	const { run } = data;
-	const evaluatorNames = Object.keys(run.summary.scores);
 	const avgTokens =
 		run.summary.totalTokens != null && run.summary.totalItems > 0
 			? Math.round(run.summary.totalTokens / run.summary.totalItems)
@@ -182,7 +188,7 @@ export function RunDetailPage() {
 					{run.ciStatus.violations.length > 0 && (
 						<ul className="mt-2 space-y-1 pl-7">
 							{run.ciStatus.violations.map((v) => (
-								<li key={`${v.evaluator}-${v.metric}`} className="text-sm text-muted-foreground">
+								<li key={`${v.category}-${v.metric}`} className="text-sm text-muted-foreground">
 									{v.message}
 								</li>
 							))}
@@ -192,23 +198,52 @@ export function RunDetailPage() {
 			)}
 
 			{/* Metrics Tabs */}
-			<MetricsTabs run={data.run} evaluatorNames={evaluatorNames} />
+			<MetricsTabs run={data.run} evaluatorNames={evaluatorNames} booleanEvals={booleanEvals} />
 
 			{/* Items Table */}
-			<ItemsTable run={data.run} evaluatorNames={evaluatorNames} onItemClick={setSelectedItem} />
+			<ItemsTable
+				run={data.run}
+				evaluatorNames={evaluatorNames}
+				booleanEvals={booleanEvals}
+				onItemClick={setSelectedItem}
+			/>
 
 			{/* Item Detail Dialog */}
-			<ItemDetailDialog item={selectedItem} onClose={() => setSelectedItem(null)} />
+			<ItemDetailDialog
+				item={selectedItem}
+				booleanEvals={booleanEvals}
+				onClose={() => setSelectedItem(null)}
+			/>
 		</div>
 	);
 }
 
 function MetricsTabs({
 	run,
+	booleanEvals,
 }: {
 	run: RunDetailResponse['run'];
 	evaluatorNames: string[];
+	booleanEvals: Set<string>;
 }) {
+	// Compute pass/total counts for boolean evaluators
+	const booleanCounts = useMemo(() => {
+		const counts: Record<string, { passed: number; total: number }> = {};
+		for (const name of booleanEvals) {
+			let passed = 0;
+			let total = 0;
+			for (const item of run.items) {
+				const ev = item.evaluations[name];
+				if (ev != null) {
+					total++;
+					if (ev.score === 1) passed++;
+				}
+			}
+			counts[name] = { passed, total };
+		}
+		return counts;
+	}, [run.items, booleanEvals]);
+
 	const latencyStats = useMemo(
 		() => computeClientStats(run.items.map((i) => i.latencyMs)),
 		[run.items],
@@ -247,29 +282,49 @@ function MetricsTabs({
 								</tr>
 							</thead>
 							<tbody>
-								{Object.entries(run.summary.scores).map(([name, stats]) => (
-									<tr key={name} className="border-b last:border-0">
-										<td className="px-4 py-2.5 font-medium">{name}</td>
-										<td className="px-4 py-2.5 text-right">
-											<ScoreBadge score={stats.avg} />
-										</td>
-										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-											{formatScore(stats.min)}%
-										</td>
-										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-											{formatScore(stats.max)}%
-										</td>
-										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-											{formatScore(stats.p50)}%
-										</td>
-										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-											{formatScore(stats.p95)}%
-										</td>
-										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-											{stats.p99 != null ? `${formatScore(stats.p99)}%` : '-'}
-										</td>
-									</tr>
-								))}
+								{Object.entries(run.summary.scores).map(([name, stats]) => {
+									const isBool = booleanEvals.has(name);
+									return (
+										<tr key={name} className="border-b last:border-0">
+											<td className="px-4 py-2.5 font-medium">{name}</td>
+											{isBool ? (
+												<>
+													<td className="px-4 py-2.5 text-right">
+														<ScoreBadge score={stats.avg} showPercent />
+													</td>
+													<td className="px-4 py-2.5 text-right" colSpan={5}>
+														{booleanCounts[name] && (
+															<span className="text-sm tabular-nums text-muted-foreground">
+																{booleanCounts[name].passed} / {booleanCounts[name].total} passed
+															</span>
+														)}
+													</td>
+												</>
+											) : (
+												<>
+													<td className="px-4 py-2.5 text-right">
+														<ScoreBadge score={stats.avg} />
+													</td>
+													<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+														{formatScore(stats.min)}%
+													</td>
+													<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+														{formatScore(stats.max)}%
+													</td>
+													<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+														{formatScore(stats.p50)}%
+													</td>
+													<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+														{formatScore(stats.p95)}%
+													</td>
+													<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+														{stats.p99 != null ? `${formatScore(stats.p99)}%` : '-'}
+													</td>
+												</>
+											)}
+										</tr>
+									);
+								})}
 							</tbody>
 						</table>
 					</div>
@@ -345,10 +400,12 @@ function GenericStatsTable({
 function ItemsTable({
 	run,
 	evaluatorNames,
+	booleanEvals,
 	onItemClick,
 }: {
 	run: RunDetailResponse['run'];
 	evaluatorNames: string[];
+	booleanEvals: Set<string>;
 	onItemClick: (item: ItemResult) => void;
 }) {
 	const [filters, setFilters] = useState<FilterValue[]>([]);
@@ -480,7 +537,10 @@ function ItemsTable({
 										>
 											<div className="flex flex-col items-end gap-0.5">
 												<span>{name}</span>
-												<ScoreBadge score={evaluatorAvgs[name]} />
+												<span className="text-[10px] tabular-nums">
+													{formatScore(evaluatorAvgs[name])}%
+													{booleanEvals.has(name) ? ' pass' : ' avg'}
+												</span>
 											</div>
 										</th>
 									),
@@ -538,7 +598,11 @@ function ItemsTable({
 											isVisible(`eval_${name}`) && (
 												<td key={name} className="px-4 py-2.5 text-right">
 													{item.evaluations[name] ? (
-														<ScoreBadge score={item.evaluations[name].score} />
+														<ScoreBadge
+															score={item.evaluations[name].score}
+															boolean={booleanEvals.has(name)}
+															reason={item.evaluations[name].reason}
+														/>
 													) : (
 														<span className="text-muted-foreground">-</span>
 													)}
@@ -574,9 +638,11 @@ function ItemsTable({
 
 function ItemDetailDialog({
 	item,
+	booleanEvals,
 	onClose,
 }: {
 	item: ItemResult | null;
+	booleanEvals: Set<string>;
 	onClose: () => void;
 }) {
 	if (!item) return null;
@@ -629,19 +695,55 @@ function ItemDetailDialog({
 						<h4 className="text-xs font-medium text-muted-foreground mb-2">Evaluations</h4>
 						<div className="space-y-2">
 							{Object.entries(item.evaluations).map(([name, ev]) => (
-								<div key={name} className="rounded-lg border p-3">
-									<div className="flex items-center justify-between">
-										<span className="text-sm font-medium">{name}</span>
-										<ScoreBadge score={ev.score} />
-									</div>
-									{ev.reason && <p className="mt-1.5 text-xs text-muted-foreground">{ev.reason}</p>}
-								</div>
+								<EvaluationCard
+									key={name}
+									name={name}
+									evaluation={ev}
+									isBoolean={booleanEvals.has(name)}
+								/>
 							))}
 						</div>
 					</div>
 				</div>
 			</DialogContent>
 		</Dialog>
+	);
+}
+
+function EvaluationCard({
+	name,
+	evaluation: ev,
+	isBoolean,
+}: {
+	name: string;
+	evaluation: ItemEvaluation;
+	isBoolean: boolean;
+}) {
+	const [showCoT, setShowCoT] = useState(false);
+	return (
+		<div className="rounded-lg border p-3">
+			<div className="flex items-center justify-between">
+				<span className="text-sm font-medium">{name}</span>
+				<ScoreBadge score={ev.score} boolean={isBoolean} />
+			</div>
+			{ev.reason && <p className="mt-1.5 text-xs text-muted-foreground">{ev.reason}</p>}
+			{ev.chainOfThought && (
+				<div className="mt-2">
+					<button
+						type="button"
+						onClick={() => setShowCoT(!showCoT)}
+						className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+					>
+						{showCoT ? 'Hide' : 'Show'} reasoning
+					</button>
+					{showCoT && (
+						<pre className="mt-1.5 rounded-md bg-muted p-2.5 text-xs overflow-x-auto whitespace-pre-wrap text-muted-foreground">
+							{ev.chainOfThought}
+						</pre>
+					)}
+				</div>
+			)}
+		</div>
 	);
 }
 

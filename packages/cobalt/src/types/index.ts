@@ -18,7 +18,7 @@ export interface DatasetConfig<T = ExperimentItem> {
 // Evaluator Types
 // ============================================================================
 
-export type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'exact-match' | 'autoevals';
+export type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'autoevals';
 
 export interface EvalContext {
 	item: ExperimentItem;
@@ -29,6 +29,7 @@ export interface EvalContext {
 export interface EvalResult {
 	score: number; // 0.0 to 1.0
 	reason?: string;
+	chainOfThought?: string; // Full reasoning chain when CoT enabled
 }
 
 export interface BaseEvaluatorConfig {
@@ -40,23 +41,22 @@ export interface LLMJudgeEvaluatorConfig extends BaseEvaluatorConfig {
 	type: 'llm-judge';
 	prompt: string;
 	model?: string;
+	scoring?: 'boolean' | 'scale'; // default: 'boolean'
+	chainOfThought?: boolean; // default: true for boolean, false for scale
+	context?: (ctx: EvalContext) => EvalContext; // custom context mapping
 }
 
 export interface FunctionEvaluatorConfig extends BaseEvaluatorConfig {
 	type: 'function';
 	fn: (context: EvalContext) => EvalResult | Promise<EvalResult>;
+	context?: (ctx: EvalContext) => EvalContext; // custom context mapping
 }
 
 export interface SimilarityEvaluatorConfig extends BaseEvaluatorConfig {
 	type: 'similarity';
 	field: string;
 	threshold?: number;
-}
-
-export interface ExactMatchEvaluatorConfig extends BaseEvaluatorConfig {
-	type: 'exact-match';
-	field: string;
-	caseSensitive?: boolean;
+	distance?: 'cosine' | 'dot'; // default: 'cosine'
 }
 
 export interface AutoevalsEvaluatorConfig extends BaseEvaluatorConfig {
@@ -81,7 +81,6 @@ export type EvaluatorConfig =
 	| LLMJudgeEvaluatorConfig
 	| FunctionEvaluatorConfig
 	| SimilarityEvaluatorConfig
-	| ExactMatchEvaluatorConfig
 	| AutoevalsEvaluatorConfig;
 
 // ============================================================================
@@ -108,7 +107,7 @@ export interface ExperimentOptions {
 	timeout?: number; // default: 30_000
 	tags?: string[];
 	name?: string; // override experiment name
-	thresholds?: ThresholdConfig; // CI mode thresholds
+	thresholds?: ThresholdConfig; // CI thresholds (validated only with --ci flag)
 }
 
 // ============================================================================
@@ -127,6 +126,7 @@ export interface ScoreStats {
 export interface ItemEvaluation {
 	score: number;
 	reason?: string;
+	chainOfThought?: string;
 }
 
 export interface RunAggregation {
@@ -155,7 +155,7 @@ export interface ItemResult {
 	latencyMs: number;
 	evaluations: Record<string, ItemEvaluation>;
 	error?: string;
-	// Multiple runs support (NEW)
+	// Multiple runs support
 	runs: SingleRun[];
 	aggregated?: {
 		avgLatencyMs: number;
@@ -242,8 +242,7 @@ export interface CobaltConfig {
 	dashboard: DashboardConfig;
 	cache: CacheConfig;
 	env?: Record<string, string>;
-	ciMode?: boolean; // Enable CI mode with threshold checking
-	thresholds?: ThresholdConfig; // Default thresholds for CI mode
+	thresholds?: ThresholdConfig; // Default thresholds (validated only with --ci flag)
 	plugins?: string[]; // Paths to custom evaluator plugins
 	// Remote dataset platform configurations
 	langfuse?: LangfuseConfig;
@@ -278,7 +277,7 @@ export interface ResultSummary {
 // ============================================================================
 
 export interface ThresholdViolation {
-	evaluator: string;
+	category: string; // 'score' | 'latency' | 'tokens' | 'cost' | evaluator name
 	metric: string;
 	expected: number;
 	actual: number;
@@ -302,4 +301,10 @@ export interface ThresholdMetric {
 	minScore?: number; // Minimum score required (used with passRate)
 }
 
-export type ThresholdConfig = Record<string, ThresholdMetric>;
+export interface ThresholdConfig {
+	score?: ThresholdMetric; // Global across ALL evaluators
+	latency?: ThresholdMetric; // Latency in ms
+	tokens?: ThresholdMetric; // Token count
+	cost?: ThresholdMetric; // Cost in USD
+	evaluators?: Record<string, ThresholdMetric>; // Per-evaluator overrides
+}

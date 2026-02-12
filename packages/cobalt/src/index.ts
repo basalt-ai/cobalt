@@ -16,7 +16,6 @@ export { defineConfig, loadConfig } from './core/config.js';
 // Register built-in evaluators (side-effect imports)
 import './evaluators/llm-judge.js';
 import './evaluators/function.js';
-import './evaluators/exact-match.js';
 import './evaluators/similarity.js';
 import './evaluators/adapters/autoevals.js';
 
@@ -36,7 +35,6 @@ export type {
 	LLMJudgeEvaluatorConfig,
 	FunctionEvaluatorConfig,
 	SimilarityEvaluatorConfig,
-	ExactMatchEvaluatorConfig,
 	AutoevalsEvaluatorConfig,
 	EvalContext,
 	EvalResult,
@@ -54,4 +52,9 @@ export type {
 	// Storage
 	ResultFilter,
 	ResultSummary,
+	// CI
+	ThresholdConfig,
+	ThresholdMetric,
+	CIResult,
+	ThresholdViolation,
 } from './types/index.js';

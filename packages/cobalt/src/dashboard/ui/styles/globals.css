@@ -57,6 +57,7 @@
 	--color-grass-3: var(--grass-3);
 	--color-grass-5: var(--grass-5);
 	--color-grass-9: var(--grass-9);
+	--color-grass-10: var(--grass-10);
 	--color-grass-11: var(--grass-11);
 	--color-grass-12: var(--grass-12);
 	--color-blue-3: var(--blue-3);
@@ -183,6 +184,7 @@
 	--grass-3: #e2f9d3;
 	--grass-5: #b6e9a1;
 	--grass-9: #46a758;
+	--grass-10: #3e9b4f;
 	--grass-11: #2a7e3b;
 	--grass-12: #203c25;
 	--blue-3: #e1f0ff;
@@ -282,6 +284,7 @@
 	--grass-3: #0d2712;
 	--grass-5: #18461a;
 	--grass-9: #46a758;
+	--grass-10: #53b365;
 	--grass-11: #71d083;
 	--grass-12: #c2f0c2;
 	--blue-3: #0d2847;

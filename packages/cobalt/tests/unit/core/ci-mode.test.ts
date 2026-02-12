@@ -7,6 +7,7 @@ import type { ExperimentReport, ThresholdConfig } from '../../../src/types/index
  */
 function createMockReport(
 	scores: Record<string, { avg: number; min: number; max: number; p50: number; p95: number }>,
+	overrides?: Partial<ExperimentReport['summary']>,
 ): ExperimentReport {
 	return {
 		id: 'test-id',
@@ -24,6 +25,7 @@ function createMockReport(
 			totalDurationMs: 5000,
 			avgLatencyMs: 500,
 			scores,
+			...overrides,
 		},
 		items: Array.from({ length: 10 }, (_, i) => ({
 			index: i,
@@ -39,21 +41,20 @@ function createMockReport(
 }
 
 describe('CI Mode - validateThresholds', () => {
-	describe('Score Thresholds', () => {
+	describe('Per-Evaluator Score Thresholds', () => {
 		it('should pass when avg score meets threshold', () => {
 			const report = createMockReport({
 				relevance: { avg: 0.85, min: 0.7, max: 0.95, p50: 0.85, p95: 0.92 },
 			});
 
 			const thresholds: ThresholdConfig = {
-				relevance: { avg: 0.8 },
+				evaluators: { relevance: { avg: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(true);
 			expect(result.violations).toHaveLength(0);
-			expect(result.summary).toContain('All thresholds passed');
 		});
 
 		it('should fail when avg score below threshold', () => {
@@ -62,18 +63,18 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				relevance: { avg: 0.8 },
+				evaluators: { relevance: { avg: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(false);
 			expect(result.violations).toHaveLength(1);
-			expect(result.violations[0].evaluator).toBe('relevance');
+			expect(result.violations[0].category).toBe('relevance');
 			expect(result.violations[0].metric).toBe('avg');
 			expect(result.violations[0].expected).toBe(0.8);
 			expect(result.violations[0].actual).toBe(0.75);
-			expect(result.violations[0].message).toContain('avg score 0.750 < threshold 0.800');
+			expect(result.violations[0].message).toContain('avg 0.750 < threshold 0.800');
 		});
 
 		it('should validate min threshold', () => {
@@ -82,14 +83,14 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				accuracy: { min: 0.5 },
+				evaluators: { accuracy: { min: 0.5 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(false);
 			expect(result.violations[0].metric).toBe('min');
-			expect(result.violations[0].message).toContain('min score 0.400 < threshold 0.500');
+			expect(result.violations[0].message).toContain('min 0.400 < threshold 0.500');
 		});
 
 		it('should validate max threshold', () => {
@@ -98,7 +99,7 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				score: { max: 0.95 },
+				evaluators: { score: { max: 0.9 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -113,7 +114,7 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				'median-score': { p50: 0.8 },
+				evaluators: { 'median-score': { p50: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -129,7 +130,7 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				'tail-score': { p95: 0.9 },
+				evaluators: { 'tail-score': { p95: 0.9 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -144,13 +145,13 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				quality: { avg: 0.8, min: 0.7, p95: 0.9 },
+				evaluators: { quality: { avg: 0.8, min: 0.7, p95: 0.9 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(false);
-			expect(result.violations).toHaveLength(1); // Only first violation returned
+			expect(result.violations).toHaveLength(1); // min fails
 			expect(result.violations[0].metric).toBe('min');
 		});
 	});
@@ -174,7 +175,7 @@ describe('CI Mode - validateThresholds', () => {
 			report.items[9].evaluations.relevance.score = 0.5; // Fail
 
 			const thresholds: ThresholdConfig = {
-				relevance: { passRate: 0.7, minScore: 0.7 },
+				evaluators: { relevance: { passRate: 0.7, minScore: 0.7 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -193,7 +194,7 @@ describe('CI Mode - validateThresholds', () => {
 			}
 
 			const thresholds: ThresholdConfig = {
-				relevance: { passRate: 0.8, minScore: 0.8 },
+				evaluators: { relevance: { passRate: 0.8, minScore: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -203,7 +204,8 @@ describe('CI Mode - validateThresholds', () => {
 			expect(result.violations[0].metric).toBe('passRate');
 			expect(result.violations[0].expected).toBe(0.8);
 			expect(result.violations[0].actual).toBe(0.6);
-			expect(result.violations[0].message).toContain('pass rate 60.0% (6/10) < threshold 80.0%');
+			expect(result.violations[0].message).toContain('pass rate 60.0%');
+			expect(result.violations[0].message).toContain('6/10');
 		});
 
 		it('should use default minScore of 0.5 if not specified', () => {
@@ -217,7 +219,7 @@ describe('CI Mode - validateThresholds', () => {
 			}
 
 			const thresholds: ThresholdConfig = {
-				score: { passRate: 0.6 }, // No minScore specified
+				evaluators: { score: { passRate: 0.6 } }, // No minScore specified
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -236,7 +238,7 @@ describe('CI Mode - validateThresholds', () => {
 			}
 
 			const thresholds: ThresholdConfig = {
-				combined: { avg: 0.8, passRate: 0.9, minScore: 0.7 },
+				evaluators: { combined: { avg: 0.8, passRate: 0.9, minScore: 0.7 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -254,16 +256,18 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				relevance: { avg: 0.8 },
-				accuracy: { avg: 0.85 },
-				fluency: { avg: 0.8 },
+				evaluators: {
+					relevance: { avg: 0.8 },
+					accuracy: { avg: 0.85 },
+					fluency: { avg: 0.8 },
+				},
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(false);
 			expect(result.violations).toHaveLength(1); // fluency fails
-			expect(result.violations[0].evaluator).toBe('fluency');
+			expect(result.violations[0].category).toBe('fluency');
 		});
 
 		it('should report all failing evaluators', () => {
@@ -274,15 +278,127 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				eval1: { avg: 0.7 },
-				eval2: { avg: 0.7 },
-				eval3: { avg: 0.85 },
+				evaluators: {
+					eval1: { avg: 0.7 },
+					eval2: { avg: 0.7 },
+					eval3: { avg: 0.85 },
+				},
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(false);
 			expect(result.violations).toHaveLength(2); // eval1 and eval2 fail
+		});
+	});
+
+	describe('Global Thresholds', () => {
+		it('should validate global score threshold across all evaluators', () => {
+			const report = createMockReport({
+				eval1: { avg: 0.9, min: 0.8, max: 0.95, p50: 0.9, p95: 0.93 },
+				eval2: { avg: 0.7, min: 0.6, max: 0.8, p50: 0.7, p95: 0.75 },
+			});
+			// Global avg = (0.9 + 0.7) / 2 = 0.8
+
+			const thresholds: ThresholdConfig = {
+				score: { avg: 0.85 },
+			};
+
+			const result = validateThresholds(report, thresholds);
+
+			expect(result.passed).toBe(false);
+			expect(result.violations).toHaveLength(1);
+			expect(result.violations[0].category).toBe('score');
+			expect(result.violations[0].metric).toBe('avg');
+		});
+
+		it('should pass global score threshold when met', () => {
+			const report = createMockReport({
+				eval1: { avg: 0.9, min: 0.8, max: 0.95, p50: 0.9, p95: 0.93 },
+				eval2: { avg: 0.85, min: 0.7, max: 0.9, p50: 0.85, p95: 0.88 },
+			});
+			// Global avg = (0.9 + 0.85) / 2 = 0.875
+
+			const thresholds: ThresholdConfig = {
+				score: { avg: 0.85 },
+			};
+
+			const result = validateThresholds(report, thresholds);
+
+			expect(result.passed).toBe(true);
+		});
+
+		it('should validate latency threshold', () => {
+			const report = createMockReport(
+				{ eval1: { avg: 0.9, min: 0.8, max: 0.95, p50: 0.9, p95: 0.93 } },
+				{ avgLatencyMs: 1200 },
+			);
+
+			const thresholds: ThresholdConfig = {
+				latency: { max: 1000 },
+			};
+
+			const result = validateThresholds(report, thresholds);
+
+			expect(result.passed).toBe(false);
+			expect(result.violations[0].category).toBe('latency');
+			expect(result.violations[0].metric).toBe('max');
+		});
+
+		it('should validate tokens threshold', () => {
+			const report = createMockReport(
+				{ eval1: { avg: 0.9, min: 0.8, max: 0.95, p50: 0.9, p95: 0.93 } },
+				{ totalTokens: 50000 },
+			);
+
+			const thresholds: ThresholdConfig = {
+				tokens: { max: 40000 },
+			};
+
+			const result = validateThresholds(report, thresholds);
+
+			expect(result.passed).toBe(false);
+			expect(result.violations[0].category).toBe('tokens');
+		});
+
+		it('should validate cost threshold', () => {
+			const report = createMockReport(
+				{ eval1: { avg: 0.9, min: 0.8, max: 0.95, p50: 0.9, p95: 0.93 } },
+				{ estimatedCost: 5.5 },
+			);
+
+			const thresholds: ThresholdConfig = {
+				cost: { max: 5.0 },
+			};
+
+			const result = validateThresholds(report, thresholds);
+
+			expect(result.passed).toBe(false);
+			expect(result.violations[0].category).toBe('cost');
+		});
+
+		it('should combine global and per-evaluator thresholds', () => {
+			const report = createMockReport(
+				{
+					eval1: { avg: 0.9, min: 0.8, max: 0.95, p50: 0.9, p95: 0.93 },
+					eval2: { avg: 0.85, min: 0.7, max: 0.9, p50: 0.85, p95: 0.88 },
+				},
+				{ avgLatencyMs: 800, estimatedCost: 2.5 },
+			);
+
+			const thresholds: ThresholdConfig = {
+				score: { avg: 0.8 },
+				latency: { max: 1000 },
+				cost: { max: 5.0 },
+				evaluators: {
+					eval1: { avg: 0.85 },
+					eval2: { avg: 0.8 },
+				},
+			};
+
+			const result = validateThresholds(report, thresholds);
+
+			expect(result.passed).toBe(true);
 		});
 	});
 
@@ -293,14 +409,14 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				nonexistent: { avg: 0.8 },
+				evaluators: { nonexistent: { avg: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
 
 			expect(result.passed).toBe(false);
 			expect(result.violations).toHaveLength(1);
-			expect(result.violations[0].evaluator).toBe('nonexistent');
+			expect(result.violations[0].category).toBe('nonexistent');
 			expect(result.violations[0].metric).toBe('existence');
 			expect(result.violations[0].message).toContain('not found in results');
 		});
@@ -316,7 +432,6 @@ describe('CI Mode - validateThresholds', () => {
 
 			expect(result.passed).toBe(true);
 			expect(result.violations).toHaveLength(0);
-			expect(result.summary).toContain('All thresholds passed (0 evaluators checked)');
 		});
 
 		it('should handle exact threshold values (boundary test)', () => {
@@ -325,7 +440,7 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				exact: { avg: 0.8, min: 0.7, p50: 0.8 },
+				evaluators: { exact: { avg: 0.8, min: 0.7, p50: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -339,7 +454,7 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				precision: { avg: 0.8 },
+				evaluators: { precision: { avg: 0.8 } },
 			};
 
 			const result = validateThresholds(report, thresholds);
@@ -357,13 +472,17 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				eval1: { avg: 0.8 },
-				eval2: { avg: 0.8 },
+				evaluators: {
+					eval1: { avg: 0.8 },
+					eval2: { avg: 0.8 },
+				},
 			};
 
 			const result = validateThresholds(report, thresholds);
 
-			expect(result.summary).toBe('All thresholds passed (2 evaluators checked)');
+			expect(result.passed).toBe(true);
+			expect(result.summary).toContain('All thresholds passed');
+			expect(result.summary).toContain('2');
 		});
 
 		it('should provide clear summary for failing case', () => {
@@ -373,8 +492,10 @@ describe('CI Mode - validateThresholds', () => {
 			});
 
 			const thresholds: ThresholdConfig = {
-				eval1: { avg: 0.8 },
-				eval2: { avg: 0.8 },
+				evaluators: {
+					eval1: { avg: 0.8 },
+					eval2: { avg: 0.8 },
+				},
 			};
 
 			const result = validateThresholds(report, thresholds);

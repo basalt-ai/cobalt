@@ -158,6 +158,46 @@ describe('evaluateFunction', () => {
 		expect(result).toHaveProperty('reason');
 	});
 
+	it('should apply context mapping before calling fn', async () => {
+		let receivedContext: any;
+
+		const config: FunctionEvaluatorConfig = {
+			name: 'context-test',
+			type: 'function',
+			fn: (context) => {
+				receivedContext = context;
+				return { score: 1, reason: 'ok' };
+			},
+			context: (ctx) => ({
+				...ctx,
+				item: { ...ctx.item, customField: 'injected' },
+			}),
+		};
+
+		await evaluateFunction(config, sampleEvalContext);
+
+		expect(receivedContext.item.customField).toBe('injected');
+		// Original fields should still be present
+		expect(receivedContext.item.input).toEqual(sampleEvalContext.item.input);
+	});
+
+	it('should work without context mapping', async () => {
+		let receivedContext: any;
+
+		const config: FunctionEvaluatorConfig = {
+			name: 'no-context-mapping',
+			type: 'function',
+			fn: (context) => {
+				receivedContext = context;
+				return { score: 1, reason: 'ok' };
+			},
+		};
+
+		await evaluateFunction(config, sampleEvalContext);
+
+		expect(receivedContext).toEqual(sampleEvalContext);
+	});
+
 	it('should support numeric scoring with reasoning', async () => {
 		const config: FunctionEvaluatorConfig = {
 			name: 'length-check',

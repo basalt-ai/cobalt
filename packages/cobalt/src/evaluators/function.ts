@@ -12,7 +12,9 @@ export async function evaluateFunction(
 	context: EvalContext,
 ): Promise<EvalResult> {
 	try {
-		const result = await config.fn(context);
+		// Apply context mapping if provided
+		const evalContext = config.context ? config.context(context) : context;
+		const result = await config.fn(evalContext);
 
 		// Validate result format
 		if (typeof result.score !== 'number' || result.score < 0 || result.score > 1) {

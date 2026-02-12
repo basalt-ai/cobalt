@@ -56,11 +56,9 @@ Cobalt is an AI testing framework - "Jest for AI Agents" - that provides experim
 
 ### Enhanced Features
 
-**1. Additional Evaluators**
-- ✅ Exact match evaluator (`src/evaluators/exact-match.ts`)
-  - Case-sensitive/insensitive options
-  - Field-based comparison
-  - Trimming support
+**1. Enhanced Evaluators**
+- ✅ Function evaluator with context mapping
+- ✅ LLM judge with scale scoring and chain of thought
 
 **2. LLM Response Cache** (`src/storage/cache.ts`)
 - ✅ Hash-based caching (prompt + model + content)
@@ -160,8 +158,8 @@ Some P2/P3 features were implemented ahead of schedule:
 2. **`tests/unit/Evaluator.test.ts`** - 23 tests
    - Constructor defaults and type inference
    - Dispatch to correct evaluator implementation
-   - LLM judge, function, exact-match dispatch
-   - Error handling (similarity evaluator stub)
+   - LLM judge, function, similarity, autoevals dispatch
+   - Error handling for invalid evaluator types
    - Unknown evaluator type handling
    - Multiple evaluators running independently
 
@@ -181,13 +179,13 @@ Some P2/P3 features were implemented ahead of schedule:
    - Error handling for invalid scores
    - Default reason when not provided
 
-5. **`tests/unit/evaluators/exact-match.test.ts`** - 16 tests
-   - Exact string matching
-   - Case-sensitive vs insensitive
-   - Trimming whitespace
+5. **`tests/unit/evaluators/similarity.test.ts`** - 14 tests
+   - Cosine similarity calculation
+   - Threshold mode vs raw mode
    - Field-based comparison
-   - Missing field handling
-   - Edge cases
+   - Distance metrics (cosine, dotProduct)
+   - Missing API key handling
+   - Edge cases (empty text, zero vectors)
 
 6. **`tests/unit/utils/cost.test.ts`** - 17 tests
    - Cost estimation for OpenAI models
@@ -335,7 +333,7 @@ During implementation, several mismatches were discovered and fixed:
 - **Test Cases**: 138
 - **Test Coverage**: 17.2% overall (80-100% for tested modules)
 - **CLI Commands**: 7 (run, init, history, compare, serve, clean, mcp)
-- **Evaluator Types**: 3 implemented (llm-judge, function, exact-match)
+- **Evaluator Types**: 4 built-in (llm-judge, function, similarity, autoevals)
 - **Dataset Formats**: 3 (JSON, JSONL, CSV)
 
 **Phase Completion:**

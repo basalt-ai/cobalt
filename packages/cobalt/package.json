@@ -59,7 +59,6 @@
 		"@radix-ui/react-switch": "^1.2.6",
 		"@radix-ui/react-tabs": "^1.1.13",
 		"@radix-ui/react-tooltip": "^1.2.8",
-		"@tailwindcss/vite": "^4.1.18",
 		"@tanstack/react-table": "^8.21.3",
 		"autoevals": "^0.0.131",
 		"better-sqlite3": "^12.6.2",
@@ -86,6 +85,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
 		"@cobalt/tsconfig": "workspace:*",
+		"@tailwindcss/vite": "^4.1.18",
 		"@types/better-sqlite3": "^7.6.13",
 		"@types/node": "^22.10.5",
 		"@types/react": "^19.0.0",

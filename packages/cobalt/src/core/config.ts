@@ -26,7 +26,6 @@ const DEFAULT_CONFIG: CobaltConfig = {
 		enabled: true,
 		ttl: '7d',
 	},
-	ciMode: false,
 	plugins: [],
 };
 

@@ -52,17 +52,17 @@ The main entry point for running experiments. Orchestrates:
 A dispatch system that routes evaluation requests to specific evaluator implementations.
 
 **Supported Types:**
-- `llm-judge` - Uses another LLM to evaluate outputs
-- `function` - Custom JavaScript/TypeScript functions
-- `exact-match` - String matching with case sensitivity options
-- `similarity` - Embeddings-based similarity (P2 - not implemented)
+- `llm-judge` - LLM-based evaluation with boolean or scale scoring, chain of thought
+- `function` - Custom JavaScript/TypeScript functions with context mapping
+- `similarity` - Embeddings-based similarity with cosine or dot product distance
+- `autoevals` - Braintrust Autoevals adapter (11 evaluator types)
 
 **Files:**
 - `src/core/Evaluator.ts` - Main Evaluator class
 - `src/evaluators/llm-judge.ts` - LLM judge implementation
 - `src/evaluators/function.ts` - Function evaluator
-- `src/evaluators/exact-match.ts` - Exact match evaluator
-- `src/evaluators/similarity.ts` - Stub (throws error)
+- `src/evaluators/similarity.ts` - Similarity evaluator (OpenAI embeddings)
+- `src/evaluators/autoevals.ts` - Autoevals adapter
 
 ### 3. Dataset System (`src/datasets/Dataset.ts`)
 
@@ -211,7 +211,7 @@ interface ExperimentOptions {
 }
 
 // Evaluator types
-type EvaluatorType = 'llm-judge' | 'function' | 'exact-match' | 'similarity'
+type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'autoevals'
 
 interface EvaluationContext {
   item: ExperimentItem
@@ -291,7 +291,8 @@ tests/
 │   ├── evaluators/
 │   │   ├── llm-judge.test.ts        # 13 tests
 │   │   ├── function.test.ts         # 10 tests
-│   │   └── exact-match.test.ts      # 16 tests
+│   │   ├── similarity.test.ts       # 14 tests
+│   │   └── autoevals.test.ts        # tests for autoevals
 │   └── utils/
 │       ├── cost.test.ts             # 17 tests
 │       ├── stats.test.ts            # 12 tests
@@ -429,8 +430,8 @@ export type * from './types/index.js'
 - Statistical aggregation: Mean, stddev, confidence intervals
 
 **P3 Features (Connected):**
-- Remote datasets: Fetch from bdataset or other sources
-- RAGAS integration: Built-in RAGAS-style evaluators
+- Remote datasets: Fetch from Langfuse, LangSmith, Braintrust, Basalt
+- Autoevals integration: Built-in Braintrust Autoevals adapter
 - CI mode: Thresholds and exit codes for CI/CD
 - MCP completion: Generate experiments from agent code
 

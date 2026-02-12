@@ -32,7 +32,7 @@ describe('renderTemplate', () => {
 		expect(result).toBe('Alice likes Alice');
 	});
 
-	it('should not support nested object properties', () => {
+	it('should resolve nested object properties', () => {
 		const template = 'Model: {{metadata.model}}, Tokens: {{metadata.tokens}}';
 		const variables = {
 			metadata: {
@@ -43,8 +43,57 @@ describe('renderTemplate', () => {
 
 		const result = renderTemplate(template, variables);
 
-		// Template engine only supports top-level variables, not nested
-		expect(result).toBe('Model: {{metadata.model}}, Tokens: {{metadata.tokens}}');
+		expect(result).toBe('Model: gpt-4o, Tokens: 150');
+	});
+
+	it('should resolve deeply nested properties', () => {
+		const template = 'Value: {{a.b.c.d}}';
+		const variables = {
+			a: {
+				b: {
+					c: {
+						d: 'deep value',
+					},
+				},
+			},
+		};
+
+		const result = renderTemplate(template, variables);
+
+		expect(result).toBe('Value: deep value');
+	});
+
+	it('should resolve bracket notation for arrays', () => {
+		const template = 'First: {{tags[0]}}, Second: {{tags[1]}}';
+		const variables = {
+			tags: ['alpha', 'beta', 'gamma'],
+		};
+
+		const result = renderTemplate(template, variables);
+
+		expect(result).toBe('First: alpha, Second: beta');
+	});
+
+	it('should resolve mixed dot and bracket notation', () => {
+		const template = 'Value: {{items[0].name}}';
+		const variables = {
+			items: [{ name: 'first' }, { name: 'second' }],
+		};
+
+		const result = renderTemplate(template, variables);
+
+		expect(result).toBe('Value: first');
+	});
+
+	it('should keep placeholder for missing nested path', () => {
+		const template = 'Value: {{metadata.nonexistent}}';
+		const variables = {
+			metadata: { model: 'gpt-4o' },
+		};
+
+		const result = renderTemplate(template, variables);
+
+		expect(result).toBe('Value: {{metadata.nonexistent}}');
 	});
 
 	it('should handle missing variables gracefully', () => {
@@ -147,24 +196,6 @@ Expected: {{expectedOutput}}`;
 		expect(result).toContain('Expected: Expected Answer');
 	});
 
-	it('should not support deeply nested properties', () => {
-		const template = 'Value: {{a.b.c.d}}';
-		const variables = {
-			a: {
-				b: {
-					c: {
-						d: 'deep value',
-					},
-				},
-			},
-		};
-
-		const result = renderTemplate(template, variables);
-
-		// Template engine only supports top-level variables, not nested paths
-		expect(result).toBe('Value: {{a.b.c.d}}');
-	});
-
 	it('should handle array values', () => {
 		const template = 'Items: {{items}}';
 		const variables = { items: ['a', 'b', 'c'] };
@@ -184,5 +215,27 @@ Expected: {{expectedOutput}}`;
 		expect(result).toContain('Data:');
 		expect(result).toContain('"key"');
 		expect(result).toContain('"value"');
+	});
+
+	it('should mix top-level and nested variables in same template', () => {
+		const template = 'Name: {{name}}, Model: {{config.model}}, Tag: {{tags[0]}}';
+		const variables = {
+			name: 'test',
+			config: { model: 'gpt-4o' },
+			tags: ['v1'],
+		};
+
+		const result = renderTemplate(template, variables);
+
+		expect(result).toBe('Name: test, Model: gpt-4o, Tag: v1');
+	});
+
+	it('should keep placeholder when intermediate path is null', () => {
+		const template = 'Value: {{a.b.c}}';
+		const variables = { a: null };
+
+		const result = renderTemplate(template, variables);
+
+		expect(result).toBe('Value: {{a.b.c}}');
 	});
 });

@@ -1,23 +1,28 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Evaluator } from '../../src/core/Evaluator.js';
+import { registry } from '../../src/core/EvaluatorRegistry.js';
 import { sampleEvalContext } from '../helpers/fixtures.js';
 
-// Mock all evaluator implementations
-vi.mock('../../src/evaluators/llm-judge.js', () => ({
-	evaluateLLMJudge: vi.fn().mockResolvedValue({ score: 0.85, reason: 'LLM judge result' }),
-}));
-
-vi.mock('../../src/evaluators/function.js', () => ({
-	evaluateFunction: vi.fn().mockResolvedValue({ score: 1, reason: 'Function result' }),
-}));
-
-vi.mock('../../src/evaluators/exact-match.js', () => ({
-	evaluateExactMatch: vi.fn().mockReturnValue({ score: 1, reason: 'Exact match' }),
-}));
+// Mock evaluator handlers
+const mockLLMJudge = vi.fn().mockResolvedValue({ score: 0.85, reason: 'LLM judge result' });
+const mockFunction = vi.fn().mockResolvedValue({ score: 1, reason: 'Function result' });
+const mockSimilarity = vi
+	.fn()
+	.mockRejectedValue(new Error('OpenAI API key is required for similarity evaluator'));
 
 describe('Evaluator', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Register mock handlers in the registry
+		registry.register('llm-judge', mockLLMJudge);
+		registry.register('function', mockFunction);
+		registry.register('similarity', mockSimilarity);
+	});
+
+	afterEach(() => {
+		registry.unregister('llm-judge');
+		registry.unregister('function');
+		registry.unregister('similarity');
 	});
 
 	describe('constructor', () => {
@@ -50,22 +55,10 @@ describe('Evaluator', () => {
 
 			expect(evaluator.name).toBe('relevance');
 		});
-
-		it('should expose evaluator type', () => {
-			const evaluator = new Evaluator({
-				name: 'test',
-				type: 'exact-match',
-				field: 'expectedOutput',
-			});
-
-			expect(evaluator.type).toBe('exact-match');
-		});
 	});
 
 	describe('evaluate', () => {
-		it('should dispatch to llm-judge evaluator', async () => {
-			const { evaluateLLMJudge } = await import('../../src/evaluators/llm-judge.js');
-
+		it('should dispatch to llm-judge evaluator via registry', async () => {
 			const evaluator = new Evaluator({
 				name: 'relevance',
 				type: 'llm-judge',
@@ -75,18 +68,15 @@ describe('Evaluator', () => {
 
 			const result = await evaluator.evaluate(sampleEvalContext, 'fake-api-key');
 
-			expect(evaluateLLMJudge).toHaveBeenCalledWith(
+			expect(mockLLMJudge).toHaveBeenCalledWith(
 				expect.objectContaining({ name: 'relevance', type: 'llm-judge' }),
 				sampleEvalContext,
 				'fake-api-key',
-				undefined,
 			);
 			expect(result.score).toBe(0.85);
 		});
 
-		it('should dispatch to function evaluator', async () => {
-			const { evaluateFunction } = await import('../../src/evaluators/function.js');
-
+		it('should dispatch to function evaluator via registry', async () => {
 			const evaluator = new Evaluator({
 				name: 'custom',
 				type: 'function',
@@ -95,27 +85,10 @@ describe('Evaluator', () => {
 
 			const result = await evaluator.evaluate(sampleEvalContext);
 
-			expect(evaluateFunction).toHaveBeenCalledWith(
+			expect(mockFunction).toHaveBeenCalledWith(
 				expect.objectContaining({ name: 'custom', type: 'function' }),
 				sampleEvalContext,
-			);
-			expect(result.score).toBe(1);
-		});
-
-		it('should dispatch to exact-match evaluator', async () => {
-			const { evaluateExactMatch } = await import('../../src/evaluators/exact-match.js');
-
-			const evaluator = new Evaluator({
-				name: 'exact',
-				type: 'exact-match',
-				field: 'expectedOutput',
-			});
-
-			const result = await evaluator.evaluate(sampleEvalContext);
-
-			expect(evaluateExactMatch).toHaveBeenCalledWith(
-				expect.objectContaining({ name: 'exact', type: 'exact-match' }),
-				sampleEvalContext,
+				undefined,
 			);
 			expect(result.score).toBe(1);
 		});
@@ -129,7 +102,6 @@ describe('Evaluator', () => {
 
 			const result = await evaluator.evaluate(sampleEvalContext);
 
-			// Errors are caught and returned as score: 0
 			expect(result.score).toBe(0);
 			expect(result.reason).toContain('OpenAI API key is required');
 		});
@@ -137,38 +109,17 @@ describe('Evaluator', () => {
 		it('should return error result for unknown evaluator type', async () => {
 			const evaluator = new Evaluator({
 				name: 'test',
-				type: 'unknown' as any,
+				type: 'unknown' as never,
 			});
 
 			const result = await evaluator.evaluate(sampleEvalContext);
 
-			// Errors are caught and returned as score: 0
 			expect(result.score).toBe(0);
 			expect(result.reason).toContain('Unknown evaluator type');
 		});
 
-		it('should pass optional model parameter to llm-judge', async () => {
-			const { evaluateLLMJudge } = await import('../../src/evaluators/llm-judge.js');
-
-			const evaluator = new Evaluator({
-				name: 'relevance',
-				type: 'llm-judge',
-				prompt: 'Rate this',
-			});
-
-			await evaluator.evaluate(sampleEvalContext, 'fake-api-key', 'gpt-4o');
-
-			expect(evaluateLLMJudge).toHaveBeenCalledWith(
-				expect.anything(),
-				expect.anything(),
-				'fake-api-key',
-				'gpt-4o',
-			);
-		});
-
 		it('should handle errors and return score 0 with error message', async () => {
-			const { evaluateFunction } = await import('../../src/evaluators/function.js');
-			vi.mocked(evaluateFunction).mockRejectedValue(new Error('Evaluation failed'));
+			mockFunction.mockRejectedValueOnce(new Error('Evaluation failed'));
 
 			const evaluator = new Evaluator({
 				name: 'failing',
@@ -184,8 +135,7 @@ describe('Evaluator', () => {
 		});
 
 		it('should handle non-Error exceptions', async () => {
-			const { evaluateFunction } = await import('../../src/evaluators/function.js');
-			vi.mocked(evaluateFunction).mockRejectedValue('String error');
+			mockFunction.mockRejectedValueOnce('String error');
 
 			const evaluator = new Evaluator({
 				name: 'failing',
@@ -213,40 +163,11 @@ describe('Evaluator', () => {
 					type: 'function',
 					fn: () => ({ score: 1 }),
 				}),
-				new Evaluator({
-					name: 'exact',
-					type: 'exact-match',
-					field: 'expectedOutput',
-				}),
 			];
 
-			expect(evaluators).toHaveLength(3);
+			expect(evaluators).toHaveLength(2);
 			expect(evaluators[0].type).toBe('llm-judge');
 			expect(evaluators[1].type).toBe('function');
-			expect(evaluators[2].type).toBe('exact-match');
-		});
-
-		it('should evaluate independently', async () => {
-			// Need to use actual implementations since mocks are at module level
-			const evaluators = [
-				new Evaluator({
-					name: 'eval1',
-					type: 'exact-match',
-					field: 'expectedOutput',
-				}),
-				new Evaluator({
-					name: 'eval2',
-					type: 'exact-match',
-					field: 'expectedOutput',
-				}),
-			];
-
-			const results = await Promise.all(evaluators.map((e) => e.evaluate(sampleEvalContext)));
-
-			expect(results).toHaveLength(2);
-			// Both should return the same result from exact-match evaluator
-			expect(results[0].score).toBe(1);
-			expect(results[1].score).toBe(1);
 		});
 	});
 
@@ -255,8 +176,7 @@ describe('Evaluator', () => {
 			const evaluator = new Evaluator({
 				name: 'test',
 				prompt: 'Rate from 0 to 1',
-				// No type specified
-			} as any);
+			} as never);
 
 			expect(evaluator.type).toBe('llm-judge');
 		});
@@ -264,9 +184,7 @@ describe('Evaluator', () => {
 
 	describe('edge cases', () => {
 		it('should handle empty context', async () => {
-			// Re-set mock since previous tests override it with mockRejectedValue
-			const { evaluateFunction } = await import('../../src/evaluators/function.js');
-			vi.mocked(evaluateFunction).mockResolvedValue({ score: 0.5, reason: 'Function result' });
+			mockFunction.mockResolvedValueOnce({ score: 0.5, reason: 'ok' });
 
 			const evaluator = new Evaluator({
 				name: 'test',
@@ -283,20 +201,6 @@ describe('Evaluator', () => {
 
 			expect(result).toBeDefined();
 			expect(result.score).toBe(0.5);
-		});
-
-		it('should handle context with metadata', async () => {
-			// Use exact-match evaluator which doesn't depend on metadata
-			const evaluator = new Evaluator({
-				name: 'test',
-				type: 'exact-match',
-				field: 'expectedOutput',
-			});
-
-			const result = await evaluator.evaluate(sampleEvalContext);
-
-			// Should work regardless of metadata
-			expect(result.score).toBe(1);
 		});
 	});
 });

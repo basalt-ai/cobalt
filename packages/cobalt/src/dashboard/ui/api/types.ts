@@ -25,6 +25,7 @@ export interface ScoreStats {
 export interface ItemEvaluation {
 	score: number;
 	reason?: string;
+	chainOfThought?: string;
 }
 
 export interface ExperimentResult {
@@ -74,7 +75,7 @@ export interface ExperimentSummary {
 }
 
 export interface ThresholdViolation {
-	evaluator: string;
+	category: string;
 	metric: string;
 	expected: number;
 	actual: number;

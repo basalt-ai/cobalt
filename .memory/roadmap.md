@@ -16,7 +16,6 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"
 - [x] `defineConfig` with config file loading
 
 ### P1 — Usable ✅
-- [x] Evaluator type `exact-match`
 - [x] LLM judge response cache
 - [x] `Dataset.sample()` and `Dataset.slice()`
 - [x] `--filter` for `cobalt run`
@@ -31,7 +30,7 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"
 
 ### P3 — Connected ✅
 - [x] Remote datasets (Langfuse, LangSmith, Braintrust, Basalt)
-- [x] Built-in RAGAS-style evaluators (Autoevals — 11 types)
+- [x] Built-in Autoevals integration (11 evaluator types)
 - [x] MCP implementation (4 tools, 3 resources, 3 prompts)
 - [x] CI mode (`cobalt run --ci` with thresholds)
 - [x] GitHub Actions reporter

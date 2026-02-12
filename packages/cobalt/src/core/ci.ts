@@ -1,8 +1,9 @@
 /**
  * CI Mode - Threshold validation for continuous integration
  *
- * Enables quality gates by validating experiment results against configured thresholds.
- * Supports multiple threshold types: avg, min, max, p50, p95, p99, and pass rate.
+ * Validates experiment results against global and per-evaluator thresholds.
+ * Supports: score, latency, tokens, cost thresholds + per-evaluator overrides.
+ * CI mode is triggered only by the --ci CLI flag.
  */
 
 import type {
@@ -17,10 +18,6 @@ import type {
 
 /**
  * Validate experiment results against CI thresholds
- *
- * @param report - Experiment report with summary and item results
- * @param thresholds - Threshold configuration per evaluator
- * @returns CI result with pass/fail status and violations
  */
 export function validateThresholds(
 	report: ExperimentReport,
@@ -28,152 +25,183 @@ export function validateThresholds(
 ): CIResult {
 	const violations: ThresholdViolation[] = [];
 
-	for (const [evaluatorName, threshold] of Object.entries(thresholds)) {
-		// Check if evaluator exists in report
-		const stats = report.summary.scores[evaluatorName];
+	// 1. Global score threshold (avg across ALL evaluators)
+	if (thresholds.score) {
+		const allEvaluatorNames = Object.keys(report.summary.scores);
+		if (allEvaluatorNames.length > 0) {
+			const globalAvg =
+				allEvaluatorNames.reduce((sum, name) => sum + report.summary.scores[name].avg, 0) /
+				allEvaluatorNames.length;
 
-		if (!stats) {
-			violations.push({
-				evaluator: evaluatorName,
-				metric: 'existence',
-				expected: 1,
-				actual: 0,
-				message: `Evaluator "${evaluatorName}" not found in results`,
-			});
-			continue;
+			const globalStats: ScoreStats = {
+				avg: globalAvg,
+				min: Math.min(...allEvaluatorNames.map((n) => report.summary.scores[n].min)),
+				max: Math.max(...allEvaluatorNames.map((n) => report.summary.scores[n].max)),
+				p50:
+					allEvaluatorNames.reduce((sum, n) => sum + report.summary.scores[n].p50, 0) /
+					allEvaluatorNames.length,
+				p95:
+					allEvaluatorNames.reduce((sum, n) => sum + report.summary.scores[n].p95, 0) /
+					allEvaluatorNames.length,
+			};
+
+			checkMetricThresholds('score', globalStats, thresholds.score, violations);
 		}
+	}
 
-		// Check score-based thresholds
-		const scoreViolation = checkScoreThreshold(evaluatorName, stats, threshold);
-		if (scoreViolation) {
-			violations.push(scoreViolation);
-		}
+	// 2. Latency threshold
+	if (thresholds.latency) {
+		const latencyStats: ScoreStats = {
+			avg: report.summary.avgLatencyMs,
+			min: report.summary.avgLatencyMs,
+			max: report.summary.avgLatencyMs,
+			p50: report.summary.avgLatencyMs,
+			p95: report.summary.avgLatencyMs,
+		};
+		checkMetricThresholds('latency', latencyStats, thresholds.latency, violations);
+	}
 
-		// Check pass rate threshold
-		if (threshold.passRate !== undefined) {
-			const passRateViolation = checkPassRateThreshold(evaluatorName, report.items, threshold);
-			if (passRateViolation) {
-				violations.push(passRateViolation);
+	// 3. Tokens threshold
+	if (thresholds.tokens && report.summary.totalTokens !== undefined) {
+		const tokenStats: ScoreStats = {
+			avg: report.summary.totalTokens,
+			min: report.summary.totalTokens,
+			max: report.summary.totalTokens,
+			p50: report.summary.totalTokens,
+			p95: report.summary.totalTokens,
+		};
+		checkMetricThresholds('tokens', tokenStats, thresholds.tokens, violations);
+	}
+
+	// 4. Cost threshold
+	if (thresholds.cost && report.summary.estimatedCost !== undefined) {
+		const costStats: ScoreStats = {
+			avg: report.summary.estimatedCost,
+			min: report.summary.estimatedCost,
+			max: report.summary.estimatedCost,
+			p50: report.summary.estimatedCost,
+			p95: report.summary.estimatedCost,
+		};
+		checkMetricThresholds('cost', costStats, thresholds.cost, violations);
+	}
+
+	// 5. Per-evaluator thresholds
+	if (thresholds.evaluators) {
+		for (const [evaluatorName, threshold] of Object.entries(thresholds.evaluators)) {
+			const stats = report.summary.scores[evaluatorName];
+
+			if (!stats) {
+				violations.push({
+					category: evaluatorName,
+					metric: 'existence',
+					expected: 1,
+					actual: 0,
+					message: `Evaluator "${evaluatorName}" not found in results`,
+				});
+				continue;
+			}
+
+			checkMetricThresholds(evaluatorName, stats, threshold, violations);
+
+			// Check pass rate for per-evaluator thresholds
+			if (threshold.passRate !== undefined) {
+				checkPassRateThreshold(evaluatorName, report.items, threshold, violations);
 			}
 		}
 	}
 
 	const passed = violations.length === 0;
+	const checkedCategories = [
+		thresholds.score && 'score',
+		thresholds.latency && 'latency',
+		thresholds.tokens && 'tokens',
+		thresholds.cost && 'cost',
+		...(thresholds.evaluators ? Object.keys(thresholds.evaluators) : []),
+	].filter(Boolean);
 
 	return {
 		passed,
 		violations,
 		summary: passed
-			? `All thresholds passed (${Object.keys(thresholds).length} evaluators checked)`
+			? `All thresholds passed (${checkedCategories.length} categories checked)`
 			: `${violations.length} threshold violation(s) detected`,
 	};
 }
 
 /**
- * Check score-based thresholds (avg, min, max, p50, p95, p99)
- *
- * @param evaluatorName - Name of the evaluator
- * @param stats - Score statistics from experiment summary
- * @param threshold - Threshold configuration
- * @returns Violation if any threshold is not met, null otherwise
+ * Check metric thresholds (avg, min, max, p50, p95)
+ * For score thresholds: actual must be >= expected
+ * For latency/tokens/cost: actual must be <= expected (using max)
  */
-function checkScoreThreshold(
-	evaluatorName: string,
+function checkMetricThresholds(
+	category: string,
 	stats: ScoreStats,
 	threshold: ThresholdMetric,
-): ThresholdViolation | null {
-	// Check avg threshold
+	violations: ThresholdViolation[],
+): void {
 	if (threshold.avg !== undefined && stats.avg < threshold.avg) {
-		return {
-			evaluator: evaluatorName,
+		violations.push({
+			category,
 			metric: 'avg',
 			expected: threshold.avg,
 			actual: stats.avg,
-			message: `${evaluatorName}: avg score ${stats.avg.toFixed(3)} < threshold ${threshold.avg.toFixed(3)}`,
-		};
+			message: `${category}: avg ${stats.avg.toFixed(3)} < threshold ${threshold.avg.toFixed(3)}`,
+		});
 	}
 
-	// Check min threshold
 	if (threshold.min !== undefined && stats.min < threshold.min) {
-		return {
-			evaluator: evaluatorName,
+		violations.push({
+			category,
 			metric: 'min',
 			expected: threshold.min,
 			actual: stats.min,
-			message: `${evaluatorName}: min score ${stats.min.toFixed(3)} < threshold ${threshold.min.toFixed(3)}`,
-		};
+			message: `${category}: min ${stats.min.toFixed(3)} < threshold ${threshold.min.toFixed(3)}`,
+		});
 	}
 
-	// Check max threshold (typically not used, but supported)
-	if (threshold.max !== undefined && stats.max < threshold.max) {
-		return {
-			evaluator: evaluatorName,
+	if (threshold.max !== undefined && stats.max > threshold.max) {
+		violations.push({
+			category,
 			metric: 'max',
 			expected: threshold.max,
 			actual: stats.max,
-			message: `${evaluatorName}: max score ${stats.max.toFixed(3)} < threshold ${threshold.max.toFixed(3)}`,
-		};
+			message: `${category}: max ${stats.max.toFixed(3)} > threshold ${threshold.max.toFixed(3)}`,
+		});
 	}
 
-	// Check p50 threshold
 	if (threshold.p50 !== undefined && stats.p50 < threshold.p50) {
-		return {
-			evaluator: evaluatorName,
+		violations.push({
+			category,
 			metric: 'p50',
 			expected: threshold.p50,
 			actual: stats.p50,
-			message: `${evaluatorName}: p50 score ${stats.p50.toFixed(3)} < threshold ${threshold.p50.toFixed(3)}`,
-		};
+			message: `${category}: p50 ${stats.p50.toFixed(3)} < threshold ${threshold.p50.toFixed(3)}`,
+		});
 	}
 
-	// Check p95 threshold
 	if (threshold.p95 !== undefined && stats.p95 < threshold.p95) {
-		return {
-			evaluator: evaluatorName,
+		violations.push({
+			category,
 			metric: 'p95',
 			expected: threshold.p95,
 			actual: stats.p95,
-			message: `${evaluatorName}: p95 score ${stats.p95.toFixed(3)} < threshold ${threshold.p95.toFixed(3)}`,
-		};
+			message: `${category}: p95 ${stats.p95.toFixed(3)} < threshold ${threshold.p95.toFixed(3)}`,
+		});
 	}
-
-	// Check p99 threshold
-	if (threshold.p99 !== undefined && stats.p99 < threshold.p99) {
-		return {
-			evaluator: evaluatorName,
-			metric: 'p99',
-			expected: threshold.p99,
-			actual: stats.p99,
-			message: `${evaluatorName}: p99 score ${stats.p99.toFixed(3)} < threshold ${threshold.p99.toFixed(3)}`,
-		};
-	}
-
-	return null;
 }
 
 /**
- * Check pass rate threshold
- *
- * Validates that a minimum percentage of items scored above a threshold.
- *
- * @param evaluatorName - Name of the evaluator
- * @param items - Item results from experiment
- * @param threshold - Threshold configuration
- * @returns Violation if pass rate is not met, null otherwise
+ * Check pass rate threshold for a specific evaluator
  */
 function checkPassRateThreshold(
 	evaluatorName: string,
 	items: ItemResult[],
 	threshold: ThresholdMetric,
-): ThresholdViolation | null {
-	if (threshold.passRate === undefined) {
-		return null;
-	}
+	violations: ThresholdViolation[],
+): void {
+	if (threshold.passRate === undefined) return;
 
-	// minScore defaults to 0.5 if not specified
 	const minScore = threshold.minScore ?? 0.5;
-
-	// Count items that pass the minimum score
 	let passedItems = 0;
 
 	for (const item of items) {
@@ -184,17 +212,14 @@ function checkPassRateThreshold(
 	}
 
 	const actualPassRate = passedItems / items.length;
-	const expectedPassRate = threshold.passRate;
 
-	if (actualPassRate < expectedPassRate) {
-		return {
-			evaluator: evaluatorName,
+	if (actualPassRate < threshold.passRate) {
+		violations.push({
+			category: evaluatorName,
 			metric: 'passRate',
-			expected: expectedPassRate,
+			expected: threshold.passRate,
 			actual: actualPassRate,
-			message: `${evaluatorName}: pass rate ${(actualPassRate * 100).toFixed(1)}% (${passedItems}/${items.length}) < threshold ${(expectedPassRate * 100).toFixed(1)}% (minScore: ${minScore.toFixed(2)})`,
-		};
+			message: `${evaluatorName}: pass rate ${(actualPassRate * 100).toFixed(1)}% (${passedItems}/${items.length}) < threshold ${(threshold.passRate * 100).toFixed(1)}% (minScore: ${minScore.toFixed(2)})`,
+		});
 	}
-
-	return null;
 }

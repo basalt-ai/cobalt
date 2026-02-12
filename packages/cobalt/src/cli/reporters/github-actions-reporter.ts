@@ -47,7 +47,7 @@ export class GitHubActionsReporter extends BaseReporter {
 			// Output violations as errors
 			for (const violation of ciStatus.violations) {
 				console.log(
-					`::error title=Threshold Violation::${violation.evaluator}: ${violation.message}`,
+					`::error title=Threshold Violation::${violation.category}: ${violation.message}`,
 				);
 			}
 
@@ -58,7 +58,7 @@ export class GitHubActionsReporter extends BaseReporter {
 
 			for (const violation of ciStatus.violations) {
 				this.summaryContent.push(
-					`| ${violation.evaluator} | ${violation.threshold} | ${violation.expected} | ${violation.actual} |\n`,
+					`| ${violation.category} | ${violation.metric} | ${violation.expected} | ${violation.actual} |\n`,
 				);
 			}
 			this.summaryContent.push('\n');
