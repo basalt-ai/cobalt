@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { getRunDetail } from '../api/runs';
 import type { ItemResult, RunDetailResponse } from '../api/types';
+import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
 import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
 import { MetricCard } from '../components/data/metric-card';
 import { ScoreBadge } from '../components/data/score-badge';
@@ -27,6 +28,30 @@ import {
 	formatDuration,
 	formatScore,
 } from '../lib/utils';
+
+/** Extract the actual output value from an ExperimentResult or raw value */
+function getOutputValue(output: unknown): unknown {
+	if (output && typeof output === 'object' && 'output' in output) {
+		return (output as { output: unknown }).output;
+	}
+	return output;
+}
+
+/** Extract metadata from an ExperimentResult */
+function getMetadata(output: unknown): Record<string, unknown> | undefined {
+	if (output && typeof output === 'object' && 'metadata' in output) {
+		return (output as { metadata?: Record<string, unknown> }).metadata ?? undefined;
+	}
+	return undefined;
+}
+
+/** Get tokens from item metadata */
+function getTokens(output: unknown): number | undefined {
+	const meta = getMetadata(output);
+	if (!meta) return undefined;
+	const tokens = meta.tokens;
+	return typeof tokens === 'number' ? tokens : undefined;
+}
 
 export function RunDetailPage() {
 	const { id } = useParams<{ id: string }>();
@@ -59,6 +84,10 @@ export function RunDetailPage() {
 
 	const { run } = data;
 	const evaluatorNames = Object.keys(run.summary.scores);
+	const avgTokens =
+		run.summary.totalTokens != null && run.summary.totalItems > 0
+			? Math.round(run.summary.totalTokens / run.summary.totalItems)
+			: undefined;
 
 	return (
 		<div className="space-y-6">
@@ -87,12 +116,16 @@ export function RunDetailPage() {
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 				<MetricCard label="Items" value={run.summary.totalItems} />
 				<MetricCard
-					label="Duration"
-					value={formatDuration(run.summary.totalDurationMs)}
-					detail={`avg ${formatDuration(run.summary.avgLatencyMs)}/item`}
+					label="Avg Latency"
+					value={formatDuration(run.summary.avgLatencyMs)}
+					detail={`total ${formatDuration(run.summary.totalDurationMs)}`}
 				/>
-				{run.summary.totalTokens != null && (
-					<MetricCard label="Tokens" value={run.summary.totalTokens.toLocaleString()} />
+				{avgTokens != null && (
+					<MetricCard
+						label="Avg Tokens"
+						value={avgTokens.toLocaleString()}
+						detail={`total ${run.summary.totalTokens!.toLocaleString()}`}
+					/>
 				)}
 				{run.summary.estimatedCost != null && (
 					<MetricCard label="Cost" value={`$${run.summary.estimatedCost.toFixed(4)}`} />
@@ -141,7 +174,6 @@ export function RunDetailPage() {
 
 function MetricsTabs({
 	run,
-	evaluatorNames,
 }: {
 	run: RunDetailResponse['run'];
 	evaluatorNames: string[];
@@ -151,6 +183,11 @@ function MetricsTabs({
 		[run.items],
 	);
 
+	const tokenStats = useMemo(() => {
+		const tokens = run.items.map((i) => getTokens(i.output)).filter((t): t is number => t != null);
+		return tokens.length > 0 ? computeClientStats(tokens) : null;
+	}, [run.items]);
+
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
 			<Tabs defaultValue="scores">
@@ -158,6 +195,7 @@ function MetricsTabs({
 					<TabsList>
 						<TabsTrigger value="scores">Scores</TabsTrigger>
 						<TabsTrigger value="latency">Latency</TabsTrigger>
+						{tokenStats && <TabsTrigger value="tokens">Tokens</TabsTrigger>}
 					</TabsList>
 				</div>
 
@@ -207,14 +245,32 @@ function MetricsTabs({
 				</TabsContent>
 
 				<TabsContent value="latency" className="mt-0">
-					<LatencyStatsTable stats={latencyStats} />
+					<GenericStatsTable label="Latency" stats={latencyStats} format={formatDuration} />
 				</TabsContent>
+
+				{tokenStats && (
+					<TabsContent value="tokens" className="mt-0">
+						<GenericStatsTable
+							label="Tokens"
+							stats={tokenStats}
+							format={(v) => Math.round(v).toLocaleString()}
+						/>
+					</TabsContent>
+				)}
 			</Tabs>
 		</div>
 	);
 }
 
-function LatencyStatsTable({ stats }: { stats: ClientStats }) {
+function GenericStatsTable({
+	label,
+	stats,
+	format,
+}: {
+	label: string;
+	stats: ClientStats;
+	format: (v: number) => string;
+}) {
 	return (
 		<div className="overflow-x-auto">
 			<table className="w-full text-sm">
@@ -231,22 +287,22 @@ function LatencyStatsTable({ stats }: { stats: ClientStats }) {
 				</thead>
 				<tbody>
 					<tr className="border-b last:border-0">
-						<td className="px-4 py-2.5 font-medium">Latency</td>
-						<td className="px-4 py-2.5 text-right tabular-nums">{formatDuration(stats.avg)}</td>
+						<td className="px-4 py-2.5 font-medium">{label}</td>
+						<td className="px-4 py-2.5 text-right tabular-nums">{format(stats.avg)}</td>
 						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-							{formatDuration(stats.min)}
+							{format(stats.min)}
 						</td>
 						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-							{formatDuration(stats.max)}
+							{format(stats.max)}
 						</td>
 						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-							{formatDuration(stats.p50)}
+							{format(stats.p50)}
 						</td>
 						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-							{formatDuration(stats.p95)}
+							{format(stats.p95)}
 						</td>
 						<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-							{formatDuration(stats.p99)}
+							{format(stats.p99)}
 						</td>
 					</tr>
 				</tbody>
@@ -265,6 +321,17 @@ function ItemsTable({
 	onItemClick: (item: ItemResult) => void;
 }) {
 	const [filters, setFilters] = useState<FilterValue[]>([]);
+	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
+
+	// Detect which optional columns have data
+	const hasTokens = useMemo(
+		() => run.items.some((item) => getTokens(item.output) != null),
+		[run.items],
+	);
+	const hasMetadata = useMemo(
+		() => run.items.some((item) => getMetadata(item.output) != null),
+		[run.items],
+	);
 
 	const filterDefs: FilterDef[] = useMemo(
 		() => [
@@ -277,6 +344,18 @@ function ItemsTable({
 			})),
 		],
 		[evaluatorNames],
+	);
+
+	const displayColumns = useMemo(
+		() => [
+			{ key: 'input', label: 'Input' },
+			{ key: 'output', label: 'Output' },
+			{ key: 'latency', label: 'Latency' },
+			...evaluatorNames.map((n) => ({ key: `eval_${n}`, label: n })),
+			...(hasTokens ? [{ key: 'tokens', label: 'Tokens' }] : []),
+			...(hasMetadata ? [{ key: 'metadata', label: 'Metadata' }] : []),
+		],
+		[evaluatorNames, hasTokens, hasMetadata],
 	);
 
 	// Apply filters to items
@@ -321,6 +400,7 @@ function ItemsTable({
 	}, [filteredItems]);
 
 	const hasErrors = filteredItems.some((item) => item.error);
+	const isVisible = (key: string) => columnVisibility[key] !== false;
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -329,75 +409,131 @@ function ItemsTable({
 					Items ({filteredItems.length}
 					{filteredItems.length !== run.items.length && ` of ${run.items.length}`})
 				</h2>
-				<FilterBar filters={filters} onFiltersChange={setFilters} filterDefs={filterDefs} />
+				<div className="flex items-center gap-2">
+					<FilterBar filters={filters} onFiltersChange={setFilters} filterDefs={filterDefs} />
+					<DisplayOptions
+						columns={displayColumns}
+						visibility={columnVisibility}
+						onVisibilityChange={setColumnVisibility}
+					/>
+				</div>
 			</div>
 			<div className="overflow-x-auto">
 				<table className="w-full text-sm">
 					<thead>
 						<tr className="border-b">
 							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground w-10">#</th>
-							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
-							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
-							<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
-								<div className="flex flex-col items-end gap-0.5">
-									<Clock className="inline h-3.5 w-3.5" />
-									<span className="text-[10px] tabular-nums">{formatDuration(avgLatency)}</span>
-								</div>
-							</th>
-							{evaluatorNames.map((name) => (
-								<th key={name} className="px-4 py-2.5 text-right font-medium text-muted-foreground">
+							{isVisible('input') && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
+							)}
+							{isVisible('output') && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
+							)}
+							{isVisible('latency') && (
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
 									<div className="flex flex-col items-end gap-0.5">
-										<span>{name}</span>
-										<ScoreBadge score={evaluatorAvgs[name]} />
+										<Clock className="inline h-3.5 w-3.5" />
+										<span className="text-[10px] tabular-nums">{formatDuration(avgLatency)}</span>
 									</div>
 								</th>
-							))}
+							)}
+							{evaluatorNames.map(
+								(name) =>
+									isVisible(`eval_${name}`) && (
+										<th
+											key={name}
+											className="px-4 py-2.5 text-right font-medium text-muted-foreground"
+										>
+											<div className="flex flex-col items-end gap-0.5">
+												<span>{name}</span>
+												<ScoreBadge score={evaluatorAvgs[name]} />
+											</div>
+										</th>
+									),
+							)}
+							{hasTokens && isVisible('tokens') && (
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Tokens</th>
+							)}
+							{hasMetadata && isVisible('metadata') && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
+									Metadata
+								</th>
+							)}
 							{hasErrors && (
 								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Error</th>
 							)}
 						</tr>
 					</thead>
 					<tbody>
-						{filteredItems.map((item) => (
-							<tr
-								key={item.index}
-								className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
-								onClick={() => onItemClick(item)}
-								onKeyDown={(e) => e.key === 'Enter' && onItemClick(item)}
-							>
-								<td className="px-4 py-2.5 tabular-nums text-muted-foreground">{item.index + 1}</td>
-								<td className="px-4 py-2.5 max-w-48">
-									<span className="line-clamp-2 text-xs text-muted-foreground">
-										{truncateValue(item.input)}
-									</span>
-								</td>
-								<td className="px-4 py-2.5 max-w-48">
-									<span className="line-clamp-2 text-xs">{truncateValue(item.output)}</span>
-								</td>
-								<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
-									{formatDuration(item.latencyMs)}
-								</td>
-								{evaluatorNames.map((name) => (
-									<td key={name} className="px-4 py-2.5 text-right">
-										{item.evaluations[name] ? (
-											<ScoreBadge score={item.evaluations[name].score} />
-										) : (
-											<span className="text-muted-foreground">-</span>
-										)}
+						{filteredItems.map((item) => {
+							const outputVal = getOutputValue(item.output);
+							const meta = getMetadata(item.output);
+							const tokens = getTokens(item.output);
+
+							return (
+								<tr
+									key={item.index}
+									className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
+									onClick={() => onItemClick(item)}
+									onKeyDown={(e) => e.key === 'Enter' && onItemClick(item)}
+								>
+									<td className="px-4 py-2.5 tabular-nums text-muted-foreground">
+										{item.index + 1}
 									</td>
-								))}
-								{hasErrors && (
-									<td className="px-4 py-2.5">
-										{item.error && (
-											<Badge color="tomato" size="xs" variant="outline">
-												<Warning className="h-3 w-3 mr-0.5" />
-												Error
-											</Badge>
-										)}
-									</td>
-								)}
-							</tr>
-						))}
+									{isVisible('input') && (
+										<td className="px-4 py-2.5 max-w-48">
+											<span className="line-clamp-2 text-xs text-muted-foreground">
+												{truncateValue(item.input)}
+											</span>
+										</td>
+									)}
+									{isVisible('output') && (
+										<td className="px-4 py-2.5 max-w-48">
+											<span className="line-clamp-2 text-xs">{truncateValue(outputVal)}</span>
+										</td>
+									)}
+									{isVisible('latency') && (
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground whitespace-nowrap">
+											{formatDuration(item.latencyMs)}
+										</td>
+									)}
+									{evaluatorNames.map(
+										(name) =>
+											isVisible(`eval_${name}`) && (
+												<td key={name} className="px-4 py-2.5 text-right">
+													{item.evaluations[name] ? (
+														<ScoreBadge score={item.evaluations[name].score} />
+													) : (
+														<span className="text-muted-foreground">-</span>
+													)}
+												</td>
+											),
+									)}
+									{hasTokens && isVisible('tokens') && (
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{tokens != null ? tokens.toLocaleString() : '-'}
+										</td>
+									)}
+									{hasMetadata && isVisible('metadata') && (
+										<td className="px-4 py-2.5 max-w-48">
+											<span className="line-clamp-2 text-xs text-muted-foreground">
+												{meta ? truncateValue(meta) : '-'}
+											</span>
+										</td>
+									)}
+									{hasErrors && (
+										<td className="px-4 py-2.5">
+											{item.error && (
+												<Badge color="tomato" size="xs" variant="outline">
+													<Warning className="h-3 w-3 mr-0.5" />
+													Error
+												</Badge>
+											)}
+										</td>
+									)}
+								</tr>
+							);
+						})}
 					</tbody>
 				</table>
 			</div>
@@ -413,6 +549,9 @@ function ItemDetailDialog({
 	onClose: () => void;
 }) {
 	if (!item) return null;
+
+	const outputVal = getOutputValue(item.output);
+	const meta = getMetadata(item.output);
 
 	return (
 		<Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
@@ -433,9 +572,18 @@ function ItemDetailDialog({
 					<div>
 						<h4 className="text-xs font-medium text-muted-foreground mb-1">Output</h4>
 						<pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap">
-							{typeof item.output === 'string' ? item.output : JSON.stringify(item.output, null, 2)}
+							{typeof outputVal === 'string' ? outputVal : JSON.stringify(outputVal, null, 2)}
 						</pre>
 					</div>
+
+					{meta && (
+						<div>
+							<h4 className="text-xs font-medium text-muted-foreground mb-1">Metadata</h4>
+							<pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap">
+								{JSON.stringify(meta, null, 2)}
+							</pre>
+						</div>
+					)}
 
 					{item.error && (
 						<div>

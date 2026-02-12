@@ -144,7 +144,7 @@ export function ComparePage() {
 													<span className="text-xs text-muted-foreground">
 														{RUN_COLORS[i].label} vs A
 													</span>
-													<ScoreChange value={d * 100} />
+													<ScoreChange value={d} />
 												</div>
 											),
 									)}
@@ -307,7 +307,7 @@ function CompareItemsTable({
 										{item.outputs.map((out, idx) => (
 											// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
 											<span key={idx} className="line-clamp-2 text-xs">
-												{out ? truncateValue(out.output) : '-'}
+												{out ? truncateValue(getOutputValue(out.output)) : '-'}
 											</span>
 										))}
 									</ColumnCell>
@@ -347,6 +347,14 @@ function CompareItemsTable({
 			</div>
 		</div>
 	);
+}
+
+/** Extract the actual output value from an ExperimentResult or raw value */
+function getOutputValue(output: unknown): unknown {
+	if (output && typeof output === 'object' && 'output' in output) {
+		return (output as { output: unknown }).output;
+	}
+	return output;
 }
 
 function truncateValue(value: unknown): string {
