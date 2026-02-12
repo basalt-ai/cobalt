@@ -320,7 +320,7 @@ npx cobalt clean
 The CLI reporter should display clear, readable output in real time:
 
 ```
- cobalt v0.1.0
+ cobalt
 
  Running: experiments/my-agent.cobalt.ts
 

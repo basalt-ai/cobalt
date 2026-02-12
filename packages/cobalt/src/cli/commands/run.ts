@@ -44,7 +44,7 @@ export default defineCommand({
 			// dotenv not available, skip
 		}
 
-		console.log(pc.bold('\n🔷 Cobalt v0.1.0\n'));
+		console.log(pc.bold('\n🔷 Cobalt\n'));
 
 		try {
 			// Load configuration
