@@ -49,18 +49,14 @@ export default defineCommand({
 				files = [filepath];
 			} else {
 				// Find all experiment files
+				// Search in testDir if it exists, otherwise fall back to cwd
 				const testDir = resolve(process.cwd(), config.testDir);
+				const searchDir = existsSync(testDir) ? testDir : process.cwd();
 
-				if (!existsSync(testDir)) {
-					console.error(pc.red(`\n❌ Test directory not found: ${testDir}`));
-					console.log(pc.dim('Run "npx cobalt init" to create the project structure\n'));
-					process.exit(1);
-				}
-
-				files = await findExperimentFiles(testDir, config.testMatch);
+				files = await findExperimentFiles(searchDir, config.testMatch);
 
 				if (files.length === 0) {
-					console.error(pc.red(`\n❌ No experiment files found in ${testDir}`));
+					console.error(pc.red('\n❌ No experiment files found'));
 					console.log(pc.dim('Create files matching patterns:'), config.testMatch.join(', '));
 					console.log(pc.dim('Or run "npx cobalt init" to create an example\n'));
 					process.exit(1);
@@ -167,13 +163,35 @@ async function findExperimentFiles(dir: string, patterns: string[]): Promise<str
  * Simple pattern matching (supports ** and *)
  */
 function matchPattern(path: string, pattern: string): boolean {
-	// Convert glob pattern to regex
-	const regexPattern = pattern
-		.replace(/\./g, '\\.')
-		.replace(/\*\*/g, '.*')
-		.replace(/\*/g, '[^/]*')
-		.replace(/\?/g, '.');
+	// Convert glob pattern to regex character by character
+	// to avoid chained .replace() corrupting intermediate results
+	let regexStr = '';
+	let i = 0;
 
-	const regex = new RegExp(`^${regexPattern}$`);
-	return regex.test(path);
+	while (i < pattern.length) {
+		if (pattern[i] === '*' && pattern[i + 1] === '*') {
+			if (pattern[i + 2] === '/') {
+				// **/ matches zero or more directories
+				regexStr += '(.*/)?';
+				i += 3;
+			} else {
+				regexStr += '.*';
+				i += 2;
+			}
+		} else if (pattern[i] === '*') {
+			regexStr += '[^/]*';
+			i++;
+		} else if (pattern[i] === '?') {
+			regexStr += '.';
+			i++;
+		} else if (pattern[i] === '.') {
+			regexStr += '\\.';
+			i++;
+		} else {
+			regexStr += pattern[i];
+			i++;
+		}
+	}
+
+	return new RegExp(`^${regexStr}$`).test(path);
 }

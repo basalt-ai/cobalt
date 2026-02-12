@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { defu } from 'defu';
 import { createJiti } from 'jiti';
 import type { CobaltConfig } from '../types/index.js';
 
@@ -30,12 +29,27 @@ const DEFAULT_CONFIG: CobaltConfig = {
 };
 
 /**
+ * Merge user config with defaults.
+ * Arrays are replaced (not concatenated) so reporters/testMatch
+ * don't accumulate duplicates across defineConfig + loadConfig.
+ */
+function mergeWithDefaults(config: Partial<CobaltConfig>): CobaltConfig {
+	return {
+		...DEFAULT_CONFIG,
+		...config,
+		judge: { ...DEFAULT_CONFIG.judge, ...(config.judge ?? {}) },
+		dashboard: { ...DEFAULT_CONFIG.dashboard, ...(config.dashboard ?? {}) },
+		cache: { ...DEFAULT_CONFIG.cache, ...(config.cache ?? {}) },
+	};
+}
+
+/**
  * Define a Cobalt configuration
  * @param config - Partial configuration object
  * @returns Merged configuration with defaults
  */
 export function defineConfig(config: Partial<CobaltConfig>): CobaltConfig {
-	return defu(config, DEFAULT_CONFIG) as CobaltConfig;
+	return mergeWithDefaults(config);
 }
 
 /**
@@ -84,14 +98,14 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<CobaltCon
 			const { readFileSync } = await import('node:fs');
 			const configContent = readFileSync(configPath, 'utf-8');
 			const config = JSON.parse(configContent);
-			return defu(config, DEFAULT_CONFIG) as CobaltConfig;
+			return mergeWithDefaults(config);
 		}
 		const jiti = createJiti(import.meta.url, {
 			interopDefault: true,
 		});
 		const configModule = jiti(configPath);
 		const config = configModule.default || configModule;
-		return defu(config, DEFAULT_CONFIG) as CobaltConfig;
+		return mergeWithDefaults(config);
 	} catch (error) {
 		console.error(`Failed to load config from ${configPath}:`, error);
 		console.warn('Using default configuration');
