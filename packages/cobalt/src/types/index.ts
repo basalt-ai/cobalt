@@ -234,7 +234,6 @@ export interface CobaltConfig {
 	testDir: string;
 	testMatch: string[];
 	judge: JudgeConfig;
-	outputDir: string;
 	concurrency: number;
 	timeout: number;
 	reporters: ReporterType[];

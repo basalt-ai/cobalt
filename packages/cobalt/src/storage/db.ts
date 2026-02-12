@@ -11,7 +11,7 @@ import type { ExperimentReport, ResultFilter, ResultSummary } from '../types/ind
 export class HistoryDB {
 	private db: Database.Database;
 
-	constructor(dbPath = '.cobalt/history.db') {
+	constructor(dbPath = '.cobalt/data/history.db') {
 		const fullPath = resolve(process.cwd(), dbPath);
 
 		// Ensure directory exists

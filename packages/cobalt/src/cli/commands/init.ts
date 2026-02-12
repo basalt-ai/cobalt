@@ -1,8 +1,14 @@
 import { existsSync } from 'node:fs';
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { defineCommand } from 'citty';
 import pc from 'picocolors';
+import {
+	ensureCobaltGitignore,
+	generateSkillsFile,
+	integrateWithAITools,
+	printAIFilesSuggestion,
+} from '../utils/skills.js';
 
 export default defineCommand({
 	meta: {
@@ -42,19 +48,22 @@ export default defineCommand({
 				console.log(pc.yellow('⚠ experiments/example.cobalt.ts already exists, skipping...'));
 			}
 
-			// 4. Update .gitignore
-			const gitignorePath = resolve(cwd, '.gitignore');
-			if (existsSync(gitignorePath)) {
-				const content = await readFile(gitignorePath, 'utf-8');
-				if (!content.includes('.cobalt/')) {
-					await appendFile(gitignorePath, '\n# Cobalt\n.cobalt/\n');
-					console.log(pc.green('✓ Updated .gitignore'));
-				} else {
-					console.log(pc.yellow('⚠ .gitignore already includes .cobalt/, skipping...'));
-				}
-			} else {
-				await writeFile(gitignorePath, '# Cobalt\n.cobalt/\n');
-				console.log(pc.green('✓ Created .gitignore'));
+			// 4. Create .cobalt/.gitignore (ignores data/, tracks SKILLS.md)
+			const gitignoreCreated = await ensureCobaltGitignore(cwd);
+			if (gitignoreCreated) {
+				console.log(pc.green('✓ Created .cobalt/.gitignore'));
+			}
+
+			// 5. Generate .cobalt/SKILLS.md
+			const skillsCreated = await generateSkillsFile(cwd);
+			if (skillsCreated) {
+				console.log(pc.green('✓ Generated .cobalt/SKILLS.md'));
+			}
+
+			// 6. Auto-detect AI instruction files and append reference
+			const updatedFiles = await integrateWithAITools(cwd);
+			for (const file of updatedFiles) {
+				console.log(pc.green(`✓ Added Cobalt reference to ${file}`));
 			}
 
 			// Success message
@@ -62,7 +71,14 @@ export default defineCommand({
 			console.log(pc.dim('Next steps:'));
 			console.log(pc.dim('  1. Set your API key: export OPENAI_API_KEY=<your-key>'));
 			console.log(pc.dim('  2. Run the example: npx cobalt run'));
-			console.log(pc.dim('  3. Edit experiments/example.cobalt.ts to test your own agent\n'));
+			console.log(pc.dim('  3. Edit experiments/example.cobalt.ts to test your own agent'));
+
+			// If no AI files were found, suggest creating one
+			if (updatedFiles.length === 0) {
+				printAIFilesSuggestion();
+			}
+
+			console.log('');
 		} catch (error) {
 			console.error(pc.red('\n❌ Initialization failed:'), error);
 			process.exit(1);
@@ -71,7 +87,7 @@ export default defineCommand({
 });
 
 // Configuration template
-const CONFIG_TEMPLATE = `import { defineConfig } from 'cobalt'
+const CONFIG_TEMPLATE = `import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
   // Directory containing experiment files
@@ -86,9 +102,6 @@ export default defineConfig({
     provider: 'openai',
     // API key will be read from OPENAI_API_KEY environment variable
   },
-
-  // Output directory for results
-  outputDir: '.cobalt',
 
   // Default concurrency for running experiments
   concurrency: 5,
@@ -114,7 +127,7 @@ export default defineConfig({
 `;
 
 // Example experiment template
-const EXAMPLE_EXPERIMENT_TEMPLATE = `import { experiment, Evaluator, Dataset } from 'cobalt'
+const EXAMPLE_EXPERIMENT_TEMPLATE = `import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
 
 // Define evaluators
 const evaluators = [

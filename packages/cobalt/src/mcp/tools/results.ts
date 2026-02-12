@@ -1,4 +1,3 @@
-import { loadConfig } from '../../core/config.js';
 import { HistoryDB } from '../../storage/db.js';
 import { loadResult } from '../../storage/results.js';
 
@@ -30,11 +29,9 @@ export const cobaltResultsTool = {
 
 export async function handleCobaltResults(args: any) {
 	try {
-		const config = await loadConfig();
-
 		if (args.runId) {
 			// Get specific run details
-			const report = await loadResult(args.runId, config.outputDir);
+			const report = await loadResult(args.runId);
 
 			return {
 				content: [
@@ -46,7 +43,7 @@ export async function handleCobaltResults(args: any) {
 			};
 		}
 		// List recent runs
-		const db = new HistoryDB(`${config.outputDir}/history.db`);
+		const db = new HistoryDB();
 
 		const filter: any = {};
 		if (args.experiment) filter.experiment = args.experiment;

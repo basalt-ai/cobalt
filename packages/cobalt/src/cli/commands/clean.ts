@@ -3,8 +3,6 @@ import { readdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { defineCommand } from 'citty';
 import pc from 'picocolors';
-import { loadConfig } from '../../core/config.js';
-
 export default defineCommand({
 	meta: {
 		name: 'clean',
@@ -34,10 +32,9 @@ export default defineCommand({
 	},
 	async run({ args }) {
 		try {
-			const config = await loadConfig();
-			const outputDir = resolve(process.cwd(), config.outputDir);
+			const dataDir = resolve(process.cwd(), '.cobalt', 'data');
 
-			if (!existsSync(outputDir)) {
+			if (!existsSync(dataDir)) {
 				console.log(pc.yellow('\nNo .cobalt directory found.\n'));
 				return;
 			}
@@ -51,14 +48,14 @@ export default defineCommand({
 			const toDelete: string[] = [];
 
 			if (cleanCache) {
-				const cachePath = join(outputDir, 'cache');
+				const cachePath = join(dataDir, 'cache');
 				if (existsSync(cachePath)) {
 					toDelete.push('Cache');
 				}
 			}
 
 			if (cleanResults) {
-				const resultsPath = join(outputDir, 'results');
+				const resultsPath = join(dataDir, 'results');
 				if (existsSync(resultsPath)) {
 					const files = await readdir(resultsPath);
 
@@ -105,7 +102,7 @@ export default defineCommand({
 
 			// Perform cleanup
 			if (cleanCache) {
-				const cachePath = join(outputDir, 'cache');
+				const cachePath = join(dataDir, 'cache');
 				if (existsSync(cachePath)) {
 					await rm(cachePath, { recursive: true, force: true });
 					console.log(pc.green('✓ Cache cleaned'));
@@ -113,7 +110,7 @@ export default defineCommand({
 			}
 
 			if (cleanResults) {
-				const resultsPath = join(outputDir, 'results');
+				const resultsPath = join(dataDir, 'results');
 
 				if (args.days) {
 					const daysOld = Number.parseInt(args.days, 10);
@@ -138,7 +135,7 @@ export default defineCommand({
 						console.log(pc.green('✓ All results cleaned'));
 					}
 
-					const historyPath = join(outputDir, 'history.db');
+					const historyPath = join(dataDir, 'history.db');
 					if (existsSync(historyPath)) {
 						await rm(historyPath);
 						console.log(pc.green('✓ History database cleaned'));

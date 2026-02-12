@@ -1,0 +1,885 @@
+<!-- cobalt-skills-version: {{VERSION}} -->
+# Cobalt — AI Agent Testing Framework
+
+> You are working on a project that uses **Cobalt**, a TypeScript testing framework
+> for AI agents and LLM applications. Use this guide as your complete reference.
+
+## Overview
+
+Cobalt is "Jest for AI Agents." It lets you write **experiments** that run your agent against
+a **dataset**, score the outputs with **evaluators**, and track results over time. The core
+loop is: experiment = dataset x runner x evaluators.
+
+**Key concepts:**
+
+| Concept | Description |
+|---------|-------------|
+| **Experiment** | A test run: dataset + runner + evaluators. Defined in `*.cobalt.ts` files. |
+| **Dataset** | A collection of test items (inputs, expected outputs, metadata). |
+| **Runner** | An async function that calls your agent and returns output. |
+| **Evaluator** | Scores the agent's output (0.0 to 1.0). Can be LLM-based or programmatic. |
+| **Run** | A single execution of an experiment. Stored with a unique ID. |
+
+## Project Structure
+
+```
+cobalt.config.ts          # Configuration
+experiments/              # Experiment files (*.cobalt.ts, *.experiment.ts)
+.cobalt/                  # Cobalt runtime directory
+    SKILLS.md             # This file (AI assistant guide)
+    data/                 # Runtime data (add to .gitignore)
+      results/            # JSON result files from each run
+      cache/              # LLM judge response cache
+      history.db          # SQLite history database
+```
+
+Add `.cobalt/data/` to `.gitignore`. Keep `.cobalt/SKILLS.md` checked in so every AI assistant
+that opens the project can read it.
+
+---
+
+## Quick Start
+
+### 1. Install
+
+```bash
+npm install @basalt-ai/cobalt
+```
+
+### 2. Initialize
+
+```bash
+npx cobalt init
+```
+
+This creates `cobalt.config.ts`, the `experiments/` directory, and `.cobalt/SKILLS.md`.
+
+### 3. Set your API key
+
+```bash
+export OPENAI_API_KEY="sk-..."
+# or
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### 4. Write your first experiment
+
+Create `experiments/hello.cobalt.ts`:
+
+```typescript
+import { experiment, Dataset } from '@basalt-ai/cobalt'
+
+const dataset = new Dataset({
+  items: [
+    { input: 'What is 2+2?', expectedOutput: '4' },
+    { input: 'Capital of France?', expectedOutput: 'Paris' },
+    { input: 'Is the sky blue?', expectedOutput: 'Yes' },
+  ],
+})
+
+await experiment('hello-world', dataset, async ({ item }) => {
+  // Replace this with your actual agent call
+  const response = await myAgent(item.input)
+  return { output: response }
+}, {
+  evaluators: [
+    {
+      name: 'correctness',
+      type: 'llm-judge',
+      prompt: 'Rate if the output "{{output}}" correctly answers "{{input}}". Expected: "{{expectedOutput}}".',
+    },
+    {
+      name: 'exact',
+      type: 'exact-match',
+      field: 'expectedOutput',
+    },
+  ],
+})
+```
+
+### 5. Run
+
+```bash
+npx cobalt run
+```
+
+Results are saved to `.cobalt/data/results/` and printed to the terminal.
+
+---
+
+## Writing Experiments
+
+### The experiment() function
+
+```typescript
+import { experiment, Dataset, Evaluator } from '@basalt-ai/cobalt'
+
+await experiment(
+  name: string,
+  dataset: Dataset,
+  runner: RunnerFunction,
+  options: ExperimentOptions,
+): Promise<ExperimentReport>
+```
+
+**Parameters:**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `name` | `string` | Unique experiment name. Used in history and result filenames. |
+| `dataset` | `Dataset` | Dataset of test items to run the agent against. |
+| `runner` | `RunnerFunction` | Async function that calls your agent and returns output. |
+| `options` | `ExperimentOptions` | Evaluators, concurrency, runs, tags, thresholds. |
+
+### Runner function
+
+The runner receives a `RunnerContext` and must return an `ExperimentResult`:
+
+```typescript
+interface RunnerContext {
+  item: ExperimentItem   // The current dataset item (Record<string, any>)
+  index: number          // Index of the item in the dataset
+  runIndex: number       // Run number (0-based, relevant when runs > 1)
+}
+
+interface ExperimentResult {
+  output: string | Record<string, any>   // The agent's output
+  metadata?: Record<string, any>         // Optional metadata (tokens, latency, etc.)
+}
+```
+
+Example runner that calls an OpenAI-based agent:
+
+```typescript
+async ({ item }) => {
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: item.input }],
+  })
+  return {
+    output: response.choices[0].message.content ?? '',
+    metadata: {
+      tokens: {
+        input: response.usage?.prompt_tokens,
+        output: response.usage?.completion_tokens,
+      },
+    },
+  }
+}
+```
+
+### Experiment options
+
+```typescript
+interface ExperimentOptions {
+  evaluators: (EvaluatorConfig | Evaluator)[]  // Required: list of evaluators
+  runs?: number          // Number of times to run each item (default: 1)
+  concurrency?: number   // Max parallel runner calls (default: 5)
+  timeout?: number       // Per-item timeout in ms (default: 30000)
+  tags?: string[]        // Tags for filtering in history
+  name?: string          // Override the experiment name
+  thresholds?: ThresholdConfig  // CI mode thresholds (see CI/CD section)
+}
+```
+
+### Multiple runs
+
+Set `runs` to a value greater than 1 to run each dataset item multiple times. Cobalt aggregates
+results across runs and computes per-item statistics (mean, stddev, min, max, p50, p95).
+
+```typescript
+await experiment('stability-test', dataset, runner, {
+  evaluators: [...],
+  runs: 5,
+  concurrency: 3,
+})
+```
+
+---
+
+## Datasets
+
+### Creating datasets
+
+**Inline items:**
+
+```typescript
+import { Dataset } from '@basalt-ai/cobalt'
+
+const dataset = new Dataset({
+  items: [
+    { input: 'Hello', expectedOutput: 'Hi there' },
+    { input: 'Bye', expectedOutput: 'Goodbye' },
+  ],
+})
+```
+
+**From JSON file:**
+
+```typescript
+const dataset = Dataset.fromJSON('./data/test-cases.json')
+// File can be an array: [{ input: "..." }, ...]
+// Or an object: { items: [{ input: "..." }, ...] }
+```
+
+**From CSV file:**
+
+```typescript
+const dataset = Dataset.fromCSV('./data/test-cases.csv')
+// First row is used as header. Each subsequent row becomes an item.
+```
+
+**From JSONL file:**
+
+```typescript
+const dataset = Dataset.fromJSONL('./data/test-cases.jsonl')
+// One JSON object per line.
+```
+
+**Auto-detect from file extension:**
+
+```typescript
+const dataset = Dataset.fromFile('./data/test-cases.json')
+// Detects .json, .jsonl, or .csv by extension.
+```
+
+### Transformations
+
+All transformations are immutable and chainable. They return a new `Dataset` instance.
+
+```typescript
+const subset = dataset
+  .filter(item => item.category === 'hard')   // Keep items matching predicate
+  .map(item => ({ ...item, input: item.input.trim() }))  // Transform each item
+  .sample(20)                                   // Take random subset of 20
+  .slice(0, 10)                                 // Take first 10
+```
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `filter` | `(predicate: (item, index) => boolean) => Dataset` | Keep items matching predicate |
+| `map` | `(fn: (item, index) => T) => Dataset` | Transform each item |
+| `sample` | `(n: number) => Dataset` | Random sample of n items |
+| `slice` | `(start: number, end?: number) => Dataset` | Slice by index range |
+
+**Utility methods:**
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `getItems()` | `() => T[]` | Return all items as an array |
+| `length` | `number` (getter) | Number of items in the dataset |
+
+### Dataset best practices
+
+- Keep datasets in standalone JSON/CSV files under a `data/` directory for reuse.
+- Use `sample()` during development to iterate quickly on a small subset.
+- Include an `expectedOutput` field when using `exact-match` or `llm-judge` evaluators that reference it.
+- Each item is a `Record<string, any>` -- use any fields you want. The runner and evaluators
+  access them via `item.yourField`.
+
+---
+
+## Evaluators
+
+Cobalt ships four built-in evaluator types plus an autoevals integration. Pass evaluators as
+plain config objects or as `Evaluator` class instances.
+
+### LLM Judge
+
+Uses an LLM to score agent output. Best for subjective quality assessments.
+
+```typescript
+{
+  name: 'quality',
+  type: 'llm-judge',
+  prompt: 'Rate the quality of this answer.\nQuestion: {{input}}\nAnswer: {{output}}\nExpected: {{expectedOutput}}',
+  model: 'gpt-4o-mini',  // Optional. Defaults to config judge model.
+}
+```
+
+**Template variables** available in the `prompt` string:
+
+| Variable | Value |
+|----------|-------|
+| `{{input}}` | `item.input` (or the full item if `item.input` is undefined) |
+| `{{output}}` | The runner's output |
+| `{{expectedOutput}}` | `item.expectedOutput` |
+| `{{metadata}}` | Runner metadata object |
+| `{{anyField}}` | Any field from the dataset item (e.g., `{{category}}`, `{{context}}`) |
+
+The LLM is instructed to return `{ "score": 0.0-1.0, "reason": "..." }`. Cobalt parses the
+JSON response automatically.
+
+### Function Evaluator
+
+Use a custom function for programmatic scoring. Best for deterministic checks.
+
+```typescript
+{
+  name: 'contains-keyword',
+  type: 'function',
+  fn: (context) => {
+    const output = typeof context.output === 'string'
+      ? context.output
+      : JSON.stringify(context.output)
+    const hasKeyword = output.toLowerCase().includes('keyword')
+    return {
+      score: hasKeyword ? 1 : 0,
+      reason: hasKeyword ? 'Contains keyword' : 'Missing keyword',
+    }
+  },
+}
+```
+
+The function receives an `EvalContext`:
+
+```typescript
+interface EvalContext {
+  item: ExperimentItem                    // The dataset item
+  output: string | Record<string, any>    // The runner's output
+  metadata?: Record<string, any>          // Runner metadata
+}
+```
+
+It must return an `EvalResult`:
+
+```typescript
+interface EvalResult {
+  score: number    // 0.0 to 1.0
+  reason?: string  // Human-readable explanation
+}
+```
+
+### Exact Match
+
+Compares the runner output against a field in the dataset item.
+
+```typescript
+{
+  name: 'exact',
+  type: 'exact-match',
+  field: 'expectedOutput',       // Field name on the dataset item to compare against
+  caseSensitive: true,           // Default: true
+}
+```
+
+Returns score `1` if the output matches the item field exactly, `0` otherwise.
+
+### Autoevals
+
+Wraps the `autoevals` library for pre-built evaluation strategies.
+
+```typescript
+{
+  name: 'factual',
+  type: 'autoevals',
+  evaluatorType: 'Factuality',
+  expectedField: 'expectedOutput',   // Optional: field on item for expected value
+  options: {},                       // Optional: extra options for the evaluator
+}
+```
+
+Available `evaluatorType` values:
+
+| Type | Description |
+|------|-------------|
+| `Factuality` | Checks factual accuracy against expected output |
+| `Levenshtein` | Edit distance between output and expected |
+| `ClosedQA` | Evaluates answer quality for closed questions |
+| `ContextRecall` | Measures how much context is recalled |
+| `ContextPrecision` | Measures context precision |
+| `AnswerRelevancy` | Rates answer relevance to the question |
+| `Json` | Validates JSON structure |
+| `Battle` | Compares two outputs head-to-head |
+| `Humor` | Rates humor quality |
+| `Embedding` | Semantic similarity via embeddings |
+| `Security` | Checks for security issues in output |
+
+### Using the Evaluator class
+
+For reuse or advanced configuration, instantiate the `Evaluator` class directly:
+
+```typescript
+import { Evaluator } from '@basalt-ai/cobalt'
+
+const qualityEval = new Evaluator({
+  name: 'quality',
+  type: 'llm-judge',
+  prompt: 'Rate the quality: {{output}}',
+})
+
+await experiment('test', dataset, runner, {
+  evaluators: [qualityEval],
+})
+```
+
+### Mixing evaluator styles
+
+Pass a mix of plain config objects and `Evaluator` instances. Cobalt normalizes them internally.
+
+```typescript
+await experiment('mixed', dataset, runner, {
+  evaluators: [
+    { name: 'exact', type: 'exact-match', field: 'expectedOutput' },
+    new Evaluator({ name: 'quality', type: 'llm-judge', prompt: '...' }),
+    { name: 'length-check', type: 'function', fn: (ctx) => ({
+      score: typeof ctx.output === 'string' && ctx.output.length > 10 ? 1 : 0,
+      reason: 'Length check',
+    }) },
+  ],
+})
+```
+
+---
+
+## CLI Commands
+
+Run all commands with `npx cobalt <command>` or, if installed globally, `cobalt <command>`.
+
+### cobalt run [file]
+
+Run experiments.
+
+```bash
+npx cobalt run                          # Run all experiments in testDir
+npx cobalt run experiments/qa.cobalt.ts # Run a specific file
+npx cobalt run --filter "qa"            # Filter experiments by name
+npx cobalt run --concurrency 10         # Override concurrency
+```
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--file <path>` | `-f` | Specific experiment file to run |
+| `--filter <name>` | `-n` | Filter experiments by name (substring match) |
+| `--concurrency <n>` | `-c` | Override concurrency setting |
+
+### cobalt init
+
+Initialize a new Cobalt project. Creates `cobalt.config.ts`, `experiments/` directory, and
+`.cobalt/SKILLS.md`.
+
+```bash
+npx cobalt init
+```
+
+### cobalt history
+
+View past experiment runs from the SQLite history database.
+
+```bash
+npx cobalt history                      # Show all runs
+npx cobalt history --limit 5            # Show last 5 runs
+npx cobalt history --experiment "qa"    # Filter by experiment name
+```
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--limit <n>` | `-n` | Maximum number of runs to show |
+| `--experiment <name>` | `-e` | Filter by experiment name |
+
+### cobalt compare <id1> <id2>
+
+Compare two experiment runs side by side. Shows score differences, regressions, and improvements
+per evaluator and per item.
+
+```bash
+npx cobalt compare abc123 def456
+```
+
+### cobalt serve
+
+Start the dashboard web server to browse results visually.
+
+```bash
+npx cobalt serve                # Start on default port (4000)
+npx cobalt serve --port 8080    # Custom port
+```
+
+### cobalt clean
+
+Remove cached data and old results.
+
+```bash
+npx cobalt clean --force                 # Delete everything (cache + results)
+npx cobalt clean --cache --force         # Delete only cache
+npx cobalt clean --results --force       # Delete only results
+npx cobalt clean --days 30 --force       # Delete results older than 30 days
+```
+
+| Flag | Alias | Description |
+|------|-------|-------------|
+| `--cache` | `-c` | Only clean cache |
+| `--results` | `-r` | Only clean results |
+| `--days <n>` | `-d` | Delete results older than n days |
+| `--force` | `-f` | Skip confirmation prompt |
+
+### cobalt mcp
+
+Start the Cobalt MCP (Model Context Protocol) server for AI assistant integration.
+
+```bash
+npx cobalt mcp
+```
+
+### cobalt update
+
+Regenerate `.cobalt/SKILLS.md`, integrate with AI instruction files, and check for SDK updates.
+
+```bash
+npx cobalt update              # Update skills and check for new SDK version
+npx cobalt update --check      # Exit 0 if current, exit 1 if outdated (for CI)
+```
+
+---
+
+## MCP Integration
+
+The MCP server lets AI assistants (Claude Code, Cursor, etc.) run experiments, read results,
+compare runs, and generate experiments programmatically.
+
+### Setup
+
+Add the Cobalt MCP server to your assistant's configuration.
+
+**Claude Code / Claude Desktop** -- add to `.mcp.json` or `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "cobalt": {
+      "command": "npx",
+      "args": ["cobalt", "mcp"],
+      "env": {
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}
+```
+
+### MCP Tools
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `cobalt_run` | Run an experiment file and return structured results | `file` (required), `filter`, `concurrency` |
+| `cobalt_results` | List recent runs or get detailed results for a specific run | `runId`, `limit`, `experiment` |
+| `cobalt_compare` | Compare two runs and return score diffs, regressions, improvements | `runA` (required), `runB` (required) |
+| `cobalt_generate` | Analyze agent source code and auto-generate an experiment file | `agentFile` (required), `outputFile`, `datasetSize` |
+
+### MCP Resources
+
+| URI | Description |
+|-----|-------------|
+| `cobalt://config` | Current Cobalt configuration |
+| `cobalt://experiments` | List of experiment files in the project |
+| `cobalt://latest-results` | Most recent experiment results |
+
+### MCP Prompts
+
+| Prompt | Description | Arguments |
+|--------|-------------|-----------|
+| `improve-agent` | Analyze experiment failures and suggest code improvements | `runId` (required) |
+| `generate-tests` | Generate additional test cases to improve coverage | `experimentFile` (required), `focus` (optional: `edge-cases`, `adversarial`, `coverage`) |
+| `regression-check` | Compare two runs and identify regressions | `baselineRunId` (required), `currentRunId` (required) |
+
+---
+
+## The Reinforcement Loop
+
+Use Cobalt in a feedback loop: run experiments, analyze failures, improve the agent, repeat.
+This is the core workflow for systematically improving AI agent quality.
+
+### Step 1: Write the initial experiment
+
+Create `experiments/my-agent.cobalt.ts`:
+
+```typescript
+import { experiment, Dataset } from '@basalt-ai/cobalt'
+import { myAgent } from '../src/agent'
+
+const dataset = Dataset.fromJSON('./data/test-cases.json')
+
+await experiment('my-agent-quality', dataset, async ({ item }) => {
+  const result = await myAgent(item.input)
+  return { output: result }
+}, {
+  evaluators: [
+    {
+      name: 'correctness',
+      type: 'llm-judge',
+      prompt: 'Is this output correct for the given input?\nInput: {{input}}\nOutput: {{output}}\nExpected: {{expectedOutput}}',
+    },
+    {
+      name: 'relevance',
+      type: 'llm-judge',
+      prompt: 'Is the output relevant and on-topic?\nInput: {{input}}\nOutput: {{output}}',
+    },
+    {
+      name: 'exact',
+      type: 'exact-match',
+      field: 'expectedOutput',
+    },
+  ],
+  tags: ['v1'],
+})
+```
+
+### Step 2: Run the experiment and capture the baseline
+
+```bash
+npx cobalt run experiments/my-agent.cobalt.ts
+```
+
+Note the run ID from the output (e.g., `a1b2c3d4e5f6`).
+
+### Step 3: Analyze failures
+
+Use the CLI:
+
+```bash
+npx cobalt history
+```
+
+Or, with MCP, ask the AI assistant to use the `improve-agent` prompt with the run ID.
+The assistant will:
+1. Load the results via `cobalt_results`.
+2. Identify items scoring below 0.7.
+3. Suggest specific code changes to the agent.
+
+### Step 4: Improve the agent
+
+Apply the suggested changes to your agent code. Focus on the patterns identified in failing
+test cases:
+- Improve system prompt for better instruction following
+- Add few-shot examples for edge cases
+- Adjust temperature/parameters
+- Add guardrails for adversarial inputs
+
+### Step 5: Re-run and compare
+
+```bash
+npx cobalt run experiments/my-agent.cobalt.ts
+```
+
+Compare the new run against the baseline:
+
+```bash
+npx cobalt compare a1b2c3d4e5f6 <new-run-id>
+```
+
+Or use the MCP `regression-check` prompt to get a structured analysis.
+
+### Step 6: Expand the dataset
+
+Use the MCP `generate-tests` prompt to add edge cases and adversarial inputs:
+
+```
+generate-tests experimentFile=experiments/my-agent.cobalt.ts focus=edge-cases
+```
+
+Add the generated test cases to your dataset file and re-run.
+
+### Step 7: Repeat
+
+Continue the loop until scores stabilize at your target thresholds. Then add CI thresholds
+to prevent regressions (see CI/CD section).
+
+---
+
+## CI/CD Integration
+
+### Thresholds
+
+Define minimum score requirements per evaluator. Cobalt exits with a non-zero code when
+thresholds are violated, which fails the CI build.
+
+```typescript
+await experiment('qa-test', dataset, runner, {
+  evaluators: [...],
+  thresholds: {
+    correctness: {
+      avg: 0.8,       // Average score must be >= 0.8
+      min: 0.5,       // No item may score below 0.5
+      p95: 0.7,       // 95th percentile must be >= 0.7
+      passRate: 0.9,  // 90% of items must pass
+      minScore: 0.6,  // "Pass" means score >= 0.6 (used with passRate)
+    },
+    relevance: {
+      avg: 0.75,
+    },
+  },
+})
+```
+
+**Available threshold metrics:**
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `avg` | `number` | Minimum average score across all items |
+| `min` | `number` | Minimum score for any single item |
+| `max` | `number` | Maximum score cap (rarely used) |
+| `p50` | `number` | Minimum median score |
+| `p95` | `number` | Minimum 95th percentile score |
+| `passRate` | `number` | Fraction of items that must meet `minScore` (0-1) |
+| `minScore` | `number` | Score threshold for an item to "pass" (used with `passRate`) |
+
+### GitHub Actions example
+
+```yaml
+name: Cobalt AI Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  cobalt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm ci
+
+      - name: Run Cobalt experiments
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npx cobalt run
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cobalt-results
+          path: .cobalt/data/results/
+```
+
+When thresholds are set in the experiment file, `cobalt run` exits with code 1 on failure,
+causing the GitHub Actions step to fail.
+
+### CI Mode in configuration
+
+Enable CI mode globally in `cobalt.config.ts` to apply default thresholds to all experiments:
+
+```typescript
+import { defineConfig } from '@basalt-ai/cobalt'
+
+export default defineConfig({
+  ciMode: true,
+  thresholds: {
+    correctness: { avg: 0.8, min: 0.5 },
+  },
+})
+```
+
+Per-experiment thresholds in `ExperimentOptions` take precedence over config-level thresholds.
+
+---
+
+## Configuration Reference
+
+Create `cobalt.config.ts` at the project root:
+
+```typescript
+import { defineConfig } from '@basalt-ai/cobalt'
+
+export default defineConfig({
+  // Directory containing experiment files
+  testDir: './experiments',
+
+  // Glob patterns for experiment file discovery
+  testMatch: ['**/*.cobalt.ts', '**/*.experiment.ts'],
+
+  // LLM judge configuration
+  judge: {
+    model: 'gpt-4o-mini',           // Model for LLM judge evaluators
+    provider: 'openai',             // 'openai' or 'anthropic'
+    apiKey: process.env.OPENAI_API_KEY,  // Or set via env var
+  },
+
+  // Execution defaults
+  concurrency: 5,                   // Max parallel runner calls
+  timeout: 30_000,                  // Per-item timeout in ms
+
+  // Output reporters
+  reporters: ['cli', 'json'],       // 'cli', 'json', 'github-actions'
+
+  // Dashboard settings
+  dashboard: {
+    port: 4000,
+    open: true,                     // Auto-open browser on `cobalt serve`
+  },
+
+  // LLM response cache (saves cost on repeated judge calls)
+  cache: {
+    enabled: true,
+    ttl: '7d',                      // Cache time-to-live
+  },
+
+  // CI mode
+  ciMode: false,
+  thresholds: {},                   // Default thresholds when ciMode is true
+})
+```
+
+Cobalt searches for `cobalt.config.ts`, `cobalt.config.js`, `cobalt.config.mjs`, or
+`cobalt.config.json` in the current directory and parent directories. If no config file is
+found, defaults are used.
+
+---
+
+## Best Practices
+
+### Experiment design
+
+- Start with 10-20 test cases covering the main use cases, then expand.
+- Include edge cases and adversarial inputs from the beginning.
+- Add an `expectedOutput` field to every dataset item so evaluators can reference it.
+- Use `tags` to track experiment versions (`['v1']`, `['v2-new-prompt']`, etc.).
+- Use `sample(n)` during development to iterate quickly before running the full dataset.
+
+### Evaluator selection
+
+- Use `exact-match` when the output must be a specific value (classification, extraction).
+- Use `function` for deterministic programmatic checks (format validation, length, keywords).
+- Use `llm-judge` for subjective quality assessment (helpfulness, tone, correctness).
+- Use `autoevals` for standardized evaluation metrics (Factuality, Levenshtein, etc.).
+- Combine multiple evaluators to cover different quality dimensions.
+
+### Performance
+
+- Set `concurrency` to match your API rate limits. Start low (3-5) and increase.
+- Enable `cache` to avoid re-running identical LLM judge calls during iteration.
+- Use `timeout` to prevent hanging on slow API responses.
+- Use `runs > 1` only when measuring stability or non-deterministic behavior.
+
+### Scoring conventions
+
+- All scores are between 0.0 and 1.0.
+- Evaluators must never throw exceptions. Return `{ score: 0, reason: "error: ..." }` on failure.
+- Provide a clear `reason` string with every score for debugging.
+
+### Results and history
+
+- Results are saved automatically to `.cobalt/data/results/` as JSON files.
+- History is tracked in `.cobalt/data/history.db` (SQLite).
+- Use `cobalt history` to review past runs.
+- Use `cobalt compare` to track progress between runs.
+- Use `cobalt clean --days 30 --force` periodically to remove old data.
+
+### Project organization
+
+- Keep one experiment file per agent or feature under test.
+- Store dataset files in a `data/` directory next to `experiments/`.
+- Name experiment files descriptively: `qa-agent.cobalt.ts`, `summarizer.experiment.ts`.
+- Use `cobalt.config.ts` for shared settings; use `ExperimentOptions` for per-experiment overrides.
+
+### Version control
+
+- Check in `cobalt.config.ts`, experiment files, dataset files, and `.cobalt/SKILLS.md`.
+- Add `.cobalt/data/` to `.gitignore`.
+- Use `cobalt compare` in PRs to document score changes.
