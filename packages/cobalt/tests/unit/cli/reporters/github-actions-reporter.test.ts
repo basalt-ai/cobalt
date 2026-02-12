@@ -124,18 +124,18 @@ describe('GitHubActionsReporter', () => {
 					summary: 'Threshold violations detected',
 					violations: [
 						{
-							evaluator: 'accuracy',
-							threshold: 'avg',
-							expected: '0.8',
-							actual: '0.65',
-							message: 'accuracy average score 0.65 below threshold 0.8',
+							category: 'accuracy',
+							metric: 'avg',
+							expected: 0.8,
+							actual: 0.65,
+							message: 'accuracy: avg 0.650 < threshold 0.800',
 						},
 						{
-							evaluator: 'relevance',
-							threshold: 'p95',
-							expected: '0.7',
-							actual: '0.55',
-							message: 'relevance p95 score 0.55 below threshold 0.7',
+							category: 'relevance',
+							metric: 'p95',
+							expected: 0.7,
+							actual: 0.55,
+							message: 'relevance: p95 0.550 < threshold 0.700',
 						},
 					],
 				});

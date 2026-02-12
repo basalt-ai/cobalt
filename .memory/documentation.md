@@ -346,60 +346,85 @@ new Evaluator({
 
 ---
 
-#### 3. Exact Match Evaluator
+#### 3. Similarity Evaluator
 
-Compare output to expected value.
+Semantic similarity using embeddings.
 
 **Config:**
 ```typescript
-interface ExactMatchEvaluatorConfig {
+interface SimilarityEvaluatorConfig {
   name: string
-  type: 'exact-match'
-  field: string                    // Field in dataset to compare to
-  caseSensitive?: boolean          // Default: true
-  trim?: boolean                   // Default: true
+  type: 'similarity'
+  field: string                           // Field to compare to
+  threshold?: number                      // Similarity threshold (default: 0.8)
+  provider?: 'openai'                     // Embedding provider (default: 'openai')
+  model?: string                          // Model (default: 'text-embedding-3-small')
+  distance?: 'cosine' | 'dotProduct'      // Distance metric (default: 'cosine')
+  mode?: 'threshold' | 'raw'              // Scoring mode (default: 'threshold')
 }
 ```
 
 **Example:**
 ```typescript
 new Evaluator({
-  name: 'correct-answer',
-  type: 'exact-match',
+  name: 'semantic-match',
+  type: 'similarity',
   field: 'expectedOutput',
-  caseSensitive: false,
-  trim: true
+  threshold: 0.85,
+  mode: 'threshold'
 })
 ```
 
-**Dataset item example:**
-```json
-{
-  "input": "What is 2+2?",
-  "expectedOutput": "4"
-}
-```
+**Modes:**
+- `threshold`: Binary scoring (1 if similarity ≥ threshold, else 0)
+- `raw`: Returns actual similarity score (0-1)
 
-If output is `"4"` → score = 1  
-If output is `"5"` → score = 0
+**Distance Metrics:**
+- `cosine`: Cosine similarity (default, normalized to [0, 1])
+- `dotProduct`: Dot product similarity
 
 ---
 
-#### 4. Similarity Evaluator (P2 - Not Implemented)
+#### 4. Autoevals Evaluator
 
-Semantic similarity using embeddings.
+Braintrust Autoevals integration with 11 built-in evaluator types.
 
-**Status:** Stubbed - throws error when used
-
-**Future Config:**
+**Config:**
 ```typescript
-interface SimilarityEvaluatorConfig {
+interface AutoevalsEvaluatorConfig {
   name: string
-  type: 'similarity'
-  field: string                    // Field to compare to
-  threshold?: number               // Similarity threshold (default: 0.8)
-  provider?: 'openai' | 'cohere'   // Embedding provider
+  type: 'autoevals'
+  autoeval: string                        // Autoevals evaluator name
+  expected?: string                       // Field for expected output
+  context?: Record<string, string>        // Field mappings
 }
+```
+
+**Supported Autoevals Types:**
+- `Factuality` - Check factual accuracy
+- `ContextRecall` - Measure context recall
+- `ContextPrecision` - Measure context precision
+- `ContextRelevancy` - Assess context relevance
+- `AnswerRelevancy` - Rate answer relevance
+- `AnswerCorrectness` - Verify answer correctness
+- `AnswerSimilarity` - Semantic answer similarity
+- `Ragas` - Combined Ragas metrics (multiple quality checks)
+- `JsonDiff` - JSON structure comparison
+- `ValidJSON` - JSON validation
+- `Security` - Security assessment
+
+**Example:**
+```typescript
+new Evaluator({
+  name: 'factuality',
+  type: 'autoevals',
+  autoeval: 'Factuality',
+  expected: 'expectedOutput',
+  context: {
+    input: 'question',
+    output: 'answer'
+  }
+})
 ```
 
 ---
@@ -931,13 +956,13 @@ interface ScoreStats {
 ### Evaluator Config Types
 
 ```typescript
-type EvaluatorType = 'llm-judge' | 'function' | 'exact-match' | 'similarity'
+type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'autoevals'
 
-type EvaluatorConfig = 
+type EvaluatorConfig =
   | LLMJudgeEvaluatorConfig
   | FunctionEvaluatorConfig
-  | ExactMatchEvaluatorConfig
   | SimilarityEvaluatorConfig
+  | AutoevalsEvaluatorConfig
 
 interface LLMJudgeEvaluatorConfig {
   name: string
@@ -951,14 +976,7 @@ interface FunctionEvaluatorConfig {
   name: string
   type: 'function'
   fn: (context: EvaluationContext) => EvaluationResult | Promise<EvaluationResult>
-}
-
-interface ExactMatchEvaluatorConfig {
-  name: string
-  type: 'exact-match'
-  field: string
-  caseSensitive?: boolean
-  trim?: boolean
+  context?: Record<string, string>        // Field mappings
 }
 
 interface SimilarityEvaluatorConfig {
@@ -966,7 +984,18 @@ interface SimilarityEvaluatorConfig {
   type: 'similarity'
   field: string
   threshold?: number
-  provider?: 'openai' | 'cohere'
+  provider?: 'openai'
+  model?: string
+  distance?: 'cosine' | 'dotProduct'
+  mode?: 'threshold' | 'raw'
+}
+
+interface AutoevalsEvaluatorConfig {
+  name: string
+  type: 'autoevals'
+  autoeval: string
+  expected?: string
+  context?: Record<string, string>
 }
 ```
 

@@ -103,9 +103,18 @@ const evaluators = [
 	// Traditional evaluators for comparison
 	new Evaluator({
 		name: 'exact-match',
-		type: 'exact-match',
-		field: 'expectedOutput',
-		caseSensitive: false,
+		type: 'function',
+		fn: ({ item, output }) => {
+			const expected = String(item.expectedOutput ?? '').toLowerCase();
+			const actual = String(output).toLowerCase();
+			const matches = expected === actual;
+			return {
+				score: matches ? 1 : 0,
+				reason: matches
+					? 'Output matches expected value'
+					: `Output does not match expected "${expected}"`,
+			};
+		},
 	}),
 
 	new Evaluator({

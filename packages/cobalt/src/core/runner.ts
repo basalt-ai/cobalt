@@ -1,6 +1,5 @@
 import pMap from 'p-map';
 import type {
-	EvaluatorConfig,
 	ExperimentItem,
 	ExperimentResult,
 	ItemResult,

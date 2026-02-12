@@ -12,27 +12,25 @@ ${JSON.stringify(analysis, null, 2)}
 
 Suggest appropriate evaluators to test this agent's quality. Choose from:
 
-1. **llm-judge**: LLM-based quality evaluation
-   - Use for: subjective quality, coherence, relevance
-   - Config: { type: 'llm-judge', criteria: ['relevance', 'coherence', 'accuracy'] }
+1. **llm-judge**: LLM-based quality evaluation (boolean or scale scoring)
+   - Use for: subjective quality, coherence, relevance, accuracy
+   - Boolean mode (default): returns pass/fail verdict
+   - Scale mode: returns 0-1 score for nuanced evaluation
+   - Supports chain of thought reasoning
 
-2. **exact-match**: Exact string matching
-   - Use for: deterministic outputs, classification tasks
-   - Config: { type: 'exact-match', field: 'expectedOutput', caseSensitive: false }
-
-3. **similarity**: Semantic similarity (embeddings)
+2. **similarity**: Semantic similarity (embeddings)
    - Use for: paraphrasing, semantic equivalence
    - Config: { type: 'similarity', field: 'expectedOutput', threshold: 0.8 }
 
-4. **function**: Custom evaluation logic
-   - Use for: custom metrics, business rules
-   - Config: { type: 'function', fn: (output, item) => ({ score, reason }) }
+3. **function**: Custom evaluation logic
+   - Use for: exact matching, custom metrics, business rules, deterministic checks
+   - Config: { type: 'function', fn: (context) => ({ score, reason }) }
 
 Return a JSON array of evaluator configurations:
 [
   {
     "name": "evaluator-name",
-    "type": "llm-judge|exact-match|similarity|function",
+    "type": "llm-judge|similarity|function",
     "config": { /* type-specific config */ },
     "reasoning": "why this evaluator is appropriate for this agent"
   }

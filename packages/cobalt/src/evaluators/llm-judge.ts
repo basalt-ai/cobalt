@@ -6,11 +6,7 @@ import { renderTemplate } from '../utils/template.js';
 
 /**
  * Evaluate using LLM as judge
- * @param config - LLM judge evaluator configuration
- * @param context - Evaluation context
- * @param apiKey - API key for the LLM provider
- * @param modelOverride - Optional model override
- * @returns Evaluation result
+ * Supports boolean (default) and scale scoring modes with optional chain of thought.
  */
 export async function evaluateLLMJudge(
 	config: LLMJudgeEvaluatorConfig,
@@ -23,23 +19,73 @@ export async function evaluateLLMJudge(
 	}
 	const model = modelOverride || config.model || 'gpt-4o-mini';
 
+	// Apply context mapping if provided
+	const evalContext = config.context ? config.context(context) : context;
+
 	// Render prompt template
 	const prompt = renderTemplate(config.prompt, {
-		input: context.item.input || context.item,
-		output: context.output,
-		expectedOutput: context.item.expectedOutput,
-		metadata: context.metadata,
-		...context.item,
+		input: evalContext.item.input || evalContext.item,
+		output: evalContext.output,
+		expectedOutput: evalContext.item.expectedOutput,
+		metadata: evalContext.metadata,
+		...evalContext.item,
 	});
+
+	// Determine scoring mode and chain of thought
+	const scoring = config.scoring ?? 'boolean';
+	const chainOfThought = config.chainOfThought ?? scoring === 'boolean';
+
+	// Build system prompt
+	const systemPrompt = buildSystemPrompt(scoring, chainOfThought);
 
 	// Determine provider from model name
 	const provider = determineProvider(model);
 
 	// Call appropriate LLM API
 	if (provider === 'openai') {
-		return await callOpenAI(prompt, model, apiKey);
+		return await callOpenAI(prompt, systemPrompt, model, apiKey, scoring);
 	}
-	return await callAnthropic(prompt, model, apiKey);
+	return await callAnthropic(prompt, systemPrompt, model, apiKey, scoring);
+}
+
+/**
+ * Build system prompt based on scoring mode and chain of thought setting
+ */
+export function buildSystemPrompt(scoring: 'boolean' | 'scale', chainOfThought: boolean): string {
+	const baseInstruction =
+		'You are an AI evaluation judge. Your task is to evaluate AI agent outputs based on specific criteria.';
+
+	const cotInstruction = chainOfThought
+		? '\n\nThink step by step before making your judgment. Provide your reasoning in the "chainOfThought" field.'
+		: '';
+
+	if (scoring === 'boolean') {
+		const cotField = chainOfThought ? '\n  "chainOfThought": "<your step-by-step reasoning>",' : '';
+		return `${baseInstruction}${cotInstruction}
+
+IMPORTANT: You must respond with a valid JSON object in this exact format:
+{${cotField}
+  "verdict": <true or false>,
+  "reason": "<brief explanation of your verdict>"
+}
+
+- "verdict": true if the output meets the criteria, false if it does not
+- "reason": a concise explanation
+${chainOfThought ? '- "chainOfThought": your detailed step-by-step reasoning' : ''}
+Do not include any text outside the JSON object.`;
+	}
+
+	// Scale mode
+	const cotField = chainOfThought ? '\n  "chainOfThought": "<your step-by-step reasoning>",' : '';
+	return `${baseInstruction}${cotInstruction}
+
+IMPORTANT: You must respond with a valid JSON object in this exact format:
+{${cotField}
+  "score": <number between 0.0 and 1.0>,
+  "reason": "<brief explanation>"
+}
+
+Do not include any text outside the JSON object.`;
 }
 
 /**
@@ -55,18 +101,14 @@ function determineProvider(model: string): 'openai' | 'anthropic' {
 /**
  * Call OpenAI API for evaluation
  */
-async function callOpenAI(prompt: string, model: string, apiKey: string): Promise<EvalResult> {
+async function callOpenAI(
+	prompt: string,
+	systemPrompt: string,
+	model: string,
+	apiKey: string,
+	scoring: 'boolean' | 'scale',
+): Promise<EvalResult> {
 	const client = new OpenAI({ apiKey });
-
-	const systemPrompt = `You are an AI evaluation judge. Your task is to evaluate AI agent outputs based on specific criteria.
-
-IMPORTANT: You must respond with a valid JSON object in this exact format:
-{
-  "score": <number between 0.0 and 1.0>,
-  "reason": "<brief explanation>"
-}
-
-Do not include any text outside the JSON object.`;
 
 	try {
 		const response = await client.chat.completions.create({
@@ -85,7 +127,7 @@ Do not include any text outside the JSON object.`;
 			throw new Error('Empty response from OpenAI');
 		}
 
-		return parseEvalResult(content);
+		return parseEvalResult(content, scoring);
 	} catch (error) {
 		console.error('OpenAI evaluation error:', error);
 		throw error;
@@ -95,18 +137,14 @@ Do not include any text outside the JSON object.`;
 /**
  * Call Anthropic API for evaluation
  */
-async function callAnthropic(prompt: string, model: string, apiKey: string): Promise<EvalResult> {
+async function callAnthropic(
+	prompt: string,
+	systemPrompt: string,
+	model: string,
+	apiKey: string,
+	scoring: 'boolean' | 'scale',
+): Promise<EvalResult> {
 	const client = new Anthropic({ apiKey });
-
-	const systemPrompt = `You are an AI evaluation judge. Your task is to evaluate AI agent outputs based on specific criteria.
-
-IMPORTANT: You must respond with a valid JSON object in this exact format:
-{
-  "score": <number between 0.0 and 1.0>,
-  "reason": "<brief explanation>"
-}
-
-Do not include any text outside the JSON object.`;
 
 	try {
 		const response = await client.messages.create({
@@ -127,7 +165,7 @@ Do not include any text outside the JSON object.`;
 			throw new Error('Unexpected response type from Anthropic');
 		}
 
-		return parseEvalResult(content.text);
+		return parseEvalResult(content.text, scoring);
 	} catch (error) {
 		console.error('Anthropic evaluation error:', error);
 		throw error;
@@ -136,8 +174,9 @@ Do not include any text outside the JSON object.`;
 
 /**
  * Parse evaluation result from LLM response
+ * Handles both boolean ({ verdict }) and scale ({ score }) formats.
  */
-function parseEvalResult(content: string): EvalResult {
+function parseEvalResult(content: string, scoring: 'boolean' | 'scale'): EvalResult {
 	try {
 		// Try to extract JSON from response (handle cases where LLM adds extra text)
 		const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -145,7 +184,28 @@ function parseEvalResult(content: string): EvalResult {
 
 		const parsed = JSON.parse(jsonStr);
 
-		// Validate format
+		if (scoring === 'boolean') {
+			// Boolean mode: expect { verdict: true/false }
+			if (typeof parsed.verdict !== 'boolean') {
+				// Fallback: try score-based format for robustness
+				if (typeof parsed.score === 'number') {
+					return {
+						score: parsed.score >= 0.5 ? 1 : 0,
+						reason: parsed.reason || 'No reason provided',
+						chainOfThought: parsed.chainOfThought,
+					};
+				}
+				throw new Error('Invalid boolean verdict format');
+			}
+
+			return {
+				score: parsed.verdict ? 1 : 0,
+				reason: parsed.reason || 'No reason provided',
+				chainOfThought: parsed.chainOfThought,
+			};
+		}
+
+		// Scale mode: expect { score: 0.0-1.0 }
 		if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 1) {
 			throw new Error('Invalid score format');
 		}
@@ -153,6 +213,7 @@ function parseEvalResult(content: string): EvalResult {
 		return {
 			score: Math.max(0, Math.min(1, parsed.score)), // Clamp to [0, 1]
 			reason: parsed.reason || 'No reason provided',
+			chainOfThought: parsed.chainOfThought,
 		};
 	} catch (error) {
 		console.error('Failed to parse LLM evaluation response:', content);

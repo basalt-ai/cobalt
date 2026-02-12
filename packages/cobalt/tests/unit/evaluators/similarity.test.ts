@@ -350,6 +350,124 @@ describe('evaluateSimilarity', () => {
 		});
 	});
 
+	describe('Distance metric selection', () => {
+		it('should use cosine similarity by default', async () => {
+			const OpenAI = (await import('openai')).default;
+			const mockCreate = vi
+				.fn()
+				.mockResolvedValueOnce(createMockEmbeddingResponse([1.0, 0.5, 0.3]))
+				.mockResolvedValueOnce(createMockEmbeddingResponse([0.9, 0.6, 0.2]));
+
+			vi.mocked(OpenAI).mockImplementation(
+				() =>
+					({
+						embeddings: {
+							create: mockCreate,
+						},
+					}) as any,
+			);
+
+			const config: SimilarityEvaluatorConfig = {
+				name: 'cosine-default',
+				type: 'similarity',
+				field: 'expectedOutput',
+			};
+
+			const result = await evaluateSimilarity(config, sampleEvalContext, 'fake-api-key');
+
+			expect(result.reason).toContain('Cosine similarity');
+		});
+
+		it('should use dot product when distance is dot', async () => {
+			const OpenAI = (await import('openai')).default;
+			const mockCreate = vi
+				.fn()
+				.mockResolvedValueOnce(createMockEmbeddingResponse([0.5, 0.3, 0.2]))
+				.mockResolvedValueOnce(createMockEmbeddingResponse([0.4, 0.3, 0.1]));
+
+			vi.mocked(OpenAI).mockImplementation(
+				() =>
+					({
+						embeddings: {
+							create: mockCreate,
+						},
+					}) as any,
+			);
+
+			const config: SimilarityEvaluatorConfig = {
+				name: 'dot-product',
+				type: 'similarity',
+				field: 'expectedOutput',
+				distance: 'dot',
+			};
+
+			const result = await evaluateSimilarity(config, sampleEvalContext, 'fake-api-key');
+
+			// Dot product of [0.5, 0.3, 0.2] and [0.4, 0.3, 0.1] = 0.2 + 0.09 + 0.02 = 0.31
+			expect(result.score).toBeCloseTo(0.31, 2);
+			expect(result.reason).toContain('Dot product similarity');
+		});
+
+		it('should use dot product in threshold mode', async () => {
+			const OpenAI = (await import('openai')).default;
+			const mockCreate = vi
+				.fn()
+				.mockResolvedValueOnce(createMockEmbeddingResponse([0.5, 0.3, 0.2]))
+				.mockResolvedValueOnce(createMockEmbeddingResponse([0.4, 0.3, 0.1]));
+
+			vi.mocked(OpenAI).mockImplementation(
+				() =>
+					({
+						embeddings: {
+							create: mockCreate,
+						},
+					}) as any,
+			);
+
+			const config: SimilarityEvaluatorConfig = {
+				name: 'dot-threshold',
+				type: 'similarity',
+				field: 'expectedOutput',
+				distance: 'dot',
+				threshold: 0.5,
+			};
+
+			const result = await evaluateSimilarity(config, sampleEvalContext, 'fake-api-key');
+
+			expect(result.score).toBe(0);
+			expect(result.reason).toContain('Dot product similarity');
+			expect(result.reason).toContain('below threshold');
+		});
+
+		it('should use cosine when explicitly set', async () => {
+			const OpenAI = (await import('openai')).default;
+			const mockCreate = vi
+				.fn()
+				.mockResolvedValueOnce(createMockEmbeddingResponse([1.0, 0.5, 0.3]))
+				.mockResolvedValueOnce(createMockEmbeddingResponse([0.9, 0.6, 0.2]));
+
+			vi.mocked(OpenAI).mockImplementation(
+				() =>
+					({
+						embeddings: {
+							create: mockCreate,
+						},
+					}) as any,
+			);
+
+			const config: SimilarityEvaluatorConfig = {
+				name: 'cosine-explicit',
+				type: 'similarity',
+				field: 'expectedOutput',
+				distance: 'cosine',
+			};
+
+			const result = await evaluateSimilarity(config, sampleEvalContext, 'fake-api-key');
+
+			expect(result.reason).toContain('Cosine similarity');
+		});
+	});
+
 	describe('Vector operations', () => {
 		it('should handle zero magnitude vectors', async () => {
 			const OpenAI = (await import('openai')).default;
