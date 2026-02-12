@@ -59,44 +59,17 @@ export function RunsListPage() {
 		}
 	}
 
-	if (loading) return <LoadingSkeleton />;
-	if (error) {
-		return (
-			<div className="flex flex-col items-center justify-center py-20 text-center">
-				<p className="text-sm text-destructive">Failed to load runs: {error.message}</p>
-				<Button
-					variant="outline"
-					size="sm"
-					className="mt-4"
-					onClick={() => window.location.reload()}
-				>
-					Retry
-				</Button>
-			</div>
-		);
-	}
-	if (!data?.runs.length) {
-		return (
-			<div className="flex flex-col items-center justify-center py-20 text-center">
-				<p className="text-lg font-medium">No experiment runs found</p>
-				<p className="mt-1 text-sm text-muted-foreground">
-					Run your first experiment with{' '}
-					<code className="rounded bg-muted px-1.5 py-0.5 text-xs">cobalt run</code>
-				</p>
-			</div>
-		);
-	}
+	const runs = data?.runs ?? [];
+	const evaluatorNames = getEvaluatorNames(runs);
 
-	const evaluatorNames = getEvaluatorNames(data.runs);
-
-	// Build filter definitions from available data
+	// All hooks must be called before any conditional returns
 	const allTags = useMemo(() => {
 		const tags = new Set<string>();
-		for (const run of data.runs) {
+		for (const run of runs) {
 			for (const tag of run.tags) tags.add(tag);
 		}
 		return Array.from(tags);
-	}, [data.runs]);
+	}, [runs]);
 
 	const filterDefs: FilterDef[] = useMemo(
 		() => [
@@ -121,11 +94,9 @@ export function RunsListPage() {
 		[evaluatorNames],
 	);
 
-	// Apply search, filters, and sort
 	const filtered = useMemo(() => {
-		let result = data.runs.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
+		let result = runs.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
 
-		// Apply tag filters specially (check if any tag matches)
 		const tagFilters = filters.filter((f) => f.key === 'tags');
 		const otherFilters = filters.filter((f) => f.key !== 'tags');
 
@@ -150,11 +121,39 @@ export function RunsListPage() {
 		});
 
 		return result;
-	}, [data.runs, search, filters, sortKey, sortDir]);
+	}, [runs, search, filters, sortKey, sortDir]);
+
+	if (loading) return <LoadingSkeleton />;
+	if (error) {
+		return (
+			<div className="flex flex-col items-center justify-center py-20 text-center">
+				<p className="text-sm text-destructive">Failed to load runs: {error.message}</p>
+				<Button
+					variant="outline"
+					size="sm"
+					className="mt-4"
+					onClick={() => window.location.reload()}
+				>
+					Retry
+				</Button>
+			</div>
+		);
+	}
+	if (!runs.length) {
+		return (
+			<div className="flex flex-col items-center justify-center py-20 text-center">
+				<p className="text-lg font-medium">No experiment runs found</p>
+				<p className="mt-1 text-sm text-muted-foreground">
+					Run your first experiment with{' '}
+					<code className="rounded bg-muted px-1.5 py-0.5 text-xs">cobalt run</code>
+				</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="space-y-4">
-			<PageHeader title="Experiment Runs" description={`${data.runs.length} runs recorded`}>
+			<PageHeader title="Experiment Runs" description={`${runs.length} runs recorded`}>
 				<div className="flex items-center gap-2">
 					<div className="relative">
 						<MagnifyingGlass className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
