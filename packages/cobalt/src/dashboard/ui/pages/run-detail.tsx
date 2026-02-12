@@ -537,13 +537,10 @@ function ItemsTable({
 										>
 											<div className="flex flex-col items-end gap-0.5">
 												<span>{name}</span>
-												{booleanEvals.has(name) ? (
-													<span className="text-[10px] tabular-nums">
-														{formatScore(evaluatorAvgs[name])}% pass
-													</span>
-												) : (
-													<ScoreBadge score={evaluatorAvgs[name]} />
-												)}
+												<span className="text-[10px] tabular-nums">
+													{formatScore(evaluatorAvgs[name])}%
+													{booleanEvals.has(name) ? ' pass' : ' avg'}
+												</span>
 											</div>
 										</th>
 									),
@@ -604,6 +601,7 @@ function ItemsTable({
 														<ScoreBadge
 															score={item.evaluations[name].score}
 															boolean={booleanEvals.has(name)}
+															reason={item.evaluations[name].reason}
 														/>
 													) : (
 														<span className="text-muted-foreground">-</span>

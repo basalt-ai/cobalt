@@ -498,15 +498,11 @@ function CompareItemsTable({
 										<div className="flex flex-col items-end gap-0.5">
 											<span>{name}</span>
 											<ColumnCell className="items-end">
-												{avgScores[name].map((s, i) =>
-													booleanEvals.has(name) ? (
-														<span key={RUN_COLORS[i].label} className="text-[10px] tabular-nums">
-															{formatScore(s)}% pass
-														</span>
-													) : (
-														<ScoreBadge key={RUN_COLORS[i].label} score={s} />
-													),
-												)}
+												{avgScores[name].map((s, i) => (
+													<span key={RUN_COLORS[i].label} className="text-[10px] tabular-nums">
+														{formatScore(s)}%{booleanEvals.has(name) ? ' pass' : ' avg'}
+													</span>
+												))}
 											</ColumnCell>
 										</div>
 									</th>
@@ -586,6 +582,7 @@ function CompareItemsTable({
 															key={idx}
 															score={ev.score}
 															boolean={booleanEvals.has(name)}
+															reason={ev.reason}
 														/>
 													) : (
 														// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C

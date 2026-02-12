@@ -45,7 +45,7 @@ const badgeDotColorClasses = {
 	tomato: 'bg-tomato-9',
 	blue: 'bg-blue-9',
 	cyan: 'bg-cyan-11',
-	grass: 'bg-grass-9',
+	grass: 'bg-grass-10',
 	sand: 'bg-sand-9',
 	white: 'bg-sand-9',
 	orange: 'bg-orange-9',
