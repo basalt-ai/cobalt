@@ -1,7 +1,7 @@
 {
 	"name": "@basalt-ai/cobalt",
 	"version": "0.1.0",
-	"description": "Jest for AI Agents — test, evaluate, and track your AI experiments",
+	"description": "Unit testing for AI Agents — test, evaluate, and track your AI experiments",
 	"type": "module",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.mjs",

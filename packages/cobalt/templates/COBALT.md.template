@@ -6,7 +6,7 @@
 
 ## Overview
 
-Cobalt is "Jest for AI Agents." It lets you write **experiments** that run your agent against
+Cobalt is "Unit testing for AI Agents." It lets you write **experiments** that run your agent against
 a **dataset**, score the outputs with **evaluators**, and track results over time. The core
 loop is: experiment = dataset x runner x evaluators.
 
