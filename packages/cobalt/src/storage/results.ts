@@ -9,7 +9,10 @@ import type { ExperimentReport, ResultFilter, ResultSummary } from '../types/ind
  * @param outputDir - Output directory (default: .cobalt)
  * @returns Path to saved file
  */
-export async function saveResult(report: ExperimentReport, outputDir = '.cobalt'): Promise<string> {
+export async function saveResult(
+	report: ExperimentReport,
+	outputDir = '.cobalt/data',
+): Promise<string> {
 	const resultsDir = resolve(process.cwd(), outputDir, 'results');
 
 	// Ensure directory exists
@@ -34,7 +37,10 @@ export async function saveResult(report: ExperimentReport, outputDir = '.cobalt'
  * @param outputDir - Output directory (default: .cobalt)
  * @returns Experiment report
  */
-export async function loadResult(runId: string, outputDir = '.cobalt'): Promise<ExperimentReport> {
+export async function loadResult(
+	runId: string,
+	outputDir = '.cobalt/data',
+): Promise<ExperimentReport> {
 	const resultsDir = resolve(process.cwd(), outputDir, 'results');
 
 	if (!existsSync(resultsDir)) {
@@ -63,7 +69,7 @@ export async function loadResult(runId: string, outputDir = '.cobalt'): Promise<
  */
 export async function listResults(
 	filter?: ResultFilter,
-	outputDir = '.cobalt',
+	outputDir = '.cobalt/data',
 ): Promise<ResultSummary[]> {
 	const resultsDir = resolve(process.cwd(), outputDir, 'results');
 

@@ -1,6 +1,5 @@
 import { defineCommand } from 'citty';
 import pc from 'picocolors';
-import { loadConfig } from '../../core/config.js';
 import { HistoryDB } from '../../storage/db.js';
 
 export default defineCommand({
@@ -22,8 +21,7 @@ export default defineCommand({
 	},
 	async run({ args }) {
 		try {
-			const config = await loadConfig();
-			const db = new HistoryDB(`${config.outputDir}/history.db`);
+			const db = new HistoryDB();
 
 			const filter: any = {};
 			if (args.experiment) filter.experiment = args.experiment;

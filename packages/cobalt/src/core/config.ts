@@ -15,7 +15,6 @@ const DEFAULT_CONFIG: CobaltConfig = {
 		provider: 'openai',
 		apiKey: process.env.OPENAI_API_KEY,
 	},
-	outputDir: '.cobalt',
 	concurrency: 5,
 	timeout: 30_000,
 	reporters: ['cli', 'json'],

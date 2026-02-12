@@ -1,5 +1,3 @@
-import { join } from 'node:path';
-import { loadConfig } from '../../core/config.js';
 import { HistoryDB } from '../../storage/db.js';
 
 /**
@@ -18,11 +16,8 @@ export const cobaltLatestResultsResource = {
  */
 export async function handleCobaltLatestResults() {
 	try {
-		const config = await loadConfig();
-		const dbPath = join(config.outputDir, 'history.db');
-
 		// Open database
-		const db = new HistoryDB(dbPath);
+		const db = new HistoryDB();
 
 		// Get all runs
 		const allRuns = db.getRuns();

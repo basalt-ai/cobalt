@@ -119,7 +119,7 @@ export default defineCommand({
 			}
 
 			console.log(pc.green(pc.bold('\n✅ All experiments completed!\n')));
-			console.log(pc.dim('View results: ls .cobalt/results/'));
+			console.log(pc.dim('View results: ls .cobalt/data/results/'));
 			console.log(pc.dim('Run dashboard: npx cobalt serve (coming in P1)\n'));
 		} catch (error) {
 			console.error(pc.red('\n❌ Failed to run experiments:'), error);

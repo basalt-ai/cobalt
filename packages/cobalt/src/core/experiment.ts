@@ -136,7 +136,7 @@ export async function experiment(
 	}
 
 	// Save results to JSON file
-	const resultPath = await saveResult(report, config.outputDir);
+	const resultPath = await saveResult(report);
 
 	// Notify reporters of completion
 	for (const reporter of reporters) {
@@ -145,7 +145,7 @@ export async function experiment(
 
 	// Save to history database
 	try {
-		const db = new HistoryDB(`${config.outputDir}/history.db`);
+		const db = new HistoryDB();
 		db.insertRun(report);
 		db.close();
 	} catch (error) {

@@ -333,7 +333,7 @@ describe('experiment', () => {
 
 		await experiment('test', dataset, runner, baseOptions);
 
-		expect(saveResult).toHaveBeenCalledWith(expect.any(Object), '.cobalt');
+		expect(saveResult).toHaveBeenCalledWith(expect.any(Object));
 	});
 
 	it('should validate CI thresholds when provided', async () => {

@@ -15,6 +15,7 @@ const main = defineCommand({
 		compare: () => import('./commands/compare.js').then((m) => m.default),
 		clean: () => import('./commands/clean.js').then((m) => m.default),
 		mcp: () => import('./commands/mcp.js').then((m) => m.default),
+		update: () => import('./commands/update.js').then((m) => m.default),
 	},
 });
 

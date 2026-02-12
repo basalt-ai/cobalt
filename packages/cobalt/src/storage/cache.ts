@@ -19,7 +19,7 @@ export class LLMJudgeCache {
 	private enabled: boolean;
 	private ttlMs: number;
 
-	constructor(outputDir = '.cobalt', enabled = true, ttl = '7d') {
+	constructor(outputDir = '.cobalt/data', enabled = true, ttl = '7d') {
 		const cacheDir = resolve(process.cwd(), outputDir, 'cache');
 		this.cachePath = join(cacheDir, 'llm-judge-cache.json');
 		this.enabled = enabled;
@@ -120,7 +120,7 @@ export class LLMJudgeCache {
 	 * Flush cache to disk
 	 */
 	async flushCache(): Promise<void> {
-		const cacheDir = resolve(process.cwd(), '.cobalt', 'cache');
+		const cacheDir = resolve(process.cwd(), '.cobalt', 'data', 'cache');
 
 		// Ensure directory exists
 		if (!existsSync(cacheDir)) {

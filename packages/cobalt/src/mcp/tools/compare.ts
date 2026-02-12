@@ -1,4 +1,3 @@
-import { loadConfig } from '../../core/config.js';
 import { loadResult } from '../../storage/results.js';
 
 /**
@@ -27,11 +26,9 @@ export const cobaltCompareTool = {
 
 export async function handleCobaltCompare(args: any) {
 	try {
-		const config = await loadConfig();
-
 		// Load both runs
-		const runA = await loadResult(args.runA, config.outputDir);
-		const runB = await loadResult(args.runB, config.outputDir);
+		const runA = await loadResult(args.runA);
+		const runB = await loadResult(args.runB);
 
 		// Calculate score differences
 		const scoreDiffs: Record<
