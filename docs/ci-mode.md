@@ -18,21 +18,29 @@ In `cobalt.config.ts`:
 
 ```typescript
 export default defineConfig({
-  ciMode: true,
   thresholds: {
-    'relevance': { avg: 0.7, p95: 0.5 },
-    'accuracy': { avg: 0.8, min: 0.6 },
-    'fluency': { passRate: 0.9, minScore: 0.7 }
+    // Global thresholds (across all evaluators)
+    score: { avg: 0.7 },
+    latency: { avg: 5000 },
+    cost: { max: 1.0 },
+
+    // Per-evaluator thresholds
+    evaluators: {
+      'relevance': { avg: 0.8, passRate: 0.9 },
+      'accuracy': { avg: 0.85 }
+    }
   }
 })
 ```
 
 ### 2. Run in CI
 
+Use the `--ci` flag to enable threshold validation and exit codes:
+
 ```bash
 # Exit code 0 if all thresholds pass
 # Exit code 1 if any threshold fails
-pnpm cobalt run experiments/
+pnpm cobalt run experiments/ --ci
 ```
 
 ### 3. Add to CI Pipeline
@@ -49,95 +57,92 @@ jobs:
       - uses: actions/checkout@v3
       - uses: pnpm/action-setup@v2
       - run: pnpm install
-      - run: pnpm cobalt run experiments/
+      - run: pnpm cobalt run experiments/ --ci
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 ## Threshold Configuration
 
-### Score Thresholds
+Thresholds support both **global** metrics (across all evaluators) and **per-evaluator** metrics.
 
-Evaluate statistical metrics of experiment scores:
+### Global Thresholds
+
+Set quality gates across your entire experiment:
 
 ```typescript
 thresholds: {
-  'evaluator-name': {
-    avg?: number,   // Average score must be >= this
-    min?: number,   // Minimum score must be >= this
-    max?: number,   // Maximum score must be <= this (rarely used)
-    p50?: number,   // Median score must be >= this
-    p95?: number    // 95th percentile must be >= this
+  score: {             // Average score across ALL evaluators
+    avg: 0.7,
+    min: 0.3
+  },
+  latency: {           // Response latency (ms)
+    avg: 5000,
+    max: 15000
+  },
+  tokens: {            // Total token usage
+    max: 50000
+  },
+  cost: {              // Estimated cost (USD)
+    max: 1.0
   }
 }
 ```
 
-**Example:**
+### Per-Evaluator Thresholds
+
+Set thresholds for specific evaluators:
 
 ```typescript
 thresholds: {
-  'relevance': {
-    avg: 0.8,   // Average relevance >= 0.8
-    min: 0.5,   // No scores below 0.5
-    p50: 0.85,  // Median >= 0.85
-    p95: 0.75   // 95% of scores >= 0.75
+  evaluators: {
+    'relevance': {
+      avg: 0.8,       // Average relevance >= 0.8
+      min: 0.5,       // No scores below 0.5
+      p50: 0.85,      // Median >= 0.85
+      p95: 0.75       // 95% of scores >= 0.75
+    },
+    'accuracy': {
+      passRate: 0.9,  // 90% of items must pass
+      avg: 0.85
+    }
   }
 }
-```
-
-### Pass Rate Thresholds
-
-Require a percentage of items to pass:
-
-```typescript
-thresholds: {
-  'evaluator-name': {
-    passRate: number,    // % of items that must score >= minScore
-    minScore?: number    // Minimum passing score (default: 0.5)
-  }
-}
-```
-
-**Example:**
-
-```typescript
-thresholds: {
-  'accuracy': {
-    passRate: 0.9,    // 90% of items must pass
-    minScore: 0.7     // Passing score = 0.7
-  }
-}
-// Fails if fewer than 9 out of 10 items score >= 0.7
 ```
 
 ### Combined Thresholds
 
-Use both score and pass rate thresholds:
+Use both global and per-evaluator thresholds:
 
 ```typescript
 thresholds: {
-  'quality': {
-    avg: 0.8,         // Overall average must be high
-    passRate: 0.95,   // AND 95% of items must pass
-    minScore: 0.6     // With a score of at least 0.6
+  score: { avg: 0.7 },          // Global quality bar
+  cost: { max: 0.50 },          // Budget limit
+  evaluators: {
+    'quality': {
+      avg: 0.8,                 // Per-evaluator average
+      passRate: 0.95            // AND 95% of items must pass
+    }
   }
 }
 ```
 
 ## CI Mode Behavior
 
+CI mode is activated by the `--ci` flag. Without the flag, thresholds are ignored even if defined in config.
+
 ### Exit Codes
 
 ```bash
 # Success (exit 0)
-pnpm cobalt run experiments/
+pnpm cobalt run experiments/ --ci
 # ✓ All thresholds passed
 
 # Failure (exit 1)
-pnpm cobalt run experiments/
-# ✗ CI Mode: 2 experiment(s) failed threshold checks
-#   relevance: avg score 0.650 < threshold 0.700
-#   accuracy: pass rate 85.0% (17/20) < threshold 90.0%
+pnpm cobalt run experiments/ --ci
+# ✗ CI Mode: 2 threshold(s) failed
+#   score: avg score 0.650 < threshold 0.700
+#   evaluators.accuracy: pass rate 85.0% (17/20) < threshold 90.0%
 ```
 
 ### Output Format
@@ -202,7 +207,7 @@ jobs:
       - run: pnpm install
 
       - name: Run AI Tests
-        run: pnpm cobalt run experiments/
+        run: pnpm cobalt run experiments/ --ci
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
@@ -223,7 +228,7 @@ ai-quality-check:
     - npm install -g pnpm
     - pnpm install
   script:
-    - pnpm cobalt run experiments/
+    - pnpm cobalt run experiments/ --ci
   artifacts:
     when: always
     paths:
@@ -245,7 +250,7 @@ jobs:
       - checkout
       - run: npm install -g pnpm
       - run: pnpm install
-      - run: pnpm cobalt run experiments/
+      - run: pnpm cobalt run experiments/ --ci
       - store_artifacts:
           path: .cobalt/results
 
@@ -275,7 +280,7 @@ pipeline {
 
     stage('AI Quality Check') {
       steps {
-        sh 'pnpm cobalt run experiments/'
+        sh 'pnpm cobalt run experiments/ --ci'
       }
     }
 
@@ -423,17 +428,21 @@ jobs:
 ```typescript
 // cobalt.config.ts
 export default defineConfig({
-  ciMode: process.env.CI === 'true',
   thresholds: process.env.CI
     ? {
         // Strict thresholds for CI
-        relevance: { avg: 0.8, min: 0.6 },
-        accuracy: { avg: 0.85, passRate: 0.95 }
+        score: { avg: 0.8 },
+        evaluators: {
+          relevance: { avg: 0.8, min: 0.6 },
+          accuracy: { avg: 0.85, passRate: 0.95 }
+        }
       }
     : {
         // Looser thresholds for local dev
-        relevance: { avg: 0.6 },
-        accuracy: { avg: 0.7 }
+        evaluators: {
+          relevance: { avg: 0.6 },
+          accuracy: { avg: 0.7 }
+        }
       }
 })
 ```
@@ -445,9 +454,11 @@ export default defineConfig({
 const isMainBranch = process.env.GITHUB_REF === 'refs/heads/main'
 
 export default defineConfig({
-  thresholds: isMainBranch
-    ? { quality: { avg: 0.9 } }  // High bar for main
-    : { quality: { avg: 0.7 } }  // Lower for features
+  thresholds: {
+    evaluators: isMainBranch
+      ? { quality: { avg: 0.9 } }  // High bar for main
+      : { quality: { avg: 0.7 } }  // Lower for features
+  }
 })
 ```
 
@@ -457,7 +468,7 @@ Run specific experiments in CI:
 
 ```bash
 # Only run critical experiments
-pnpm cobalt run experiments/critical/*.cobalt.ts
+pnpm cobalt run experiments/critical/*.cobalt.ts --ci
 ```
 
 ```typescript
@@ -480,8 +491,10 @@ const weeklyIncrease = 0.02
 
 export default defineConfig({
   thresholds: {
-    quality: {
-      avg: baseThreshold + (currentWeek * weeklyIncrease)
+    evaluators: {
+      quality: {
+        avg: baseThreshold + (currentWeek * weeklyIncrease)
+      }
     }
   }
 })
@@ -569,7 +582,7 @@ await fetch('https://api.datadoghq.com/api/v1/metrics', {
 1. **Use pass rate thresholds** instead of min thresholds
    ```typescript
    thresholds: {
-     quality: { passRate: 0.9 } // Allow 10% variance
+     evaluators: { quality: { passRate: 0.9 } } // Allow 10% variance
    }
    ```
 
@@ -581,7 +594,7 @@ await fetch('https://api.datadoghq.com/api/v1/metrics', {
 3. **Use percentiles** instead of min/max
    ```typescript
    thresholds: {
-     quality: { p95: 0.7 }  // 95% of scores above 0.7
+     evaluators: { quality: { p95: 0.7 } }  // 95% of scores above 0.7
    }
    ```
 
@@ -600,7 +613,7 @@ pnpm cobalt results <run-id>
 
 # Adjust threshold based on data
 thresholds: {
-  quality: { avg: 0.75 }  # Was 0.8, now 0.75
+  evaluators: { quality: { avg: 0.75 } }  # Was 0.8, now 0.75
 }
 ```
 

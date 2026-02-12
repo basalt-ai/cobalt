@@ -186,10 +186,7 @@ export default defineConfig({
   // Default concurrency
   concurrency: 5,
 
-  // CI mode (exit code 1 if thresholds fail)
-  ciMode: false,
-
-  // Quality thresholds (for CI mode)
+  // Quality thresholds (use --ci flag to enable exit codes)
   thresholds: {},
 
   // Default tags

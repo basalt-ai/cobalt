@@ -172,29 +172,20 @@ const evaluators = [
     }
   }),
 
-  // Evaluator 3: LLM Judge for factual accuracy
+  // Evaluator 3: LLM Judge for factual accuracy (boolean scoring by default)
   new Evaluator({
     name: 'factual-accuracy',
     type: 'llm-judge',
-    prompt: `You are evaluating a Q&A system's response for factual accuracy.
+    prompt: `Is the agent's answer factually accurate?
 
 Question: {{input}}
 Agent's Answer: {{output}}
 Expected Answer: {{expectedOutput}}
 
-Rate the factual accuracy from 0.0 to 1.0:
-- 1.0 = Completely accurate and contains the expected information
-- 0.7-0.9 = Mostly accurate but may have minor omissions
-- 0.4-0.6 = Partially accurate
-- 0.0-0.3 = Inaccurate or incorrect
-
-Respond with JSON:
-{
-  "score": <number between 0 and 1>,
-  "reason": "<explanation of your rating>"
-}`,
+The answer should contain the expected information and be factually correct.`,
     model: 'gpt-4o-mini',
     provider: 'openai'
+    // scoring defaults to 'boolean' — returns pass/fail with chain of thought
   })
 ]
 
@@ -398,18 +389,19 @@ In `cobalt.config.ts`:
 
 ```typescript
 export default defineConfig({
-  ciMode: true,
   thresholds: {
-    'factual-accuracy': { avg: 0.85, p95: 0.70 },
-    'contains-answer': { passRate: 0.90 }
+    evaluators: {
+      'factual-accuracy': { avg: 0.85, passRate: 0.90 },
+      'contains-answer': { passRate: 0.90 }
+    }
   }
 })
 ```
 
-Now the CLI will exit with code 1 if thresholds fail:
+Use the `--ci` flag to enable exit codes:
 
 ```bash
-npx cobalt run experiments/qa-agent.cobalt.ts
+npx cobalt run experiments/qa-agent.cobalt.ts --ci
 # Exit code 0 = passed, 1 = failed
 ```
 
