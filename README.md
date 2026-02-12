@@ -1,6 +1,10 @@
 <div align="center">
 
-<img src="assets/logo.png" alt="Cobalt" width="200" />
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo_white.png" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/logo.png" />
+  <img src="assets/logo.png" alt="Cobalt" width="200" />
+</picture>
 
 <br>
 
