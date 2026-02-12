@@ -21,7 +21,7 @@
 > Cobalt is currently in **alpha** and under active development. The API may change as we refine features and gather feedback. We welcome early adopters to try it out and help shape its future!
 >
 > 💬 **Want to contribute or provide feedback?**
-> - Join our [Discord community][(https://discord.gg/yW2RyZKY)]
+> - Join our [Discord community](https://discord.gg/yW2RyZKY)
 > - Report issues or suggest features on [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
 > - Star the repo to follow development progress
 
