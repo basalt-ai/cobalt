@@ -216,7 +216,7 @@ You should see:
 
 ```
 Cobalt v0.1.0
-Jest for AI Agents
+Unit testing for AI Agents
 ```
 
 ## Next Steps

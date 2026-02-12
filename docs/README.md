@@ -4,7 +4,7 @@
 
 # Cobalt Documentation
 
-> **Jest for AI Agents** — A TypeScript testing framework for AI agents and LLM applications
+> **Unit testing for AI Agents** — A TypeScript testing framework for AI agents and LLM applications
 
 </div>
 

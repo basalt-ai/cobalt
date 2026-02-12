@@ -1,5 +1,5 @@
 /**
- * Cobalt - Jest for AI Agents
+ * Cobalt - Unit testing for AI Agents
  * Test, evaluate, and track your AI experiments
  */
 

@@ -4,7 +4,7 @@
 
 cobalt is a TypeScript library (installable via `npm install @basalt-ai/cobalt`) that provides a Jest-like experience for testing and evaluating AI agents. It combines a test runner, a CLI, a local dashboard, and built-in memory to track experiment results over time.
 
-**Tagline:** "Jest for AI Agents."
+**Tagline:** "Unit testing for AI Agents."
 
 ---
 
@@ -603,7 +603,7 @@ This allows integration into a CI/CD pipeline to block a deploy if agent quality
 {
   "name": "cobalt",
   "version": "0.1.0",
-  "description": "Jest for AI Agents — test, evaluate, and track your AI experiments",
+  "description": "Unit testing for AI Agents — test, evaluate, and track your AI experiments",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

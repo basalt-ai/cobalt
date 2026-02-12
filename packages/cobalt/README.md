@@ -1,6 +1,6 @@
 # cobalt
 
-**Jest for AI Agents** — A TypeScript testing framework for evaluating AI systems.
+**Unit testing for AI Agents** — A TypeScript testing framework for evaluating AI systems.
 
 ## Installation
 

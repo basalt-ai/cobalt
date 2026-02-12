@@ -2,7 +2,7 @@
 
 ## Current Status: P0–P3 Complete, P4 ~85%
 
-Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"). Core features are production-ready. Dashboard frontend has design system, styled pages, and all 4 views.
+Cobalt is a TypeScript CLI testing framework for AI agents ("Unit testing for AI Agents"). Core features are production-ready. Dashboard frontend has design system, styled pages, and all 4 views.
 
 ## Completed
 
