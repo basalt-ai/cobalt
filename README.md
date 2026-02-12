@@ -91,7 +91,7 @@ const evaluators = [
 const dataset = Dataset.fromJSON('./datasets/qa-pairs.json')
 
 // Run experiment
-export default experiment('qa-agent', dataset, async ({ item }) => {
+experiment('qa-agent', dataset, async ({ item }) => {
   // Call your agent here
   const response = await myAgent.run(item.input)
 

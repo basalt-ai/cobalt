@@ -44,16 +44,18 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Jest for AI Agents"
 - [x] SQLite history.db for dashboard queries
 - [x] Dashboard frontend scaffolding (Vite + React SPA)
 - [x] Design system: Tailwind CSS 4 + Radix colors + dark mode
-- [x] Core UI components (Button, Badge, Card, Dialog, Select, Tabs, Tooltip, etc.)
+- [x] Core UI components (Button, Badge, Card, Dialog, Select, Tabs, Tooltip, Popover, Switch, etc.)
 - [x] Layout: TopBar with navigation + dark mode toggle
-- [x] RunsListPage: sortable table, search, multi-select for comparison, score badges
-- [x] RunDetailPage: metric cards, scores table, items table with drill-down dialog, CI status
-- [x] ComparePage: run labels, score comparison cards with bars, delta indicators, top changes table
+- [x] RunsListPage: sortable table, search, multi-select, filters, display options, score badges
+- [x] RunDetailPage: metric cards, tabs (Scores/Latency/Tokens), AVG headers, items table with drill-down, filters, display options, compare selector
+- [x] ComparePage: A/B/C stacked items, evolution rate diffs, stats tabs (Latency/Tokens with percentiles), filters, display options, tokens/metadata columns
 - [x] TrendsPage: experiment selector, Recharts line chart, runs summary table
 - [x] Code splitting (recharts, radix-ui as separate chunks)
+- [x] P99 metric (backend + frontend)
+- [x] FilterBar and DisplayOptions components (client-side)
+- [x] Multi-run compare API (2 or 3 runs)
 - [ ] AI chat integration (Phase 6 of DASHBOARD_PLAN)
 - [ ] Export results (CSV, Markdown)
-- [ ] Tags filtering in dashboard
 
 ## Future
 
