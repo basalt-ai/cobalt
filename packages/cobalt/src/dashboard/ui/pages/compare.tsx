@@ -1,15 +1,18 @@
 import { ArrowLeft, Clock } from '@phosphor-icons/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { compareRuns } from '../api/compare';
 import type { CompareResponse } from '../api/types';
 import { ColumnCell } from '../components/data/column-cell';
+import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
+import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
 import { ScoreBadge, ScoreChange } from '../components/data/score-badge';
 import { PageHeader } from '../components/layout/page-header';
 import { Button } from '../components/ui/button';
 import { Skeleton } from '../components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useApi } from '../hooks/use-api';
-import { cn, formatDuration } from '../lib/utils';
+import { type ClientStats, cn, computeClientStats, formatDuration } from '../lib/utils';
 
 const RUN_COLORS = [
 	{
@@ -144,7 +147,7 @@ export function ComparePage() {
 													<span className="text-xs text-muted-foreground">
 														{RUN_COLORS[i].label} vs A
 													</span>
-													<ScoreChange value={d} />
+													<ScoreChange value={diff.scores[0] !== 0 ? d / diff.scores[0] : 0} />
 												</div>
 											),
 									)}
@@ -154,6 +157,9 @@ export function ComparePage() {
 					);
 				})}
 			</div>
+
+			{/* Latency & Tokens Stats */}
+			<CompareStatsTabs data={data} />
 
 			{/* Items Table */}
 			<CompareItemsTable data={data} evaluatorNames={evaluatorNames} />
@@ -216,6 +222,109 @@ function ScoreRow({
 	);
 }
 
+function CompareStatsTabs({ data }: { data: CompareResponse }) {
+	// Compute per-run latency stats
+	const latencyStatsPerRun = useMemo(() => {
+		return data.runs.map((_, runIdx) => {
+			const latencies = data.items
+				.map((item) => item.outputs[runIdx]?.latencyMs)
+				.filter((v): v is number => v != null);
+			return computeClientStats(latencies);
+		});
+	}, [data.items, data.runs]);
+
+	// Compute per-run token stats
+	const tokenStatsPerRun = useMemo(() => {
+		const perRun = data.runs.map((_, runIdx) => {
+			const tokens = data.items
+				.map((item) => {
+					const out = item.outputs[runIdx];
+					return out ? getTokens(out.output) : undefined;
+				})
+				.filter((v): v is number => v != null);
+			return tokens.length > 0 ? computeClientStats(tokens) : null;
+		});
+		return perRun.some((s) => s != null) ? perRun : null;
+	}, [data.items, data.runs]);
+
+	return (
+		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+			<Tabs defaultValue="latency">
+				<div className="border-b bg-muted/50 px-4 py-2">
+					<TabsList>
+						<TabsTrigger value="latency">Latency</TabsTrigger>
+						{tokenStatsPerRun && <TabsTrigger value="tokens">Tokens</TabsTrigger>}
+					</TabsList>
+				</div>
+
+				<TabsContent value="latency" className="mt-0">
+					<CompareStatsTable
+						label="Latency"
+						statsPerRun={latencyStatsPerRun}
+						format={formatDuration}
+					/>
+				</TabsContent>
+
+				{tokenStatsPerRun && (
+					<TabsContent value="tokens" className="mt-0">
+						<CompareStatsTable
+							label="Tokens"
+							statsPerRun={tokenStatsPerRun}
+							format={(v) => Math.round(v).toLocaleString()}
+						/>
+					</TabsContent>
+				)}
+			</Tabs>
+		</div>
+	);
+}
+
+function CompareStatsTable({
+	label,
+	statsPerRun,
+	format,
+}: {
+	label: string;
+	statsPerRun: (ClientStats | null)[];
+	format: (v: number) => string;
+}) {
+	const metrics = ['avg', 'min', 'max', 'p50', 'p95', 'p99'] as const;
+
+	return (
+		<div className="overflow-x-auto">
+			<table className="w-full text-sm">
+				<thead>
+					<tr className="border-b">
+						<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{label}</th>
+						{metrics.map((m) => (
+							<th key={m} className="px-4 py-2.5 text-right font-medium text-muted-foreground">
+								{m === 'avg' ? 'Avg' : m.charAt(0).toUpperCase() + m.slice(1)}
+							</th>
+						))}
+					</tr>
+				</thead>
+				<tbody>
+					{statsPerRun.map((stats, i) => (
+						<tr key={RUN_COLORS[i].label} className="border-b last:border-0">
+							<td className="px-4 py-2.5 font-medium">
+								<div className="flex items-center gap-2">
+									<span className={cn('h-2 w-2 rounded-sm', RUN_COLORS[i].fill)} />
+									<span>Run {RUN_COLORS[i].label}</span>
+								</div>
+							</td>
+							{metrics.map((m) => (
+								<td key={m} className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+									{stats ? format(stats[m]) : '-'}
+								</td>
+							))}
+						</tr>
+					))}
+				</tbody>
+			</table>
+		</div>
+	);
+}
+
 function CompareItemsTable({
 	data,
 	evaluatorNames,
@@ -223,23 +332,83 @@ function CompareItemsTable({
 	data: CompareResponse;
 	evaluatorNames: string[];
 }) {
+	const [filters, setFilters] = useState<FilterValue[]>([]);
+	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
+
+	// Detect which optional columns have data
+	const hasTokens = useMemo(
+		() =>
+			data.items.some((item) => item.outputs.some((out) => out && getTokens(out.output) != null)),
+		[data.items],
+	);
+	const hasMetadata = useMemo(
+		() =>
+			data.items.some((item) => item.outputs.some((out) => out && getMetadata(out.output) != null)),
+		[data.items],
+	);
+
+	const filterDefs: FilterDef[] = useMemo(
+		() => [
+			{ key: 'latencyMs', label: 'Latency (ms)', type: 'number' },
+			...evaluatorNames.map((n) => ({
+				key: `score_${n}`,
+				label: `${n} Score`,
+				type: 'number' as const,
+			})),
+		],
+		[evaluatorNames],
+	);
+
+	const displayColumns = useMemo(
+		() => [
+			{ key: 'input', label: 'Input' },
+			{ key: 'output', label: 'Output' },
+			{ key: 'latency', label: 'Latency' },
+			...(hasTokens ? [{ key: 'tokens', label: 'Tokens' }] : []),
+			...evaluatorNames.map((n) => ({ key: `eval_${n}`, label: n })),
+			...(hasMetadata ? [{ key: 'metadata', label: 'Metadata' }] : []),
+		],
+		[evaluatorNames, hasTokens, hasMetadata],
+	);
+
+	// Apply filters
+	const filteredItems = useMemo(() => {
+		if (filters.length === 0) return data.items;
+		return data.items.filter((item) =>
+			filters.every((f) => {
+				if (f.key === 'latencyMs') {
+					const lat = item.outputs[0]?.latencyMs;
+					if (lat == null) return false;
+					return applyNumericFilter(lat, f.operator, Number(f.value));
+				}
+				if (f.key.startsWith('score_')) {
+					const evalName = f.key.slice(6);
+					const score = item.outputs[0]?.evaluations[evalName]?.score;
+					if (score == null) return false;
+					return applyNumericFilter(score, f.operator, Number(f.value));
+				}
+				return true;
+			}),
+		);
+	}, [data.items, filters]);
+
 	// Compute average latency per run
 	const avgLatencies = useMemo(() => {
 		return data.runs.map((_, runIdx) => {
-			const latencies = data.items
+			const latencies = filteredItems
 				.map((item) => item.outputs[runIdx]?.latencyMs)
 				.filter((v): v is number => v != null);
 			if (latencies.length === 0) return 0;
 			return latencies.reduce((a, b) => a + b, 0) / latencies.length;
 		});
-	}, [data.items, data.runs]);
+	}, [filteredItems, data.runs]);
 
 	// Compute average score per evaluator per run
 	const avgScores = useMemo(() => {
 		const result: Record<string, number[]> = {};
 		for (const name of evaluatorNames) {
 			result[name] = data.runs.map((_, runIdx) => {
-				const scores = data.items
+				const scores = filteredItems
 					.map((item) => item.outputs[runIdx]?.evaluations[name]?.score)
 					.filter((v): v is number => v != null);
 				if (scores.length === 0) return 0;
@@ -247,49 +416,81 @@ function CompareItemsTable({
 			});
 		}
 		return result;
-	}, [data.items, data.runs, evaluatorNames]);
+	}, [filteredItems, data.runs, evaluatorNames]);
+
+	const isVisible = (key: string) => columnVisibility[key] !== false;
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-			<div className="border-b bg-muted/50 px-4 py-3">
-				<h2 className="text-sm font-semibold">Items ({data.items.length})</h2>
+			<div className="border-b bg-muted/50 px-4 py-3 flex items-center justify-between gap-4">
+				<h2 className="text-sm font-semibold">
+					Items ({filteredItems.length}
+					{filteredItems.length !== data.items.length && ` of ${data.items.length}`})
+				</h2>
+				<div className="flex items-center gap-2">
+					<FilterBar filters={filters} onFiltersChange={setFilters} filterDefs={filterDefs} />
+					<DisplayOptions
+						columns={displayColumns}
+						visibility={columnVisibility}
+						onVisibilityChange={setColumnVisibility}
+					/>
+				</div>
 			</div>
 			<div className="overflow-x-auto">
 				<table className="w-full text-sm">
 					<thead>
 						<tr className="border-b">
 							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground w-10">#</th>
-							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
-							<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
-							<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
-								<div className="flex flex-col items-end gap-0.5">
-									<Clock className="inline h-3.5 w-3.5" />
-									<ColumnCell className="items-end">
-										{avgLatencies.map((lat, idx) => (
-											// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
-											<span key={idx} className="text-[10px] tabular-nums">
-												{formatDuration(lat)}
-											</span>
-										))}
-									</ColumnCell>
-								</div>
-							</th>
-							{evaluatorNames.map((name) => (
-								<th key={name} className="px-4 py-2.5 text-right font-medium text-muted-foreground">
+							{isVisible('input') && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Input</th>
+							)}
+							{isVisible('output') && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">Output</th>
+							)}
+							{isVisible('latency') && (
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">
 									<div className="flex flex-col items-end gap-0.5">
-										<span>{name}</span>
+										<Clock className="inline h-3.5 w-3.5" />
 										<ColumnCell className="items-end">
-											{avgScores[name].map((s, i) => (
-												<ScoreBadge key={RUN_COLORS[i].label} score={s} />
+											{avgLatencies.map((lat, idx) => (
+												// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+												<span key={idx} className="text-[10px] tabular-nums">
+													{formatDuration(lat)}
+												</span>
 											))}
 										</ColumnCell>
 									</div>
 								</th>
-							))}
+							)}
+							{hasTokens && isVisible('tokens') && (
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Tokens</th>
+							)}
+							{evaluatorNames.map((name) =>
+								isVisible(`eval_${name}`) ? (
+									<th
+										key={name}
+										className="px-4 py-2.5 text-right font-medium text-muted-foreground"
+									>
+										<div className="flex flex-col items-end gap-0.5">
+											<span>{name}</span>
+											<ColumnCell className="items-end">
+												{avgScores[name].map((s, i) => (
+													<ScoreBadge key={RUN_COLORS[i].label} score={s} />
+												))}
+											</ColumnCell>
+										</div>
+									</th>
+								) : null,
+							)}
+							{hasMetadata && isVisible('metadata') && (
+								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
+									Metadata
+								</th>
+							)}
 						</tr>
 					</thead>
 					<tbody>
-						{data.items.map((item) => (
+						{filteredItems.map((item) => (
 							<tr
 								key={item.index}
 								className="border-b last:border-0 hover:bg-muted/50 transition-colors"
@@ -297,49 +498,87 @@ function CompareItemsTable({
 								<td className="px-4 py-2.5 tabular-nums text-muted-foreground align-top">
 									{item.index + 1}
 								</td>
-								<td className="px-4 py-2.5 max-w-48 align-top">
-									<span className="line-clamp-2 text-xs text-muted-foreground">
-										{truncateValue(item.input)}
-									</span>
-								</td>
-								<td className="px-4 py-2.5 max-w-64 align-top">
-									<ColumnCell>
-										{item.outputs.map((out, idx) => (
-											// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
-											<span key={idx} className="line-clamp-2 text-xs">
-												{out ? truncateValue(getOutputValue(out.output)) : '-'}
-											</span>
-										))}
-									</ColumnCell>
-								</td>
-								<td className="px-4 py-2.5 text-right align-top whitespace-nowrap">
-									<ColumnCell className="items-end">
-										{item.outputs.map((out, idx) => (
-											// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
-											<span key={idx} className="text-xs tabular-nums">
-												{out ? formatDuration(out.latencyMs) : '-'}
-											</span>
-										))}
-									</ColumnCell>
-								</td>
-								{evaluatorNames.map((name) => (
-									<td key={name} className="px-4 py-2.5 text-right align-top">
+								{isVisible('input') && (
+									<td className="px-4 py-2.5 max-w-48 align-top">
+										<span className="line-clamp-2 text-xs text-muted-foreground">
+											{truncateValue(item.input)}
+										</span>
+									</td>
+								)}
+								{isVisible('output') && (
+									<td className="px-4 py-2.5 max-w-64 align-top">
+										<ColumnCell>
+											{item.outputs.map((out, idx) => (
+												// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+												<span key={idx} className="line-clamp-2 text-xs">
+													{out ? truncateValue(getOutputValue(out.output)) : '-'}
+												</span>
+											))}
+										</ColumnCell>
+									</td>
+								)}
+								{isVisible('latency') && (
+									<td className="px-4 py-2.5 text-right align-top whitespace-nowrap">
+										<ColumnCell className="items-end">
+											{item.outputs.map((out, idx) => (
+												// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+												<span key={idx} className="text-xs tabular-nums">
+													{out ? formatDuration(out.latencyMs) : '-'}
+												</span>
+											))}
+										</ColumnCell>
+									</td>
+								)}
+								{hasTokens && isVisible('tokens') && (
+									<td className="px-4 py-2.5 text-right align-top">
 										<ColumnCell className="items-end">
 											{item.outputs.map((out, idx) => {
-												const ev = out?.evaluations[name];
-												return ev ? (
+												const tokens = out ? getTokens(out.output) : undefined;
+												return (
 													// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
-													<ScoreBadge key={idx} score={ev.score} />
-												) : (
-													// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
-													<span key={idx} className="text-muted-foreground text-xs">
-														-
+													<span key={idx} className="text-xs tabular-nums text-muted-foreground">
+														{tokens != null ? tokens.toLocaleString() : '-'}
 													</span>
 												);
 											})}
 										</ColumnCell>
 									</td>
-								))}
+								)}
+								{evaluatorNames.map((name) =>
+									isVisible(`eval_${name}`) ? (
+										<td key={name} className="px-4 py-2.5 text-right align-top">
+											<ColumnCell className="items-end">
+												{item.outputs.map((out, idx) => {
+													const ev = out?.evaluations[name];
+													return ev ? (
+														// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+														<ScoreBadge key={idx} score={ev.score} />
+													) : (
+														// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+														<span key={idx} className="text-muted-foreground text-xs">
+															-
+														</span>
+													);
+												})}
+											</ColumnCell>
+										</td>
+									) : null,
+								)}
+								{hasMetadata && isVisible('metadata') && (
+									<td className="px-4 py-2.5 max-w-48 align-top">
+										<ColumnCell>
+											{item.outputs.map((out, idx) => {
+												const meta = out ? getMetadata(out.output) : undefined;
+												return (
+													// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
+													<span key={idx} className="line-clamp-2 text-xs text-muted-foreground">
+														{meta ? truncateValue(meta) : '-'}
+													</span>
+												);
+											})}
+										</ColumnCell>
+									</td>
+								)}
 							</tr>
 						))}
 					</tbody>
@@ -349,12 +588,45 @@ function CompareItemsTable({
 	);
 }
 
+function applyNumericFilter(val: number, op: FilterValue['operator'], target: number): boolean {
+	switch (op) {
+		case 'eq':
+			return val === target;
+		case 'gt':
+			return val > target;
+		case 'lt':
+			return val < target;
+		case 'gte':
+			return val >= target;
+		case 'lte':
+			return val <= target;
+		default:
+			return true;
+	}
+}
+
 /** Extract the actual output value from an ExperimentResult or raw value */
 function getOutputValue(output: unknown): unknown {
 	if (output && typeof output === 'object' && 'output' in output) {
 		return (output as { output: unknown }).output;
 	}
 	return output;
+}
+
+/** Extract metadata from an ExperimentResult */
+function getMetadata(output: unknown): Record<string, unknown> | undefined {
+	if (output && typeof output === 'object' && 'metadata' in output) {
+		return (output as { metadata?: Record<string, unknown> }).metadata ?? undefined;
+	}
+	return undefined;
+}
+
+/** Get tokens from item metadata */
+function getTokens(output: unknown): number | undefined {
+	const meta = getMetadata(output);
+	if (!meta) return undefined;
+	const tokens = meta.tokens;
+	return typeof tokens === 'number' ? tokens : undefined;
 }
 
 function truncateValue(value: unknown): string {
@@ -378,6 +650,7 @@ function LoadingSkeleton() {
 					<Skeleton key={i} className="h-36 rounded-xl" />
 				))}
 			</div>
+			<Skeleton className="h-48 rounded-xl" />
 			<Skeleton className="h-64 rounded-xl" />
 		</div>
 	);

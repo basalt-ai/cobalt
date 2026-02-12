@@ -1,8 +1,15 @@
-import { ArrowLeft, CheckCircle, Clock, Warning, XCircle } from '@phosphor-icons/react';
+import {
+	ArrowLeft,
+	ArrowsLeftRight,
+	CheckCircle,
+	Clock,
+	Warning,
+	XCircle,
+} from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router';
-import { getRunDetail } from '../api/runs';
-import type { ItemResult, RunDetailResponse } from '../api/types';
+import { Link, useNavigate, useParams } from 'react-router';
+import { getRunDetail, getRuns } from '../api/runs';
+import type { ItemResult, RunDetailResponse, RunsResponse } from '../api/types';
 import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
 import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
 import { MetricCard } from '../components/data/metric-card';
@@ -17,6 +24,13 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from '../components/ui/dialog';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useApi } from '../hooks/use-api';
@@ -57,6 +71,14 @@ export function RunDetailPage() {
 	const { id } = useParams<{ id: string }>();
 	const { data, error, loading } = useApi<RunDetailResponse>(() => getRunDetail(id!), [id]);
 	const [selectedItem, setSelectedItem] = useState<ItemResult | null>(null);
+	const navigate = useNavigate();
+
+	// Fetch all runs for compare selector
+	const { data: runsData } = useApi<RunsResponse>(() => getRuns());
+	const otherRuns = useMemo(
+		() => (runsData?.runs ?? []).filter((r) => r.id !== id),
+		[runsData, id],
+	);
 
 	if (loading) return <LoadingSkeleton />;
 	if (error) {
@@ -101,32 +123,41 @@ export function RunDetailPage() {
 			</Link>
 
 			<PageHeader title={run.name} description={`${formatDate(run.timestamp)} — Run ${run.id}`}>
-				{run.tags.length > 0 && (
-					<div className="flex gap-1.5">
-						{run.tags.map((tag) => (
-							<Badge key={tag} color="sand" size="sm">
-								{tag}
-							</Badge>
-						))}
-					</div>
-				)}
+				<div className="flex items-center gap-2">
+					{run.tags.length > 0 && (
+						<div className="flex gap-1.5">
+							{run.tags.map((tag) => (
+								<Badge key={tag} color="sand" size="sm">
+									{tag}
+								</Badge>
+							))}
+						</div>
+					)}
+					{otherRuns.length > 0 && (
+						<div className="flex items-center gap-2">
+							<ArrowsLeftRight className="h-4 w-4 text-muted-foreground" />
+							<Select onValueChange={(runId) => navigate(`/compare?a=${id}&b=${runId}`)}>
+								<SelectTrigger className="w-48 h-8 text-xs">
+									<SelectValue placeholder="Compare with..." />
+								</SelectTrigger>
+								<SelectContent>
+									{otherRuns.map((r) => (
+										<SelectItem key={r.id} value={r.id}>
+											{r.name}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+					)}
+				</div>
 			</PageHeader>
 
 			{/* Metric Cards */}
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
 				<MetricCard label="Items" value={run.summary.totalItems} />
-				<MetricCard
-					label="Avg Latency"
-					value={formatDuration(run.summary.avgLatencyMs)}
-					detail={`total ${formatDuration(run.summary.totalDurationMs)}`}
-				/>
-				{avgTokens != null && (
-					<MetricCard
-						label="Avg Tokens"
-						value={avgTokens.toLocaleString()}
-						detail={`total ${run.summary.totalTokens!.toLocaleString()}`}
-					/>
-				)}
+				<MetricCard label="Avg Latency" value={formatDuration(run.summary.avgLatencyMs)} />
+				{avgTokens != null && <MetricCard label="Avg Tokens" value={avgTokens.toLocaleString()} />}
 				{run.summary.estimatedCost != null && (
 					<MetricCard label="Cost" value={`$${run.summary.estimatedCost.toFixed(4)}`} />
 				)}
@@ -351,8 +382,8 @@ function ItemsTable({
 			{ key: 'input', label: 'Input' },
 			{ key: 'output', label: 'Output' },
 			{ key: 'latency', label: 'Latency' },
-			...evaluatorNames.map((n) => ({ key: `eval_${n}`, label: n })),
 			...(hasTokens ? [{ key: 'tokens', label: 'Tokens' }] : []),
+			...evaluatorNames.map((n) => ({ key: `eval_${n}`, label: n })),
 			...(hasMetadata ? [{ key: 'metadata', label: 'Metadata' }] : []),
 		],
 		[evaluatorNames, hasTokens, hasMetadata],
@@ -437,6 +468,9 @@ function ItemsTable({
 									</div>
 								</th>
 							)}
+							{hasTokens && isVisible('tokens') && (
+								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Tokens</th>
+							)}
 							{evaluatorNames.map(
 								(name) =>
 									isVisible(`eval_${name}`) && (
@@ -450,9 +484,6 @@ function ItemsTable({
 											</div>
 										</th>
 									),
-							)}
-							{hasTokens && isVisible('tokens') && (
-								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Tokens</th>
 							)}
 							{hasMetadata && isVisible('metadata') && (
 								<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
@@ -497,6 +528,11 @@ function ItemsTable({
 											{formatDuration(item.latencyMs)}
 										</td>
 									)}
+									{hasTokens && isVisible('tokens') && (
+										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
+											{tokens != null ? tokens.toLocaleString() : '-'}
+										</td>
+									)}
 									{evaluatorNames.map(
 										(name) =>
 											isVisible(`eval_${name}`) && (
@@ -508,11 +544,6 @@ function ItemsTable({
 													)}
 												</td>
 											),
-									)}
-									{hasTokens && isVisible('tokens') && (
-										<td className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
-											{tokens != null ? tokens.toLocaleString() : '-'}
-										</td>
 									)}
 									{hasMetadata && isVisible('metadata') && (
 										<td className="px-4 py-2.5 max-w-48">
