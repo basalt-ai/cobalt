@@ -567,6 +567,70 @@ describe('evaluateLLMJudge', () => {
 		});
 	});
 
+	describe('Temperature handling', () => {
+		it('should not send temperature for gpt-5 models', async () => {
+			const OpenAI = (await import('openai')).default;
+			const mockCreate = vi
+				.fn()
+				.mockResolvedValue(createMockOpenAIResponse(JSON.stringify(mockBooleanResponse)));
+
+			vi.mocked(OpenAI).mockImplementation(
+				() =>
+					({
+						chat: {
+							completions: {
+								create: mockCreate,
+							},
+						},
+					}) as any,
+			);
+
+			const config: LLMJudgeEvaluatorConfig = {
+				name: 'test',
+				type: 'llm-judge',
+				prompt: 'Rate this',
+				model: 'gpt-5-mini',
+				provider: 'openai',
+			};
+
+			await evaluateLLMJudge(config, sampleEvalContext, 'fake-api-key');
+
+			const callArgs = mockCreate.mock.calls[0][0];
+			expect(callArgs.temperature).toBeUndefined();
+		});
+
+		it('should send temperature for gpt-4o models', async () => {
+			const OpenAI = (await import('openai')).default;
+			const mockCreate = vi
+				.fn()
+				.mockResolvedValue(createMockOpenAIResponse(JSON.stringify(mockBooleanResponse)));
+
+			vi.mocked(OpenAI).mockImplementation(
+				() =>
+					({
+						chat: {
+							completions: {
+								create: mockCreate,
+							},
+						},
+					}) as any,
+			);
+
+			const config: LLMJudgeEvaluatorConfig = {
+				name: 'test',
+				type: 'llm-judge',
+				prompt: 'Rate this',
+				model: 'gpt-4o',
+				provider: 'openai',
+			};
+
+			await evaluateLLMJudge(config, sampleEvalContext, 'fake-api-key');
+
+			const callArgs = mockCreate.mock.calls[0][0];
+			expect(callArgs.temperature).toBe(0.2);
+		});
+	});
+
 	describe('Anthropic provider', () => {
 		it('should call Anthropic API for boolean mode', async () => {
 			const Anthropic = (await import('@anthropic-ai/sdk')).default;

@@ -101,7 +101,6 @@ export async function handleCobaltGenerate(args: any) {
 				{ role: 'user', content: analysisPrompt },
 			],
 			response_format: { type: 'json_object' },
-			temperature: 0.3,
 		});
 
 		const analysis: AgentAnalysis = JSON.parse(analysisResponse.choices[0].message.content || '{}');
@@ -120,7 +119,6 @@ export async function handleCobaltGenerate(args: any) {
 				{ role: 'user', content: datasetPrompt },
 			],
 			response_format: { type: 'json_object' },
-			temperature: 0.7,
 		});
 
 		const datasetResult = JSON.parse(datasetResponse.choices[0].message.content || '{"items": []}');
@@ -140,7 +138,6 @@ export async function handleCobaltGenerate(args: any) {
 				{ role: 'user', content: evaluatorsPrompt },
 			],
 			response_format: { type: 'json_object' },
-			temperature: 0.5,
 		});
 
 		const evaluatorsResult = JSON.parse(

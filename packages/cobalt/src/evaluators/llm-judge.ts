@@ -99,6 +99,15 @@ function determineProvider(model: string): 'openai' | 'anthropic' {
 }
 
 /**
+ * Check if a model supports custom temperature values.
+ * Reasoning models and gpt-5 variants only support the default temperature.
+ */
+function supportsTemperature(model: string): boolean {
+	const noTempPrefixes = ['o1', 'o3', 'o4', 'gpt-5'];
+	return !noTempPrefixes.some((prefix) => model.startsWith(prefix));
+}
+
+/**
  * Call OpenAI API for evaluation
  */
 async function callOpenAI(
@@ -117,7 +126,7 @@ async function callOpenAI(
 				{ role: 'system', content: systemPrompt },
 				{ role: 'user', content: prompt },
 			],
-			temperature: 0.2,
+			...(supportsTemperature(model) && { temperature: 0.2 }),
 			response_format: { type: 'json_object' },
 		});
 
