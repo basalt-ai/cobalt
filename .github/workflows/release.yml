@@ -8,15 +8,11 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Required for committing version bump
       id-token: write  # Required for npm provenance
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: main  # Checkout main branch, not the tag
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
@@ -29,41 +25,6 @@ jobs:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          # Extract version from tag (e.g., v1.0.0 -> 1.0.0)
-          VERSION=${GITHUB_REF_NAME#v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Extracted version: $VERSION"
-
-      - name: Update package.json version
-        run: |
-          cd packages/cobalt
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          TARGET_VERSION="${{ steps.version.outputs.version }}"
-
-          if [ "$CURRENT_VERSION" != "$TARGET_VERSION" ]; then
-            pnpm version $TARGET_VERSION --no-git-tag-version
-            echo "Updated package.json from $CURRENT_VERSION to $TARGET_VERSION"
-          else
-            echo "Version already at $TARGET_VERSION, skipping update"
-          fi
-
-      - name: Commit version bump
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add packages/cobalt/package.json
-
-          # Only commit if there are changes
-          if git diff --staged --quiet; then
-            echo "No version changes to commit"
-          else
-            git commit -m "chore: bump version to ${{ steps.version.outputs.version }}"
-            git push origin main
-          fi
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
