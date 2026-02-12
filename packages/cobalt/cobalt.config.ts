@@ -13,18 +13,13 @@ export default defineConfig({
 		provider: 'openai',
 		// API key will be read from OPENAI_API_KEY environment variable
 	},
-
-	// Output directory for results
-	outputDir: '.cobalt',
-
-	// Default concurrency for running experiments
-	concurrency: 5,
+	concurrency: 1,
 
 	// Default timeout per item (ms)
 	timeout: 30_000,
 
 	// Reporters
-	reporters: ['cli', 'json'],
+	reporters: ['cli'],
 
 	// Dashboard configuration
 	dashboard: {
