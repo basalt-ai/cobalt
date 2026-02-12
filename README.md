@@ -32,7 +32,9 @@
   <img src="assets/basalt.png" alt="Basalt" height="28" />
 </p>
 
-<!-- TODO: Add demo GIF -->
+<br />
+
+<img src="assets/cobalt_demo.gif" alt="Demo" width="600" />
 
 </div>
 
