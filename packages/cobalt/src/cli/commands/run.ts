@@ -49,18 +49,14 @@ export default defineCommand({
 				files = [filepath];
 			} else {
 				// Find all experiment files
+				// Search in testDir if it exists, otherwise fall back to cwd
 				const testDir = resolve(process.cwd(), config.testDir);
+				const searchDir = existsSync(testDir) ? testDir : process.cwd();
 
-				if (!existsSync(testDir)) {
-					console.error(pc.red(`\n❌ Test directory not found: ${testDir}`));
-					console.log(pc.dim('Run "npx cobalt init" to create the project structure\n'));
-					process.exit(1);
-				}
-
-				files = await findExperimentFiles(testDir, config.testMatch);
+				files = await findExperimentFiles(searchDir, config.testMatch);
 
 				if (files.length === 0) {
-					console.error(pc.red(`\n❌ No experiment files found in ${testDir}`));
+					console.error(pc.red('\n❌ No experiment files found'));
 					console.log(pc.dim('Create files matching patterns:'), config.testMatch.join(', '));
 					console.log(pc.dim('Or run "npx cobalt init" to create an example\n'));
 					process.exit(1);
