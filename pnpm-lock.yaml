@@ -4,16 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-packageExtensionsChecksum: 86f2a34c2e5e6bbed0c471d9c32d9053
-
-patchedDependencies:
-  tr46@0.0.3:
-    hash: bpj6gcw6zugqpvk6vn5cnxkdsq
-    path: patches/tr46@0.0.3.patch
-  whatwg-url@5.0.0:
-    hash: qm5bqxbojl4aucv5lfj4d2vjuu
-    path: patches/whatwg-url@5.0.0.patch
-
 importers:
 
   .:
@@ -28,8 +18,8 @@ importers:
   packages/cobalt:
     dependencies:
       '@anthropic-ai/sdk':
-        specifier: ^0.30.0
-        version: 0.30.1
+        specifier: ^0.74.0
+        version: 0.74.0(zod@3.25.76)
       '@hono/node-server':
         specifier: ^1.19.9
         version: 1.19.9(hono@4.11.7)
@@ -97,8 +87,8 @@ importers:
         specifier: ^2.4.2
         version: 2.6.1
       openai:
-        specifier: ^4.77.3
-        version: 4.104.0(zod@3.25.76)
+        specifier: ^5.0.0
+        version: 5.23.2(zod@3.25.76)
       ora:
         specifier: ^8.1.1
         version: 8.2.0
@@ -201,18 +191,17 @@ packages:
       '@jridgewell/trace-mapping': 0.3.31
     dev: true
 
-  /@anthropic-ai/sdk@0.30.1:
-    resolution: {integrity: sha512-nuKvp7wOIz6BFei8WrTdhmSsx5mwnArYyJgh4+vYu3V4J0Ltb8Xm3odPm51n1aSI0XxNCrDl7O88cxCtUdAkaw==}
+  /@anthropic-ai/sdk@0.74.0(zod@3.25.76):
+    resolution: {integrity: sha512-srbJV7JKsc5cQ6eVuFzjZO7UR3xEPJqPamHFIe29bs38Ij2IripoAhC0S5NslNbaFUYqBKypmmpzMTpqfHEUDw==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
     dependencies:
-      '@types/node': 18.19.130
-      '@types/node-fetch': 2.6.13
-      abort-controller: 3.0.0
-      agentkeepalive: 4.6.0
-      form-data-encoder: 1.7.2
-      formdata-node: 4.4.1
-      node-fetch: 2.7.0
-    transitivePeerDependencies:
-      - encoding
+      json-schema-to-ts: 3.1.1
+      zod: 3.25.76
     dev: false
 
   /@babel/code-frame@7.29.0:
@@ -358,6 +347,11 @@ packages:
       '@babel/core': 7.29.0
       '@babel/helper-plugin-utils': 7.28.6
     dev: true
+
+  /@babel/runtime@7.28.6:
+    resolution: {integrity: sha512-05WQkdpL9COIMz4LjTxGpPNCdlpyimKppYNoJ5Di5EUObifl8t4tuLuUBBZEpoLYOmfvIWrsp9fCl0HoPRVTdA==}
+    engines: {node: '>=6.9.0'}
+    dev: false
 
   /@babel/template@7.28.6:
     resolution: {integrity: sha512-YA6Ma2KsCdGb+WC6UpBVFJGXL58MDA6oyONbjyF/+5sBgxY/dwkhLogbMT2GXXyU84/IhRw/2D1Os1B/giz+BQ==}
@@ -3859,6 +3853,14 @@ packages:
     hasBin: true
     dev: true
 
+  /json-schema-to-ts@3.1.1:
+    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
+    engines: {node: '>=16'}
+    dependencies:
+      '@babel/runtime': 7.28.6
+      ts-algebra: 2.0.0
+    dev: false
+
   /json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
     dev: false
@@ -4229,7 +4231,7 @@ packages:
       encoding:
         optional: true
     dependencies:
-      whatwg-url: 5.0.0(patch_hash=qm5bqxbojl4aucv5lfj4d2vjuu)
+      whatwg-url: 5.0.0
     dev: false
 
   /node-releases@2.0.27:
@@ -4287,6 +4289,21 @@ packages:
       zod: 3.25.76
     transitivePeerDependencies:
       - encoding
+    dev: false
+
+  /openai@5.23.2(zod@3.25.76):
+    resolution: {integrity: sha512-MQBzmTulj+MM5O8SKEk/gL8a7s5mktS9zUtAkU257WjvobGc9nKcBuVwjyEEcb9SI8a8Y2G/mzn3vm9n1Jlleg==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+    dependencies:
+      zod: 3.25.76
     dev: false
 
   /ora@8.2.0:
@@ -4442,11 +4459,6 @@ packages:
     dependencies:
       end-of-stream: 1.4.5
       once: 1.4.0
-    dev: false
-
-  /punycode@2.3.1:
-    resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
-    engines: {node: '>=6'}
     dev: false
 
   /qs@6.14.1:
@@ -5038,17 +5050,18 @@ packages:
     engines: {node: '>=0.6'}
     dev: false
 
-  /tr46@0.0.3(patch_hash=bpj6gcw6zugqpvk6vn5cnxkdsq):
+  /tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
-    dependencies:
-      punycode: 2.3.1
     dev: false
-    patched: true
 
   /tree-kill@1.2.2:
     resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
     hasBin: true
     dev: true
+
+  /ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
+    dev: false
 
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
@@ -5465,14 +5478,12 @@ packages:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
     dev: false
 
-  /whatwg-url@5.0.0(patch_hash=qm5bqxbojl4aucv5lfj4d2vjuu):
+  /whatwg-url@5.0.0:
     resolution: {integrity: sha512-saE57nupxk6v3HY35+jzBwYa0rKSy0XR8JSxZPwgLr7ys0IBzhGviA1/TUGJLmSVqs8pb9AnvICXEuOHLprYTw==}
     dependencies:
-      punycode: 2.3.1
-      tr46: 0.0.3(patch_hash=bpj6gcw6zugqpvk6vn5cnxkdsq)
+      tr46: 0.0.3
       webidl-conversions: 3.0.1
     dev: false
-    patched: true
 
   /which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
