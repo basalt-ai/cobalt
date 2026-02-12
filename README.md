@@ -2,23 +2,29 @@
 
 <img src="assets/logo.png" alt="Cobalt" width="200" />
 
-# Cobalt
+<br>
 
 **Unit testing for AI Agents** — Test, evaluate, and improve your AI systems.
+
+[Documentation](docs/evaluators.md)
+
+<br>
 
 ![Build Status](https://github.com/basalt-ai/cobalt/actions/workflows/test.yml/badge.svg)
 [![npm version](https://img.shields.io/npm/v/@basalt-ai/cobalt.svg)](https://www.npmjs.com/package/@basalt-ai/cobalt)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue.svg)](https://www.typescriptlang.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-green.svg)](https://nodejs.org/)
 [![Discord](https://img.shields.io/discord/1234567890?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/yW2RyZKY)
 
 <br />
 
+### Integrated with
+
 <p>
-  <img src="assets/langfuse.png" alt="Langfuse" height="28" />&nbsp;&nbsp;
-  <img src="assets/langsmith.png" alt="LangSmith" height="28" />&nbsp;&nbsp;
-  <img src="assets/braintrust.png" alt="Braintrust" height="28" />&nbsp;&nbsp;
+  <img src="assets/langfuse.png" alt="Langfuse" height="28" />&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/langsmith.png" alt="LangSmith" height="28" />&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="assets/braintrust.png" alt="Braintrust" height="28" />&nbsp;&nbsp;&nbsp;&nbsp;
   <img src="assets/basalt.png" alt="Basalt" height="28" />
 </p>
 
@@ -69,19 +75,19 @@ const dataset = new Dataset({
   ],
 })
 
-// Run your agent and evaluate
-experiment('qa-agent', dataset, async ({ item }) => {
-  const result = await myAgent(item.input)
-  return { output: result }
-}, {
-  evaluators: [
+const evaluators = [
     new Evaluator({
       name: 'Correctness',
       type: 'llm-judge',
       prompt: 'Is the output correct?\nExpected: {{expectedOutput}}\nActual: {{output}}',
     }),
-  ],
-})
+  ]
+
+// Run your agent and evaluate
+experiment('qa-agent', dataset, async ({ item }) => {
+  const result = await myAgent(item.input)
+  return { output: result }
+}, { evaluators })
 ```
 
 ```bash
@@ -120,13 +126,15 @@ Cobalt is built for AI-assisted development. Connect the MCP server, and your AI
 
 ### Example Prompts
 
+> **"Compare gpt 5.1 and 5.2 on my agent and tell me wich one is the best"**
+
 > **"Run my QA experiment and tell me which test cases are failing"**
 
 > **"Generate a Cobalt experiment for my agent at `src/agents/summarizer.ts`"**
 
 > **"Compare my last two runs and check for regressions"**
 
-> **"My agent is scoring 60% on correctness — analyze the failures and suggest code fixes"**
+> **"My agent is scoring 60% on correctness. Analyze the failures and suggest code fixes"**
 
 ### MCP Server
 
@@ -244,11 +252,13 @@ Cobalt is open source and community-driven. The roadmap is shaped by what you ne
 | :white_check_mark: | MCP server for AI-assisted testing |
 | :white_check_mark: | CI mode with quality thresholds |
 | :white_check_mark: | Plugin system & Autoevals integration |
-| :construction: | **Vibe code your test reports** — Interactive dashboard UI |
-| :construction: | **GitHub Action** — First-class CI integration |
-| :crystal_ball: | **Python version** — Bring Cobalt to the Python ecosystem |
-| :crystal_ball: | **VS Code extension** — Run experiments from your editor |
-| :crystal_ball: | **Multi-platform export** — Push results to Langfuse, LangSmith, Braintrust |
+| :construction: | **Vibe code your test reports** - Vibe coded dashboard UI to make it like you want |
+| :construction: | **GitHub Action** - First-class CI integration |
+| :construction: | **Tracing** - Full tracing of the agent to have more context for the evaluation |
+| :crystal_ball: | **Python version** - Bring Cobalt to the Python ecosystem |
+| :crystal_ball: | **VS Code extension** - Run experiments from your editor |
+| :crystal_ball: | **More integrations** - Integrations with frameworks like Mastra or Langhcain |
+| :crystal_ball: | **Multi-platform export** - Push results to BigQuery, Snowflake or other tools |
 
 ## Contributing
 
@@ -256,7 +266,6 @@ We welcome contributions! See our **[Contributing Guide](CONTRIBUTING.md)** for 
 
 - **Report bugs**: [Open an issue](https://github.com/basalt-ai/cobalt/issues)
 - **Suggest features**: [GitHub Issues](https://github.com/basalt-ai/cobalt/issues)
-- **Create plugins**: Extend Cobalt with custom evaluators ([Plugin docs](docs/plugins.md))
 
 ## License
 
