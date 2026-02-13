@@ -24,14 +24,14 @@ export class Evaluator {
 	 * @param model - Model to use (optional, uses config default)
 	 * @returns Evaluation result with score and reason
 	 */
-	async evaluate(context: EvalContext, apiKey?: string, _model?: string): Promise<EvalResult> {
+	async evaluate(context: EvalContext, apiKey?: string, model?: string): Promise<EvalResult> {
 		try {
 			if (!registry.has(this.config.type)) {
 				throw new Error(`Unknown evaluator type: ${this.config.type}`);
 			}
 
 			const handler = registry.get(this.config.type)!;
-			return await handler(this.config, context, apiKey);
+			return await handler(this.config, context, apiKey, model);
 		} catch (error) {
 			console.error(`Evaluator "${this.config.name}" failed:`, error);
 			return {

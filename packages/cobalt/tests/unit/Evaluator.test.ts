@@ -72,6 +72,7 @@ describe('Evaluator', () => {
 				expect.objectContaining({ name: 'relevance', type: 'llm-judge' }),
 				sampleEvalContext,
 				'fake-api-key',
+				undefined,
 			);
 			expect(result.score).toBe(0.85);
 		});
@@ -88,6 +89,7 @@ describe('Evaluator', () => {
 			expect(mockFunction).toHaveBeenCalledWith(
 				expect.objectContaining({ name: 'custom', type: 'function' }),
 				sampleEvalContext,
+				undefined,
 				undefined,
 			);
 			expect(result.score).toBe(1);
