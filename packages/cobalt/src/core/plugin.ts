@@ -13,6 +13,7 @@ export type EvaluatorHandler = (
 	config: any,
 	context: EvalContext,
 	apiKey?: string,
+	model?: string,
 ) => Promise<EvalResult>;
 
 /**
