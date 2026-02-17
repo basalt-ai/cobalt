@@ -289,6 +289,59 @@ describe('runExperiment', () => {
 		});
 	});
 
+	describe('multiple runs with errors', () => {
+		it('should handle runner failure in one of multiple runs', async () => {
+			let callCount = 0;
+			const runner = vi.fn().mockImplementation(() => {
+				callCount++;
+				if (callCount === 2) {
+					return Promise.reject(new Error('Run 2 failed'));
+				}
+				return Promise.resolve({ output: `result-${callCount}` });
+			});
+			const evaluator = createMockEvaluator('test', 0.9);
+
+			const results = await runExperiment(sampleItems.slice(0, 1), runner, {
+				concurrency: 5,
+				timeout: 5000,
+				evaluators: [evaluator],
+				runs: 3,
+			});
+
+			// Should have all 3 runs
+			expect(results[0].runs).toHaveLength(3);
+			// Run 2 (index 1) should have an error
+			expect(results[0].runs[1].error).toBe('Run 2 failed');
+			// Other runs should succeed
+			expect(results[0].runs[0].error).toBeUndefined();
+			expect(results[0].runs[2].error).toBeUndefined();
+		});
+
+		it('should still aggregate when some runs have errors', async () => {
+			let callCount = 0;
+			const runner = vi.fn().mockImplementation(() => {
+				callCount++;
+				if (callCount === 1) {
+					return Promise.reject(new Error('First run failed'));
+				}
+				return Promise.resolve({ output: 'success' });
+			});
+			const evaluator = createMockEvaluator('test', 0.8);
+
+			const results = await runExperiment(sampleItems.slice(0, 1), runner, {
+				concurrency: 5,
+				timeout: 5000,
+				evaluators: [evaluator],
+				runs: 2,
+			});
+
+			expect(results[0].aggregated).toBeDefined();
+			// First run failed so no evaluations, second run succeeded
+			expect(results[0].runs[0].evaluations).toEqual({});
+			expect(results[0].runs[1].evaluations.test.score).toBe(0.8);
+		});
+	});
+
 	describe('no evaluators', () => {
 		it('should run without evaluators', async () => {
 			const runner = createMockRunner({ output: 'test' });
