@@ -103,17 +103,18 @@ Some P2/P3 features were implemented ahead of schedule:
 - ✅ `cobalt compare <id1> <id2>` command
 - ✅ Side-by-side comparison UI
 
-**3. MCP Integration** (P3 feature - partial)
+**3. MCP Integration** (P3 feature - complete)
 - ✅ MCP server (`src/mcp/server.ts`)
 - ✅ `cobalt mcp` command
-- ✅ MCP tools: `cobalt_run`, `cobalt_results`, `cobalt_compare`
-- ❌ Missing: `cobalt_generate`, resources, prompts
+- ✅ MCP tools: `cobalt_run`, `cobalt_results`, `cobalt_compare`, `cobalt_generate`
+- ✅ MCP resources: `cobalt://config`, `cobalt://experiments`, `cobalt://latest-results`
+- ✅ MCP prompts: `improve-agent`, `generate-tests`, `regression-check`
 
-**4. Dashboard API** (P4 feature - backend only)
+**4. Dashboard** (P4 feature - ~85% complete)
 - ✅ Hono server (`src/dashboard/server.ts`)
 - ✅ API endpoints: `/api/runs`, `/api/runs/:id`, `/api/compare`, `/api/trends`
 - ✅ `cobalt serve` command
-- ❌ Missing: React frontend UI
+- ✅ React SPA frontend with Vite (see P4 section below)
 
 **5. Clean Command** (Utility)
 - ✅ `cobalt clean` command
@@ -324,7 +325,7 @@ During implementation, several mismatches were discovered and fixed:
 
 ---
 
-## Statistics (Current)
+## Statistics (as of February 5, 2026)
 
 **Project Metrics:**
 - **Packages**: 1 (cobalt - single package structure)
@@ -336,12 +337,12 @@ During implementation, several mismatches were discovered and fixed:
 - **Evaluator Types**: 4 built-in (llm-judge, function, similarity, autoevals)
 - **Dataset Formats**: 3 (JSON, JSONL, CSV)
 
-**Phase Completion:**
+**Phase Completion (as of Feb 5):**
 - ✅ P0 (MVP): 100% complete
 - ✅ P1 (Usable): 100% complete
-- ✅ **P2 (Powerful): 100% complete** (4/4 features) ← NEW!
-- ⚠️ P3 (Connected): ~10% complete (1/8 features, MCP 40% done)
-- ⚠️ P4 (Dashboard): 25% complete (backend only, no UI)
+- ✅ **P2 (Powerful): 100% complete** (4/4 features)
+- ⚠️ P3 (Connected): ~10% complete
+- ⚠️ P4 (Dashboard): 25% complete (backend only)
 
 ---
 
@@ -422,14 +423,14 @@ During implementation, several mismatches were discovered and fixed:
 
 ---
 
-## Statistics (Updated — February 10, 2026)
+## Statistics (Updated — February 17, 2026)
 
 **Project Metrics:**
-- **Lines of Code**: ~5,800 (src/)
-- **Test Files**: 19
-- **Test Cases**: 330
-- **Test Coverage**: 80-100% for tested modules
-- **CLI Commands**: 7 (run, init, history, compare, serve, clean, mcp)
+- **Lines of Code**: ~5,800+ (src/)
+- **Test Files**: 19+
+- **Test Cases**: 231+ (across 12+ test suites)
+- **Test Coverage**: 75%+ enforced (lines 75%, functions 80%, branches 70%)
+- **CLI Commands**: 8 (run, init, history, compare, serve, clean, mcp, update)
 - **Evaluator Types**: 4 built-in + 11 via Autoevals
 - **Dataset Formats**: 3 local (JSON, JSONL, CSV) + 5 remote (HTTP, Langfuse, LangSmith, Braintrust, Basalt)
 
@@ -438,7 +439,7 @@ During implementation, several mismatches were discovered and fixed:
 - ✅ P1 (Usable): 100% complete
 - ✅ P2 (Powerful): 100% complete
 - ✅ P3 (Connected): 100% complete
-- 🔄 P4 (Dashboard): ~50% (backend + frontend scaffolding)
+- 🔄 P4 (Dashboard): ~85% (design system + all 4 pages styled, missing AI chat + export)
 
 ---
 
@@ -473,10 +474,43 @@ During implementation, several mismatches were discovered and fixed:
 - Dev workflow: Vite on :5173 proxies `/api` → Hono on :4000
 - Production: `cobalt serve` serves everything from `dist/dashboard/`
 
-### Next Steps
-- User will provide UI library + existing page design for styling
-- Wire up Compare and Trends pages
-- Add filtering and tags support
+---
+
+## 2026-02-10 → 2026-02-17: P4 Dashboard UI Implementation
+
+### Design System Foundation
+- Tailwind CSS 4 + Radix Colors + CVA (class-variance-authority)
+- Phosphor Icons for consistent iconography
+- Class-based dark mode with localStorage persistence + system preference detection
+- Brand orange (#db5704), sand neutrals, semantic color variables
+- `cn()` utility (clsx + tailwind-merge)
+
+### Core UI Components (14+)
+Button, Badge (with color variants), Card, Dialog, Popover, Select, Tabs, Tooltip, Separator, Skeleton, ScrollArea, Switch, PageHeader, TopBar
+
+### Data Components
+- ScoreBadge — color-coded score display (green > 0.8, amber > 0.5, red), boolean evaluator support
+- MetricCard — stat value with optional detail text
+- ColumnCell — stacked multi-run values with color dots (A/B/C)
+- FilterBar — advanced client-side filtering (=, >, <, >=, <=, contains)
+- DisplayOptions — column visibility toggle
+
+### Pages (All 4 Complete)
+
+**RunsListPage**: TanStack Table with sortable columns, search by name, tag filtering, multi-select (max 3) with floating action bar, score badges, loading skeletons, empty/error states.
+
+**RunDetailPage**: Breadcrumb navigation, metric cards (items, latency, tokens, cost), tabbed scores/latency/tokens stats (avg, min, max, p50, p95, p99), items DataTable with per-evaluator columns, item detail Dialog with evaluator reasons + chain-of-thought, CI status section, compare selector.
+
+**ComparePage**: A/B/C run selector with color system (grey/blue/pink), score comparison cards with delta calculations, stacked items table via ColumnCell, latency/tokens stats tabs, filter bar, display options.
+
+**TrendsPage**: Experiment name selector, Recharts LineChart with one line per evaluator, interactive tooltips, runs summary table with click-to-navigate.
+
+### Remaining P4 Work
+- [ ] AI chat integration (Phase 6 — Vercel AI SDK)
+- [ ] Export results (CSV, Markdown)
+- [ ] Compare page: Recharts bar charts in metric cards
+- [ ] Compare page: Item comparison drawer (A vs B side-by-side)
+- [ ] Trends page: Evaluator filter dropdown
 
 ---
 

@@ -1,23 +1,44 @@
 # Open Questions and Doubts
 
-## None Currently
+## Dashboard — Open Questions
 
-All major architectural decisions have been made and implemented. This file will be updated as questions arise during future development.
+### 1. Real-Time Updates
+Should the dashboard auto-refresh when new experiment runs complete?
+- **Option A**: WebSocket connection from Hono server (push updates)
+- **Option B**: Polling (frontend polls `/api/runs` every N seconds)
+- **Option C**: Manual refresh only (current behavior)
+- **Context**: Local-only tool, so complexity of WebSocket may not be justified
 
-## Future Considerations
+### 2. Virtual Scrolling
+Should we add `@tanstack/react-virtual` for tables with 100+ runs?
+- Currently using native HTML tables with TanStack Table for sorting/selection
+- Virtual scrolling would improve performance for large datasets
+- Adds dependency and implementation complexity
+- **Decision**: Deferred — monitor if users report performance issues
 
-1. **Dependency Injection Container**: As the app grows, consider adding a DI container (TSyringe, InversifyJS) instead of manual constructor injection.
+### 3. AI Chat Conversation Persistence
+When AI chat is implemented (Phase 6), should conversations persist across page navigations?
+- In-memory persistence (lost on page refresh) vs localStorage/sessionStorage
+- Context changes when user navigates (different run, compare view, etc.)
 
-2. **Integration Tests**: Once the app has real features, add integration tests that test the full stack with a test database.
+### 4. Shareable Reports
+Should the dashboard support exporting a shareable HTML report (static, self-contained)?
+- Useful for sharing results with team members who don't have Cobalt installed
+- Would require bundling data + minimal viewer into a single HTML file
 
-3. **API Versioning**: When the API stabilizes, consider versioning strategy (e.g., `/api/v1/`).
+### 5. Plugin Dashboard Extensions
+Should the plugin system extend the dashboard UI?
+- Custom evaluator visualizations (e.g., a specialized chart for a specific evaluator type)
+- Would require a plugin UI registration API
+- Significant architecture investment
 
-4. **Authentication**: Will need to decide on auth strategy when user management is added (JWT, sessions, OAuth, etc.).
+### 6. Exact-Match Evaluator
+The CLAUDE.md architecture lists `src/evaluators/exact-match.ts` but it was never implemented.
+- Function evaluator can achieve the same result with a simple equality check
+- Should we add it as a convenience evaluator or update CLAUDE.md to remove it?
 
-5. **Validation Library**: Zod is included for types, but may want to add runtime validation middleware for API endpoints.
+---
 
-6. **Error Monitoring**: Consider adding Sentry or similar for production error tracking.
+## Resolved Questions
 
-7. **Rate Limiting**: Will need rate limiting for public APIs.
-
-8. **Caching Strategy**: Consider Redis or similar for caching frequently accessed data.
+*Questions that have been answered are moved here with their resolution.*

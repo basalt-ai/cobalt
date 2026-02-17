@@ -53,8 +53,38 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Unit testing for AI
 - [x] P99 metric (backend + frontend)
 - [x] FilterBar and DisplayOptions components (client-side)
 - [x] Multi-run compare API (2 or 3 runs)
-- [ ] AI chat integration (Phase 6 of DASHBOARD_PLAN)
-- [ ] Export results (CSV, Markdown)
+#### Remaining — Compare Page Gaps
+- [ ] `GET /api/compare/items` backend endpoint (item-level comparison data with aligned items)
+- [ ] Metric cards with Recharts bar charts (currently text-based cards, no chart visualization)
+- [ ] Item comparison drawer (A vs B side-by-side in Dialog with full outputs + evaluator reasons)
+- [ ] Letters column (A/B/C letter badges per row instead of color dots)
+
+#### Remaining — Trends Page Gaps
+- [ ] Evaluator filter dropdown (select specific evaluator or "All")
+- [ ] Reusable Chart wrapper component with dark mode theming (currently Recharts used inline)
+
+#### Remaining — AI Chat (Phase 6)
+- [ ] Install Vercel AI SDK (`ai`, `@ai-sdk/react`, `@ai-sdk/openai`, `@ai-sdk/anthropic`)
+- [ ] Add `dashboard.chat` config to `defineConfig` types and loading
+- [ ] Create `POST /api/chat` endpoint using `streamText()`
+- [ ] Create `GET /api/runs/:id/analysis` endpoint (cached AI analysis)
+- [ ] Create `GET /api/compare/analysis` endpoint (cached AI comparison)
+- [ ] Build ChatPanel component (full-height right panel, IDE-style, pushes content)
+- [ ] Build ChatMessage and ChatInput components
+- [ ] Implement `useChat()` hook integration with page context
+- [ ] Add chat button to TopBar (toggle)
+- [ ] Create InsightCard component for inline AI summaries
+- [ ] Disabled state when `dashboard.chat` not configured
+
+#### Remaining — Polish (Phase 7)
+- [ ] Export results as CSV
+- [ ] Export results as Markdown
+- [ ] Cmd+K search shortcut
+- [ ] React ErrorBoundary component
+- [ ] React.lazy for page-level code splitting
+- [ ] React.memo optimization for heavy components
+- [ ] Responsive/mobile-friendly layout
+- [ ] Tests for dashboard API endpoints
 
 ## Future
 
@@ -69,3 +99,4 @@ Cobalt is a TypeScript CLI testing framework for AI agents ("Unit testing for AI
 
 - Fix pre-existing llm-judge.ts DTS warnings
 - Add CLI command integration tests
+- Consider whether `exact-match.ts` evaluator (listed in CLAUDE.md architecture) should be implemented or removed from docs

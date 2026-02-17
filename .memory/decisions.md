@@ -450,7 +450,7 @@ cobalt run --filter "v2"         # Tag filter
 - ✅ Good TypeScript support
 - ❌ Smaller ecosystem than Express
 
-**Current status**: API backend complete, React UI not implemented (P4)
+**Current status**: API backend complete, React SPA frontend ~85% complete
 
 ---
 
@@ -743,9 +743,9 @@ When making technical decisions:
 
 ## P2 (Powerful) Feature Decisions
 
-### AD-015: Similarity Evaluator - OpenAI-Only for v1
-**Date**: 2026-02-06  
-**Status**: Accepted  
+### AD-027: Similarity Evaluator - OpenAI-Only for v1
+**Date**: 2026-02-06
+**Status**: Accepted
 **Alternatives Considered**: Multi-provider (Cohere, Voyage), OpenAI + local fallback
 
 **Decision**: Use OpenAI embeddings API exclusively for similarity evaluator in v1.
@@ -764,15 +764,15 @@ When making technical decisions:
 - ✅ Easy to test with mocks
 - ❌ Requires OpenAI API key
 - ❌ No offline capability
-- ⏭️ Can add Cohere, Voyage, local models in P3
+- ⏭️ Can add Cohere, Voyage, local models in P5
 
 **Implementation**: `src/evaluators/similarity.ts` using OpenAI SDK
 
 ---
 
-### AD-016: Multiple Runs - Store All Individual Results
-**Date**: 2026-02-06  
-**Status**: Accepted  
+### AD-028: Multiple Runs - Store All Individual Results
+**Date**: 2026-02-06
+**Status**: Accepted
 **Alternatives Considered**: Store only aggregates, hybrid (configurable)
 
 **Decision**: Store all individual run results in the `runs[]` array.
@@ -791,15 +791,14 @@ When making technical decisions:
 - ✅ No information loss
 - ❌ Larger result JSON files (N×items×runs)
 - ❌ More data to parse in dashboard
-- ⏭️ Dashboard can add "compact view" toggle in P4
 
 **Implementation**: `ItemResult` type extended with `runs: SingleRun[]` array
 
 ---
 
-### AD-017: Multiple Runs - Sequential Per Item, Parallel Across Items
-**Date**: 2026-02-06  
-**Status**: Accepted  
+### AD-029: Multiple Runs - Sequential Per Item, Parallel Across Items
+**Date**: 2026-02-06
+**Status**: Accepted
 **Alternatives Considered**: Fully parallel (all runs), grouped rounds (run 1, then run 2)
 
 **Decision**: Execute runs sequentially for each item, but process items in parallel.
@@ -830,9 +829,9 @@ Item 3: Run 1 → Run 2 → Run 3  (sequential)
 
 ---
 
-### AD-018: Multiple Runs - Hybrid Progress Reporting
-**Date**: 2026-02-06  
-**Status**: Accepted  
+### AD-030: Multiple Runs - Hybrid Progress Reporting
+**Date**: 2026-02-06
+**Status**: Accepted
 **Alternatives Considered**: Total count only, per-item breakdown only
 
 **Decision**: Show both total progress AND current item/run position.
@@ -859,9 +858,9 @@ Item 3: Run 1 → Run 2 → Run 3  (sequential)
 
 ---
 
-### AD-019: Multiple Runs - Comprehensive Statistics (mean, stddev, min, max, p50, p95)
-**Date**: 2026-02-06  
-**Status**: Accepted  
+### AD-031: Multiple Runs - Comprehensive Statistics (mean, stddev, min, max, p50, p95)
+**Date**: 2026-02-06
+**Status**: Accepted
 **Alternatives Considered**: Basic (mean, stddev only), with confidence intervals
 
 **Decision**: Calculate comprehensive statistics matching existing `ScoreStats` structure.
@@ -881,10 +880,52 @@ Item 3: Run 1 → Run 2 → Run 3  (sequential)
 - ✅ Consistent API across single/multiple runs
 - ✅ Standard metrics familiar to users
 - ✅ Identifies high-variance evaluators
-- ⏭️ Can add confidence intervals in P3 (CI mode)
 - ℹ️ When runs=5, items=10: stats aggregate 50 scores per evaluator
 
 **Implementation**: `calculateRunStats()` in `src/utils/stats.ts`
+
+---
+
+## P4 (Dashboard) Design Decisions
+
+### AD-032: Dashboard Design System — Tailwind 4 + Radix Colors + CVA
+**Date**: 2026-02-10
+**Status**: Accepted
+**Alternatives Considered**: shadcn/ui, Material UI, custom CSS
+
+**Decision**: Port design system from archive repo using Tailwind CSS 4, Radix Colors for theming, CVA for variant management, and Phosphor Icons.
+
+**Rationale**:
+- Consistent with archive brand identity (orange #db5704, sand neutrals)
+- Radix Colors provide built-in light/dark mode via CSS imports
+- CVA is type-safe and composable for component variants
+- Tailwind 4 with CSS-based config (no JS config file needed)
+- Phosphor Icons match the archive icon set
+
+**Consequences**:
+- ✅ Brand-consistent design
+- ✅ Dark mode from day 1
+- ✅ Type-safe component variants
+- ✅ No runtime theme overhead (CSS variables)
+- ❌ Adds several Radix UI dependencies to package
+
+---
+
+### AD-033: Comparison Color System (A=grey, B=blue, C=pink)
+**Date**: 2026-02-10
+**Status**: Accepted
+
+**Decision**: Use fixed color palette for run comparison: A=grey/sand, B=blue, C=pink. Matches archive comparison UX.
+
+**Colors**:
+- Run A (base): fill `#231F1C`, bg `#FAF9F7`
+- Run B: fill `#3358D4`, bg `#F7F9FF`
+- Run C: fill `#CF3897`, bg `#FEF7FB`
+
+**Rationale**:
+- Clear visual distinction between runs
+- Proven pattern from the archive product
+- Works in both light and dark mode
 
 ---
 
