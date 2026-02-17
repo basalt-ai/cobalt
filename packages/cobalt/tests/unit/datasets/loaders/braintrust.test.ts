@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchBraintrustDataset } from '../../../../src/datasets/loaders/braintrust.js';
+import { fetchBraintrustDataset } from '../../../../src/datasets/loaders/braintrust';
 
 // Mock global fetch
 const mockFetch = vi.fn();

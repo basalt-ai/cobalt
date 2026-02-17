@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Evaluator } from '../../src/core/Evaluator.js';
-import { registry } from '../../src/core/EvaluatorRegistry.js';
-import { sampleEvalContext } from '../helpers/fixtures.js';
+import { Evaluator } from '../../src/core/Evaluator';
+import { registry } from '../../src/core/EvaluatorRegistry';
+import { sampleEvalContext } from '../helpers/fixtures';
 
 // Mock evaluator handlers
 const mockLLMJudge = vi.fn().mockResolvedValue({ score: 0.85, reason: 'LLM judge result' });

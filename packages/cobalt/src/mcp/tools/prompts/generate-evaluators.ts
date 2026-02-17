@@ -3,7 +3,7 @@
  * Creates evaluator configurations tailored to the agent type
  */
 
-import type { AgentAnalysis } from './generate-dataset.js';
+import type { AgentAnalysis } from './generate-dataset';
 
 export function getGenerateEvaluatorsPrompt(analysis: AgentAnalysis): string {
 	return `Based on this agent analysis:

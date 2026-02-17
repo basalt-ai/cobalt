@@ -5,14 +5,14 @@
 export {
 	cobaltImproveAgentPrompt,
 	getCobaltImproveAgentPrompt,
-} from './improve-agent.js';
+} from './improve-agent';
 
 export {
 	cobaltGenerateTestsPrompt,
 	getCobaltGenerateTestsPrompt,
-} from './generate-tests.js';
+} from './generate-tests';
 
 export {
 	cobaltRegressionCheckPrompt,
 	getCobaltRegressionCheckPrompt,
-} from './regression-check.js';
+} from './regression-check';

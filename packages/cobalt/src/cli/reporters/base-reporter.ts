@@ -1,5 +1,5 @@
-import type { ProgressInfo } from '../../core/runner.js';
-import type { CIResult, ExperimentReport } from '../../types/index.js';
+import type { ProgressInfo } from '../../core/runner';
+import type { CIResult, ExperimentReport } from '../../types/index';
 
 /**
  * Reporter interface for outputting experiment results

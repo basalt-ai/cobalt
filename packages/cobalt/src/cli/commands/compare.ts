@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty';
 import pc from 'picocolors';
-import { loadResult } from '../../storage/results.js';
+import { loadResult } from '../../storage/results';
 
 export default defineCommand({
 	meta: {

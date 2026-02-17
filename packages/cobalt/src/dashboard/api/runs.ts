@@ -1,6 +1,6 @@
 import type { Context } from 'hono';
-import { HistoryDB } from '../../storage/db.js';
-import { loadResult } from '../../storage/results.js';
+import { HistoryDB } from '../../storage/db';
+import { loadResult } from '../../storage/results';
 
 /**
  * GET /api/runs

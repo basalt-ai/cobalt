@@ -1,5 +1,5 @@
-import { registry } from '../../core/EvaluatorRegistry.js';
-import type { AutoevalsEvaluatorConfig, EvalContext, EvalResult } from '../../types/index.js';
+import { registry } from '../../core/EvaluatorRegistry';
+import type { AutoevalsEvaluatorConfig, EvalContext, EvalResult } from '../../types/index';
 
 /**
  * Evaluate using Braintrust's Autoevals framework

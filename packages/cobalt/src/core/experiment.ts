@@ -1,21 +1,21 @@
 import { randomBytes } from 'node:crypto';
-import { createReporters } from '../cli/reporters/index.js';
-import type { Dataset } from '../datasets/Dataset.js';
-import { HistoryDB } from '../storage/db.js';
-import { saveResult } from '../storage/results.js';
+import { createReporters } from '../cli/reporters/index';
+import type { Dataset } from '../datasets/Dataset';
+import { HistoryDB } from '../storage/db';
+import { saveResult } from '../storage/results';
 import type {
 	CIResult,
 	ExperimentOptions,
 	ExperimentReport,
 	ItemResult,
 	RunnerFunction,
-} from '../types/index.js';
-import { calculateStats } from '../utils/stats.js';
-import { Evaluator } from './Evaluator.js';
-import { validateThresholds } from './ci.js';
-import { getApiKey, loadConfig } from './config.js';
-import { loadPlugins } from './plugin-loader.js';
-import { runExperiment } from './runner.js';
+} from '../types/index';
+import { calculateStats } from '../utils/stats';
+import { Evaluator } from './Evaluator';
+import { validateThresholds } from './ci';
+import { getApiKey, loadConfig } from './config';
+import { loadPlugins } from './plugin-loader';
+import { runExperiment } from './runner';
 
 // Access the shared global array for tracking in-flight experiment promises.
 // Uses globalThis so CLI and SDK bundles share the same array even when

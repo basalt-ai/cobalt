@@ -1,4 +1,4 @@
-import type { ExperimentItem } from '../../types/index.js';
+import type { ExperimentItem } from '../../types/index';
 
 /**
  * Fetch dataset from remote URL

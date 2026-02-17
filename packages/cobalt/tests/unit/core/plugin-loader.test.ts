@@ -2,14 +2,10 @@ import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { registry as globalRegistry } from '../../../src/core/EvaluatorRegistry.js';
-import {
-	loadPlugin,
-	loadPlugins,
-	registerPluginEvaluators,
-} from '../../../src/core/plugin-loader.js';
-import type { EvaluatorPlugin, PluginDefinition } from '../../../src/core/plugin.js';
-import type { EvaluatorHandler } from '../../../src/core/plugin.js';
+import { registry as globalRegistry } from '../../../src/core/EvaluatorRegistry';
+import type { EvaluatorPlugin, PluginDefinition } from '../../../src/core/plugin';
+import type { EvaluatorHandler } from '../../../src/core/plugin';
+import { loadPlugin, loadPlugins, registerPluginEvaluators } from '../../../src/core/plugin-loader';
 
 describe('Plugin Loader', () => {
 	let testDir: string;

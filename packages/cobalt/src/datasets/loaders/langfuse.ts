@@ -1,4 +1,4 @@
-import type { ExperimentItem } from '../../types/index.js';
+import type { ExperimentItem } from '../../types/index';
 
 /**
  * Langfuse dataset item format (from their API)

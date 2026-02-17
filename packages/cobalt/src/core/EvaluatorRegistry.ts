@@ -4,7 +4,7 @@
  * Central registry for evaluator types, supporting both built-in and plugin evaluators.
  */
 
-import type { EvaluatorHandler } from './plugin.js';
+import type { EvaluatorHandler } from './plugin';
 
 /**
  * Registry for evaluator type handlers

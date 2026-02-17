@@ -1,4 +1,4 @@
-import type { ExperimentItem } from '../../types/index.js';
+import type { ExperimentItem } from '../../types/index';
 
 /**
  * Basalt dataset item format (from their API)

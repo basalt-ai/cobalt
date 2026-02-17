@@ -1,7 +1,7 @@
 import { defineCommand } from 'citty';
 import pc from 'picocolors';
-import { loadConfig } from '../../core/config.js';
-import { startDashboard } from '../../dashboard/server.js';
+import { loadConfig } from '../../core/config';
+import { startDashboard } from '../../dashboard/server';
 
 export default defineCommand({
 	meta: {

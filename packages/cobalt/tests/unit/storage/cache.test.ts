@@ -17,7 +17,7 @@ vi.mock('../../../src/utils/hash.js', () => ({
 	generateHash: vi.fn((...args: string[]) => args.map(String).join('|')),
 }));
 
-import { LLMJudgeCache } from '../../../src/storage/cache.js';
+import { LLMJudgeCache } from '../../../src/storage/cache';
 
 describe('LLMJudgeCache', () => {
 	beforeEach(() => {

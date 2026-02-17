@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Evaluator } from '../../../src/core/Evaluator.js';
-import { Dataset } from '../../../src/datasets/Dataset.js';
+import { Evaluator } from '../../../src/core/Evaluator';
+import { Dataset } from '../../../src/datasets/Dataset';
 import type {
 	CobaltConfig,
 	ExperimentOptions,
 	ExperimentReport,
 	ItemResult,
-} from '../../../src/types/index.js';
+} from '../../../src/types/index';
 
 // --- Mocks ---
 
@@ -152,7 +152,7 @@ vi.mock('../../../src/utils/stats.js', () => ({
 	})),
 }));
 
-import { experiment } from '../../../src/core/experiment.js';
+import { experiment } from '../../../src/core/experiment';
 
 describe('experiment', () => {
 	beforeEach(() => {

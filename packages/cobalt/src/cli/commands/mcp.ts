@@ -1,5 +1,5 @@
 import { defineCommand } from 'citty';
-import { startMCPServer } from '../../mcp/server.js';
+import { startMCPServer } from '../../mcp/server';
 
 export default defineCommand({
 	meta: {

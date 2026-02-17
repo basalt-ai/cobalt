@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
-import { loadConfig } from '../../core/config.js';
+import { loadConfig } from '../../core/config';
 
 /**
  * MCP Resource: cobalt://experiments

@@ -1,6 +1,6 @@
 import type { Context } from 'hono';
-import { loadResult } from '../../storage/results.js';
-import type { ExperimentReport, ExperimentSummary, ItemEvaluation } from '../../types/index.js';
+import { loadResult } from '../../storage/results';
+import type { ExperimentReport, ExperimentSummary, ItemEvaluation } from '../../types/index';
 
 interface CompareRunInfo {
 	id: string;

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { evaluateSimilarity } from '../../../src/evaluators/similarity.js';
-import type { SimilarityEvaluatorConfig } from '../../../src/types/index.js';
-import { sampleEvalContext } from '../../helpers/fixtures.js';
-import { createMockEmbeddingResponse } from '../../helpers/mocks.js';
+import { evaluateSimilarity } from '../../../src/evaluators/similarity';
+import type { SimilarityEvaluatorConfig } from '../../../src/types/index';
+import { sampleEvalContext } from '../../helpers/fixtures';
+import { createMockEmbeddingResponse } from '../../helpers/mocks';
 
 // Mock the OpenAI SDK
 vi.mock('openai', () => ({

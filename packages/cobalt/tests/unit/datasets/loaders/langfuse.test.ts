@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchLangfuseDataset } from '../../../../src/datasets/loaders/langfuse.js';
+import { fetchLangfuseDataset } from '../../../../src/datasets/loaders/langfuse';
 
 // Mock global fetch
 const mockFetch = vi.fn();

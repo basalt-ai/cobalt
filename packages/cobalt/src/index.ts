@@ -4,24 +4,24 @@
  */
 
 // Main experiment function
-export { experiment } from './core/experiment.js';
+export { experiment } from './core/experiment';
 
 // Core classes
-export { Evaluator } from './core/Evaluator.js';
-export { Dataset } from './datasets/Dataset.js';
+export { Evaluator } from './core/Evaluator';
+export { Dataset } from './datasets/Dataset';
 
 // Configuration
-export { defineConfig, loadConfig } from './core/config.js';
+export { defineConfig, loadConfig } from './core/config';
 
 // Storage utilities
-export { loadResult, listResults } from './storage/results.js';
-export { HistoryDB } from './storage/db.js';
+export { loadResult, listResults } from './storage/results';
+export { HistoryDB } from './storage/db';
 
 // Register built-in evaluators (side-effect imports)
-import './evaluators/llm-judge.js';
-import './evaluators/function.js';
-import './evaluators/similarity.js';
-import './evaluators/adapters/autoevals.js';
+import './evaluators/llm-judge';
+import './evaluators/function';
+import './evaluators/similarity';
+import './evaluators/adapters/autoevals';
 
 // Types
 export type {
@@ -61,4 +61,4 @@ export type {
 	ThresholdMetric,
 	CIResult,
 	ThresholdViolation,
-} from './types/index.js';
+} from './types/index';

@@ -2,8 +2,8 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GitHubActionsReporter } from '../../../../src/cli/reporters/github-actions-reporter.js';
-import type { ExperimentReport } from '../../../../src/types/index.js';
+import { GitHubActionsReporter } from '../../../../src/cli/reporters/github-actions-reporter';
+import type { ExperimentReport } from '../../../../src/types/index';
 
 describe('GitHubActionsReporter', () => {
 	let reporter: GitHubActionsReporter;

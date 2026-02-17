@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createJiti } from 'jiti';
-import type { CobaltConfig } from '../types/index.js';
+import type { CobaltConfig } from '../types/index';
 
 /**
  * Default configuration values

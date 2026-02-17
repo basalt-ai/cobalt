@@ -1,4 +1,4 @@
-import { loadConfig } from '../../core/config.js';
+import { loadConfig } from '../../core/config';
 
 /**
  * MCP Resource: cobalt://config

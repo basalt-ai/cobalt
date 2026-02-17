@@ -1,12 +1,12 @@
-export { BaseReporter, type Reporter, type ExperimentStartInfo } from './base-reporter.js';
-export { CLIReporter } from './cli-reporter.js';
-export { JSONReporter } from './json-reporter.js';
-export { GitHubActionsReporter } from './github-actions-reporter.js';
+export { BaseReporter, type Reporter, type ExperimentStartInfo } from './base-reporter';
+export { CLIReporter } from './cli-reporter';
+export { JSONReporter } from './json-reporter';
+export { GitHubActionsReporter } from './github-actions-reporter';
 
-import type { Reporter } from './base-reporter.js';
-import { CLIReporter } from './cli-reporter.js';
-import { GitHubActionsReporter } from './github-actions-reporter.js';
-import { JSONReporter } from './json-reporter.js';
+import type { Reporter } from './base-reporter';
+import { CLIReporter } from './cli-reporter';
+import { GitHubActionsReporter } from './github-actions-reporter';
+import { JSONReporter } from './json-reporter';
 
 export type ReporterType = 'cli' | 'json' | 'github-actions';
 

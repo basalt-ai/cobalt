@@ -7,9 +7,9 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createJiti } from 'jiti';
-import { registry } from './EvaluatorRegistry.js';
-import type { PluginDefinition } from './plugin.js';
-import { validatePlugin } from './plugin.js';
+import { registry } from './EvaluatorRegistry';
+import type { PluginDefinition } from './plugin';
+import { validatePlugin } from './plugin';
 
 /**
  * Load a single plugin from a file path

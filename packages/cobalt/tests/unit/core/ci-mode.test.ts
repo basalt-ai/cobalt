@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { validateThresholds } from '../../../src/core/ci.js';
-import type { ExperimentReport, ThresholdConfig } from '../../../src/types/index.js';
+import { validateThresholds } from '../../../src/core/ci';
+import type { ExperimentReport, ThresholdConfig } from '../../../src/types/index';
 
 /**
  * Helper to create a mock experiment report
