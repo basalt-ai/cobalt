@@ -857,7 +857,7 @@ cobalt serve
 # Opens http://localhost:4000
 ```
 
-**Status:** API backend only (no React UI yet)
+**Status:** Full React dashboard with design system (Tailwind 4 + Radix Colors), 4 styled pages (Runs List, Run Detail, Compare, Trends), dark mode, filtering, and data visualization.
 
 ---
 
@@ -916,6 +916,119 @@ Add to `.mcp.json`:
 - `cobalt_run` - Run experiments
 - `cobalt_results` - View results
 - `cobalt_compare` - Compare runs
+- `cobalt_generate` - Auto-generate experiment files from agent code
+
+**Available Resources:**
+- `cobalt://config` - Current Cobalt configuration
+- `cobalt://experiments` - List available experiment files
+- `cobalt://latest-results` - Most recent experiment results
+
+**Available Prompts:**
+- `improve-agent` - Suggest improvements based on failure patterns
+- `generate-tests` - Generate test cases for an agent
+- `regression-check` - Check for regressions between runs
+
+---
+
+## Remote Dataset Loaders
+
+Load datasets from external platforms.
+
+### `Dataset.fromRemote()`
+
+Load from any HTTP/HTTPS URL returning JSON.
+
+```typescript
+const dataset = await Dataset.fromRemote('https://api.example.com/data.json')
+```
+
+### `Dataset.fromLangfuse()`
+
+Load traces from Langfuse.
+
+```typescript
+const dataset = await Dataset.fromLangfuse({
+  publicKey: process.env.LANGFUSE_PUBLIC_KEY,
+  secretKey: process.env.LANGFUSE_SECRET_KEY,
+  host: 'https://cloud.langfuse.com',
+  datasetName: 'my-dataset'
+})
+```
+
+### `Dataset.fromLangSmith()`
+
+Load from LangSmith datasets.
+
+```typescript
+const dataset = await Dataset.fromLangSmith({
+  apiKey: process.env.LANGSMITH_API_KEY,
+  datasetName: 'my-dataset'
+})
+```
+
+### `Dataset.fromBraintrust()`
+
+Load from Braintrust datasets.
+
+```typescript
+const dataset = await Dataset.fromBraintrust({
+  apiKey: process.env.BRAINTRUST_API_KEY,
+  projectName: 'my-project',
+  datasetName: 'my-dataset'
+})
+```
+
+### `Dataset.fromBasalt()`
+
+Load from Basalt AI datasets.
+
+```typescript
+const dataset = await Dataset.fromBasalt({
+  apiKey: process.env.BASALT_API_KEY,
+  datasetId: 'dataset-id'
+})
+```
+
+---
+
+## CI Mode
+
+Run experiments with quality thresholds for CI/CD pipelines.
+
+### Usage
+
+```bash
+cobalt run --ci
+```
+
+### Configuration
+
+```typescript
+// cobalt.config.ts
+export default defineConfig({
+  ci: {
+    thresholds: {
+      score: 0.8,                    // Global minimum avg score
+      evaluators: {
+        relevance: { min: 0.85 },    // Per-evaluator thresholds
+        accuracy: { min: 0.9 }
+      },
+      latency: { max: 5000 },       // Max avg latency (ms)
+      cost: { max: 1.0 },           // Max total cost ($)
+      tokens: { max: 100000 }       // Max total tokens
+    }
+  }
+})
+```
+
+### Exit Codes
+- `0` - All thresholds passed
+- `1` - One or more thresholds violated
+
+### GitHub Actions Reporter
+When running in GitHub Actions, Cobalt automatically generates:
+- Job summary with results table
+- Annotations on threshold violations
 
 ---
 

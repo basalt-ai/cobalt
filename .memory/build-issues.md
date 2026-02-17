@@ -1,34 +1,25 @@
-# Build and Startup Issues
+# Build and Runtime Issues
 
-## Known Issues and Solutions
+## Known Issues
 
-### Issue Log
-This file will track any build, startup, or runtime issues encountered during development and their solutions.
+### DTS Warning: llm-judge.ts
+**Status**: Open (low priority)
+**Issue**: tsup generates DTS warnings for `llm-judge.ts` due to complex conditional types with OpenAI/Anthropic SDK types.
+**Impact**: No runtime impact. Type definitions still work correctly.
+**Workaround**: None needed — warnings are cosmetic.
 
-## Preventive Measures Taken
+---
 
-1. **Prisma Client Generation**: Added `db:generate` script and pre-build step to ensure Prisma client is generated before building.
+## Resolved Issues
 
-2. **Module Resolution**: Configured Next.js to transpile workspace packages (`@cobalt/db`, `@cobalt/types`) to prevent module resolution issues.
+*No resolved issues recorded yet.*
 
-3. **TypeScript Strict Mode**: Enabled strict mode from the start to catch type errors early.
+---
 
-4. **Path Aliases**: Set up consistent path aliases (`@/*`) to avoid relative import issues.
+## Build Notes
 
-5. **Environment Variables**: Created `.env.example` template to document required environment variables.
-
-6. **Database Connection Pooling**: Implemented Prisma client singleton pattern to prevent connection exhaustion during hot reload.
-
-## Environment Setup Checklist
-
-Before running the app, ensure:
-- [ ] PostgreSQL is running (via Docker Compose)
-- [ ] `.env.local` file created from `.env.example`
-- [ ] `DATABASE_URL` is correctly set
-- [ ] Dependencies are installed (`pnpm install`)
-- [ ] Prisma client is generated (`pnpm db:generate`)
-- [ ] Migrations are applied (`pnpm db:migrate`)
-
-## Common Issues and Solutions
-
-*This section will be populated as issues are encountered and resolved.*
+- **tsup** builds library (SDK + CLI) to `dist/`
+- **Vite** builds dashboard UI to `dist/dashboard/`
+- Both outputs coexist in the same `dist/` folder
+- Dashboard requires separate build step: `pnpm build:dashboard`
+- Dev workflow: Vite on :5173 proxies `/api` to Hono on :4000

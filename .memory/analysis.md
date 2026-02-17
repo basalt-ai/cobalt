@@ -129,43 +129,59 @@ CREATE TABLE runs (
 
 ### 6. Dashboard (`src/dashboard/`)
 
-Full-stack dashboard: Hono backend API + React SPA frontend.
+Full-stack dashboard: Hono backend API + React SPA frontend with design system.
 
 **Backend** (`src/dashboard/server.ts`, `src/dashboard/api/`):
 - Hono server serving API + static files
 - `GET /api` - API index (available endpoints)
 - `GET /api/runs` - List all runs
 - `GET /api/runs/:id` - Get specific run details
-- `GET /api/compare` - Compare multiple runs
+- `GET /api/compare` - Compare multiple runs (2 or 3)
 - `GET /api/trends` - Get trend data over time
 - `GET /api/health` - Health check
 - SPA fallback: serves `index.html` for client-side routing
 
 **Frontend** (`src/dashboard/ui/`):
 - Vite + React 19 SPA, built to `dist/dashboard/`
+- Design system: Tailwind CSS 4 + Radix Colors + CVA + Phosphor Icons
+- Dark mode with class-based switching, localStorage persistence, system preference detection
 - React Router v7 with routes: `/`, `/runs/:id`, `/compare`, `/trends`
 - Typed API client layer (`ui/api/`) mirroring backend types
 - `useApi` hook for data fetching with loading/error states
-- Pages: RunsListPage (data table), RunDetailPage (summary + scores + items)
-- Dev: Vite on :5173 proxies `/api` → Hono on :4000
-- Prod: Hono serves `dist/dashboard/` via `serveStatic`
+- `useTheme` hook for dark mode state
 
-**Status:** Backend complete, frontend scaffolded with data fetching. UI styling pending (user will provide library).
+**UI Components** (`ui/components/`):
+- `ui/` — 14 core primitives (Button, Badge, Card, Dialog, Select, Tabs, Tooltip, Popover, Separator, Skeleton, ScrollArea, Switch)
+- `data/` — ScoreBadge, MetricCard, ColumnCell, FilterBar, DisplayOptions
+- `layout/` — TopBar (logo, nav, dark mode toggle), PageHeader
+
+**Pages** (all 4 complete):
+- RunsListPage — TanStack Table, sorting, search, tag filter, multi-select, score badges
+- RunDetailPage — Metric cards, tabbed stats, items table, item detail dialog, CI status
+- ComparePage — A/B/C stacked items, color system, delta calculations, stats tabs
+- TrendsPage — Recharts LineChart, experiment selector, runs summary table
+
+**Status:** ~85% complete. Missing: AI chat (Phase 6), export (CSV/Markdown), compare bar charts, item comparison drawer.
 
 ### 7. MCP Integration (`src/mcp/`)
 
-Model Context Protocol server for Claude Code integration (P3 - partial).
+Model Context Protocol server for Claude Code integration (P3 - complete).
 
-**Implemented:**
-- MCP server with stdio transport
-- Tool: `cobalt_run` - Run experiments from Claude
-- Tool: `cobalt_results` - View experiment results
-- Tool: `cobalt_compare` - Compare two runs
+**Tools** (4):
+- `cobalt_run` - Run experiments from Claude
+- `cobalt_results` - View experiment results
+- `cobalt_compare` - Compare two runs
+- `cobalt_generate` - Auto-generate experiment files from agent code
 
-**Not Implemented:**
-- Tool: `cobalt_generate` - Auto-generate experiment files
-- Resources: `cobalt://config`, `cobalt://experiments`, `cobalt://latest-results`
-- Prompts: Predefined MCP prompts for common tasks
+**Resources** (3):
+- `cobalt://config` - Current Cobalt configuration
+- `cobalt://experiments` - List available experiment files
+- `cobalt://latest-results` - Most recent experiment results
+
+**Prompts** (3):
+- `improve-agent` - Suggest improvements based on failure patterns
+- `generate-tests` - Generate test cases for an agent
+- `regression-check` - Check for regressions between runs
 
 ### 8. Utilities (`src/utils/`)
 
@@ -280,50 +296,72 @@ interface CobaltConfig {
 
 **Framework:** Vitest
 
-**Coverage:** 138 tests (17.2% overall, 80-100% for tested modules)
+**Coverage:** 231+ tests across 12+ test suites, with enforced thresholds (lines 75%, functions 80%, branches 70%)
 
 **Test Organization:**
 ```
 tests/
 ├── unit/
-│   ├── Dataset.test.ts              # 36 tests
-│   ├── Evaluator.test.ts            # 23 tests
+│   ├── core/
+│   │   ├── experiment.test.ts
+│   │   ├── config.test.ts
+│   │   ├── runner.test.ts
+│   │   ├── EvaluatorRegistry.test.ts
+│   │   ├── ci-mode.test.ts
+│   │   └── plugin-loader.test.ts
 │   ├── evaluators/
-│   │   ├── llm-judge.test.ts        # 13 tests
-│   │   ├── function.test.ts         # 10 tests
-│   │   ├── similarity.test.ts       # 14 tests
-│   │   └── autoevals.test.ts        # tests for autoevals
-│   └── utils/
-│       ├── cost.test.ts             # 17 tests
-│       ├── stats.test.ts            # 12 tests
-│       └── template.test.ts         # 17 tests
+│   │   ├── llm-judge.test.ts
+│   │   ├── function.test.ts
+│   │   ├── similarity.test.ts
+│   │   └── adapters/autoevals.test.ts
+│   ├── datasets/
+│   │   ├── Dataset.test.ts
+│   │   └── loaders/ (5 remote loader tests)
+│   ├── cli/
+│   │   ├── commands/run.test.ts
+│   │   └── reporters/ (4 reporter tests)
+│   ├── storage/
+│   │   ├── cache.test.ts
+│   │   ├── db.test.ts
+│   │   └── results.test.ts
+│   ├── utils/
+│   │   ├── cost.test.ts
+│   │   ├── hash.test.ts
+│   │   ├── stats.test.ts
+│   │   └── template.test.ts
+│   └── dashboard/
+│       └── api/compare.test.ts
+├── integration/
+│   └── experiment-pipeline.test.ts
 └── helpers/
-    ├── mocks.ts                     # Mock LLM responses
-    └── fixtures.ts                  # Sample datasets
+    ├── mocks.ts
+    └── fixtures.ts
 ```
 
 **Mocking Strategy:**
 - LLM APIs: Mock `openai` and `@anthropic-ai/sdk` modules
 - File system: Mock `node:fs` for dataset loading tests
-- SQLite: Mock database operations (future)
+- SQLite: Mock database operations
+- No real API calls in tests
 
 **What's Tested:**
-- ✅ Dataset loading (JSON, JSONL, CSV)
-- ✅ Dataset transformations (map, filter, sample, slice)
-- ✅ Evaluator dispatch and type routing
-- ✅ LLM judge (OpenAI and Anthropic)
-- ✅ Function evaluator with validation
-- ✅ Exact match evaluator
-- ✅ Cost estimation
-- ✅ Statistics calculation
-- ✅ Template rendering
+- ✅ Dataset loading (JSON, JSONL, CSV) and transformations
+- ✅ Evaluator dispatch and all evaluator types
+- ✅ Experiment runner (unit + integration)
+- ✅ CI mode threshold validation
+- ✅ Plugin system (registry + loader)
+- ✅ Storage layer (results, cache, database)
+- ✅ Remote dataset loaders
+- ✅ CLI run command and reporters
+- ✅ Dashboard compare API
+- ✅ All utility functions
+- ✅ Hash generation
 
 **What's NOT Tested:**
-- ⏭️ CLI commands
-- ⏭️ Experiment runner (integration)
-- ⏭️ Storage layer (results, cache, database)
-- ⏭️ Dashboard API
-- ⏭️ MCP server
+- ⏭️ Most CLI commands (history, compare, serve, clean, init)
+- ⏭️ MCP server and tools
+- ⏭️ Dashboard frontend components
+- ⏭️ Dashboard API endpoints (runs, trends)
 
 ## Dependencies
 
@@ -422,24 +460,20 @@ export type * from './types/index.js'
 // Invoked via `npx cobalt mcp`
 ```
 
-## Future Architecture Considerations
+## Remaining Work
 
-**P2 Features (Powerful):**
-- Similarity evaluator: Add embeddings support (OpenAI, Cohere, etc.)
-- Multiple runs: Aggregate statistics across N runs of same item
-- Statistical aggregation: Mean, stddev, confidence intervals
+**P4 Dashboard (remaining ~15%):**
+- AI chat integration (Phase 6 — Vercel AI SDK, chat panel, context-aware prompts)
+- Export results (CSV, Markdown)
+- Compare page: Recharts bar charts in metric cards, item comparison drawer
+- Trends page: Evaluator filter dropdown
 
-**P3 Features (Connected):**
-- Remote datasets: Fetch from Langfuse, LangSmith, Braintrust, Basalt
-- Autoevals integration: Built-in Braintrust Autoevals adapter
-- CI mode: Thresholds and exit codes for CI/CD
-- MCP completion: Generate experiments from agent code
-
-**P4 Features (Dashboard):**
-- React UI: Build frontend for dashboard
-- Real-time updates: WebSocket support for live progress
-- Export: CSV and Markdown export of results
-- Visualizations: Charts and graphs for trends
+**P5 Polish (future):**
+- Similarity evaluator: multi-provider (Cohere, local models)
+- Dashboard real-time updates during experiment runs
+- Plugin auto-discovery from npm packages
+- More comprehensive CLI integration tests
+- Responsive/mobile-friendly dashboard layout
 
 ## Component Maturity Levels
 
@@ -455,7 +489,8 @@ export type * from './types/index.js'
 | Storage (history) | ✅ P1+ Complete | SQLite database |
 | Cost tracking | ✅ P1 Complete | Token estimation |
 | Statistics | ✅ P1 Complete | p50, p95, avg, min, max |
-| Dashboard API | ✅ P4 Complete | Backend API + React SPA scaffolded |
+| Dashboard API | ✅ P4 Complete | Backend API complete |
+| Dashboard UI | 🔄 P4 ~85% | Design system + 4 pages, missing AI chat + export |
 | MCP server | ✅ P3 Complete | 4 tools, 3 resources, 3 prompts |
 | Similarity evaluator | ✅ P2 Complete | OpenAI embeddings |
 | Multiple runs | ✅ P2 Complete | Statistical aggregation |
@@ -467,12 +502,12 @@ export type * from './types/index.js'
 
 ## Code Quality Metrics
 
-- **Total lines of code**: ~5,800 (src/)
-- **Test coverage**: 330 tests across 19 test suites
-- **Core module coverage**: 80-100%
+- **Total lines of code**: ~5,800+ (src/)
+- **Test coverage**: 231+ tests across 12+ test suites
+- **Coverage thresholds**: Enforced (lines 75%, functions 80%, branches 70%)
 - **TypeScript strictness**: Full strict mode
 - **Linting**: Biome (no errors)
-- **Build**: Clean ESM output
+- **Build**: Clean ESM output (tsup) + Vite dashboard build
 
 ## Performance Characteristics
 
@@ -498,4 +533,7 @@ export type * from './types/index.js'
 - ✅ .memory/progress.md - Development history
 - ✅ .memory/decisions.md - Technical decisions
 - ✅ .memory/documentation.md - API reference
-- ❌ packages/cobalt/README.md - Package-specific docs (missing)
+- ✅ .memory/roadmap.md - Future plans and remaining work
+- ✅ .memory/doubts.md - Open questions
+- ✅ .memory/cleanup-log.md - Maintenance history
+- ✅ .memory/build-issues.md - Build and runtime issues
