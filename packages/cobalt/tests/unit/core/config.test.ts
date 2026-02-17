@@ -66,6 +66,33 @@ describe('defineConfig', () => {
 
 		expect(config.plugins).toEqual(['./my-plugin.ts']);
 	});
+
+	it('should replace reporters array, not concatenate with defaults', () => {
+		const config = defineConfig({
+			reporters: ['json'],
+		});
+
+		// Should be exactly ['json'], NOT ['cli', 'json']
+		expect(config.reporters).toEqual(['json']);
+		expect(config.reporters).toHaveLength(1);
+	});
+
+	it('should replace testMatch array, not concatenate with defaults', () => {
+		const config = defineConfig({
+			testMatch: ['**/*.eval.ts'],
+		});
+
+		// Should be exactly ['**/*.eval.ts'], NOT [...defaults, '**/*.eval.ts']
+		expect(config.testMatch).toEqual(['**/*.eval.ts']);
+		expect(config.testMatch).toHaveLength(1);
+	});
+
+	it('should preserve default arrays when not overridden', () => {
+		const config = defineConfig({ concurrency: 10 });
+
+		expect(config.reporters).toEqual(['cli']);
+		expect(config.testMatch).toEqual(['**/*.cobalt.ts', '**/*.experiment.ts']);
+	});
 });
 
 describe('loadConfig', () => {
