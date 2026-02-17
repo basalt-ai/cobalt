@@ -1,5 +1,5 @@
 import { registry } from '../core/EvaluatorRegistry';
-import type { EvalContext, EvalResult, FunctionEvaluatorConfig } from '../types/index';
+import type { EvalContext, EvalResult, FunctionEvaluatorConfig } from '../types';
 
 /**
  * Evaluate using custom function

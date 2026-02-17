@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import { createReporters } from '../cli/reporters/index';
+import { createReporters } from '../cli/reporters';
 import type { Dataset } from '../datasets/Dataset';
 import { HistoryDB } from '../storage/db';
 import { saveResult } from '../storage/results';
@@ -9,7 +9,7 @@ import type {
 	ExperimentReport,
 	ItemResult,
 	RunnerFunction,
-} from '../types/index';
+} from '../types';
 import { calculateStats } from '../utils/stats';
 import { Evaluator } from './Evaluator';
 import { validateThresholds } from './ci';

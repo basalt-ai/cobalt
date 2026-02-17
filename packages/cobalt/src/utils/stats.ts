@@ -1,4 +1,4 @@
-import type { RunAggregation, ScoreStats } from '../types/index';
+import type { RunAggregation, ScoreStats } from '../types';
 
 /**
  * Calculate statistical metrics for an array of scores

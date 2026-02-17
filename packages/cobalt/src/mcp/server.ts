@@ -25,7 +25,7 @@ import {
 	getCobaltGenerateTestsPrompt,
 	getCobaltImproveAgentPrompt,
 	getCobaltRegressionCheckPrompt,
-} from './prompts/index';
+} from './prompts';
 
 /**
  * Start the Cobalt MCP server

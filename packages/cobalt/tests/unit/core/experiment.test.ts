@@ -6,7 +6,7 @@ import type {
 	ExperimentOptions,
 	ExperimentReport,
 	ItemResult,
-} from '../../../src/types/index';
+} from '../../../src/types';
 
 // --- Mocks ---
 

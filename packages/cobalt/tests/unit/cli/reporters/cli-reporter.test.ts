@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CLIReporter } from '../../../../src/cli/reporters/cli-reporter';
-import type { ExperimentReport } from '../../../../src/types/index';
+import type { ExperimentReport } from '../../../../src/types';
 
 describe('CLIReporter', () => {
 	let reporter: CLIReporter;

@@ -6,7 +6,7 @@ import { createJiti } from 'jiti';
 import pc from 'picocolors';
 import { loadConfig } from '../../core/config';
 import { drainPendingExperiments } from '../../core/experiment';
-import type { ExperimentReport } from '../../types/index';
+import type { ExperimentReport } from '../../types';
 
 export default defineCommand({
 	meta: {

@@ -1,4 +1,4 @@
-import type { ExperimentItem } from '../../src/types/index';
+import type { ExperimentItem } from '../../src/types';
 
 /**
  * Sample dataset items for testing

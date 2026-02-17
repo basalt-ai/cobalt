@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { EvaluatorRegistry } from '../../../src/core/EvaluatorRegistry';
 import type { EvaluatorHandler } from '../../../src/core/plugin';
-import type { EvalContext, EvalResult } from '../../../src/types/index';
+import type { EvalContext, EvalResult } from '../../../src/types';
 
 describe('EvaluatorRegistry', () => {
 	let registry: EvaluatorRegistry;

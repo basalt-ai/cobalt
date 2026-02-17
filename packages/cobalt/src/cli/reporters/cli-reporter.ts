@@ -1,6 +1,6 @@
 import pc from 'picocolors';
 import type { ProgressInfo } from '../../core/runner';
-import type { CIResult, ExperimentReport } from '../../types/index';
+import type { CIResult, ExperimentReport } from '../../types';
 import { formatCost } from '../../utils/cost';
 import { BaseReporter, type ExperimentStartInfo } from './base-reporter';
 

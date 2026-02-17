@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { evaluateFunction } from '../../../src/evaluators/function';
-import type { FunctionEvaluatorConfig } from '../../../src/types/index';
+import type { FunctionEvaluatorConfig } from '../../../src/types';
 import { sampleEvalContext } from '../../helpers/fixtures';
 
 describe('evaluateFunction', () => {

@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { createJiti } from 'jiti';
 import { loadConfig } from '../../core/config';
 import { drainPendingExperiments } from '../../core/experiment';
-import type { ExperimentReport } from '../../types/index';
+import type { ExperimentReport } from '../../types';
 
 /**
  * MCP Tool: cobalt_run

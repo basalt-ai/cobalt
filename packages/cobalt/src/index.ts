@@ -61,4 +61,4 @@ export type {
 	ThresholdMetric,
 	CIResult,
 	ThresholdViolation,
-} from './types/index';
+} from './types';

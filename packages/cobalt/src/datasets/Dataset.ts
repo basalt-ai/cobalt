@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { DatasetConfig, ExperimentItem } from '../types/index';
+import type { DatasetConfig, ExperimentItem } from '../types';
 import { fetchBasaltDataset } from './loaders/basalt';
 import { fetchBraintrustDataset } from './loaders/braintrust';
 import { fetchLangfuseDataset } from './loaders/langfuse';

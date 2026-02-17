@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ExperimentReport } from '../../../src/types/index';
+import type { ExperimentReport } from '../../../src/types';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({

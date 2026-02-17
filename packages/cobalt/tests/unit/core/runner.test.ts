@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { runExperiment } from '../../../src/core/runner';
-import type { ExperimentItem, ExperimentResult, RunnerFunction } from '../../../src/types/index';
+import type { ExperimentItem, ExperimentResult, RunnerFunction } from '../../../src/types';
 
 // Mock calculateRunStats
 vi.mock('../../../src/utils/stats.js', () => ({

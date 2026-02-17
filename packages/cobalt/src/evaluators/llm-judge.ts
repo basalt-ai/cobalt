@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import { registry } from '../core/EvaluatorRegistry';
-import type { EvalContext, EvalResult, LLMJudgeEvaluatorConfig } from '../types/index';
+import type { EvalContext, EvalResult, LLMJudgeEvaluatorConfig } from '../types';
 import { renderTemplate } from '../utils/template';
 
 /**

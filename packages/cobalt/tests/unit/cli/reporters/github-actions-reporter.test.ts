@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { GitHubActionsReporter } from '../../../../src/cli/reporters/github-actions-reporter';
-import type { ExperimentReport } from '../../../../src/types/index';
+import type { ExperimentReport } from '../../../../src/types';
 
 describe('GitHubActionsReporter', () => {
 	let reporter: GitHubActionsReporter;

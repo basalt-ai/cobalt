@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { evaluateSimilarity } from '../../../src/evaluators/similarity';
-import type { SimilarityEvaluatorConfig } from '../../../src/types/index';
+import type { SimilarityEvaluatorConfig } from '../../../src/types';
 import { sampleEvalContext } from '../../helpers/fixtures';
 import { createMockEmbeddingResponse } from '../../helpers/mocks';
 

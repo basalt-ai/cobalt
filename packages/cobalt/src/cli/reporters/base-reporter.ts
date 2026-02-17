@@ -1,5 +1,5 @@
 import type { ProgressInfo } from '../../core/runner';
-import type { CIResult, ExperimentReport } from '../../types/index';
+import type { CIResult, ExperimentReport } from '../../types';
 
 /**
  * Reporter interface for outputting experiment results

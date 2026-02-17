@@ -5,7 +5,7 @@ import type {
 	ItemResult,
 	RunnerFunction,
 	SingleRun,
-} from '../types/index';
+} from '../types';
 import { calculateRunStats } from '../utils/stats';
 import type { Evaluator } from './Evaluator';
 

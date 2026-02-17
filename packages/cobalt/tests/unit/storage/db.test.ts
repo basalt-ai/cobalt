@@ -1,7 +1,7 @@
 import { mkdirSync, rmSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HistoryDB } from '../../../src/storage/db';
-import type { ExperimentReport } from '../../../src/types/index';
+import type { ExperimentReport } from '../../../src/types';
 import { getTempTestDir } from '../../helpers/mocks';
 
 function createReport(overrides: Partial<ExperimentReport> = {}): ExperimentReport {

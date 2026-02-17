@@ -1,4 +1,4 @@
-import type { EvalContext, EvalResult, EvaluatorConfig } from '../types/index';
+import type { EvalContext, EvalResult, EvaluatorConfig } from '../types';
 
 import { registry } from './EvaluatorRegistry';
 

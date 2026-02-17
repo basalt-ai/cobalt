@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import Database from 'better-sqlite3';
-import type { ExperimentReport, ResultFilter, ResultSummary } from '../types/index';
+import type { ExperimentReport, ResultFilter, ResultSummary } from '../types';
 
 /**
  * SQLite database for storing experiment run history
