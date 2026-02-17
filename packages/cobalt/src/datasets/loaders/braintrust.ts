@@ -1,4 +1,4 @@
-import type { ExperimentItem } from '../../types/index.js';
+import type { ExperimentItem } from '../../types';
 
 /**
  * Braintrust dataset record format (from their API)

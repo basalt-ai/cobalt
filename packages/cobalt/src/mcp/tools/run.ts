@@ -1,9 +1,9 @@
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { createJiti } from 'jiti';
-import { loadConfig } from '../../core/config.js';
-import { drainPendingExperiments } from '../../core/experiment.js';
-import type { ExperimentReport } from '../../types/index.js';
+import { loadConfig } from '../../core/config';
+import { drainPendingExperiments } from '../../core/experiment';
+import type { ExperimentReport } from '../../types';
 
 /**
  * MCP Tool: cobalt_run

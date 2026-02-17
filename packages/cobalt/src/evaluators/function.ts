@@ -1,5 +1,5 @@
-import { registry } from '../core/EvaluatorRegistry.js';
-import type { EvalContext, EvalResult, FunctionEvaluatorConfig } from '../types/index.js';
+import { registry } from '../core/EvaluatorRegistry';
+import type { EvalContext, EvalResult, FunctionEvaluatorConfig } from '../types';
 
 /**
  * Evaluate using custom function

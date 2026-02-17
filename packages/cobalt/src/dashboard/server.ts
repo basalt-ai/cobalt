@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
-import { compareRuns } from './api/compare.js';
-import { getRunDetail, getRuns } from './api/runs.js';
-import { getTrends } from './api/trends.js';
+import { compareRuns } from './api/compare';
+import { getRunDetail, getRuns } from './api/runs';
+import { getTrends } from './api/trends';
 
 function getDashboardRoot(): string {
 	const currentDir = dirname(fileURLToPath(import.meta.url));

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderTemplate } from '../../../src/utils/template.js';
+import { renderTemplate } from '../../../src/utils/template';
 
 describe('renderTemplate', () => {
 	it('should replace single variable', () => {

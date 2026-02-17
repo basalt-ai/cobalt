@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { estimateCost } from '../../../src/utils/cost.js';
+import { estimateCost } from '../../../src/utils/cost';
 
 describe('estimateCost', () => {
 	describe('OpenAI models', () => {

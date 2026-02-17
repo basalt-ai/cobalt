@@ -1,6 +1,6 @@
-import type { ProgressInfo } from '../../core/runner.js';
-import type { CIResult, ExperimentReport } from '../../types/index.js';
-import { BaseReporter, type ExperimentStartInfo } from './base-reporter.js';
+import type { ProgressInfo } from '../../core/runner';
+import type { CIResult, ExperimentReport } from '../../types';
+import { BaseReporter, type ExperimentStartInfo } from './base-reporter';
 
 /**
  * JSON reporter for structured output

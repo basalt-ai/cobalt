@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { buildSystemPrompt, evaluateLLMJudge } from '../../../src/evaluators/llm-judge.js';
-import type { EvalContext, LLMJudgeEvaluatorConfig } from '../../../src/types/index.js';
-import { sampleEvalContext } from '../../helpers/fixtures.js';
+import { buildSystemPrompt, evaluateLLMJudge } from '../../../src/evaluators/llm-judge';
+import type { EvalContext, LLMJudgeEvaluatorConfig } from '../../../src/types';
+import { sampleEvalContext } from '../../helpers/fixtures';
 import {
 	createMockAnthropicResponse,
 	createMockOpenAIResponse,
 	mockLLMJudgeResponse,
-} from '../../helpers/mocks.js';
+} from '../../helpers/mocks';
 
 // Mock boolean response
 const mockBooleanResponse = { verdict: true, reason: 'Output meets criteria' };

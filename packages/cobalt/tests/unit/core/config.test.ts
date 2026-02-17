@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defineConfig, getApiKey, loadConfig } from '../../../src/core/config.js';
-import type { CobaltConfig } from '../../../src/types/index.js';
+import { defineConfig, getApiKey, loadConfig } from '../../../src/core/config';
+import type { CobaltConfig } from '../../../src/types';
 
 // Mock node:fs for existsSync
 vi.mock('node:fs', () => ({

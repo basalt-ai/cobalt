@@ -2,7 +2,7 @@
  * Core types for Cobalt AI testing framework
  */
 
-import type { Evaluator } from '../core/Evaluator.js';
+import type { Evaluator } from '../core/Evaluator';
 
 // ============================================================================
 // Dataset Types

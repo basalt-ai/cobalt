@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import type { ExperimentReport, ResultFilter, ResultSummary } from '../types/index.js';
+import type { ExperimentReport, ResultFilter, ResultSummary } from '../types';
 
 /**
  * Save experiment results to file

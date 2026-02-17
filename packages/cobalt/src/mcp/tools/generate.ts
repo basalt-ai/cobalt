@@ -1,11 +1,11 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import OpenAI from 'openai';
-import { getApiKey, loadConfig } from '../../core/config.js';
-import { renderTemplate } from '../../utils/template.js';
-import { getAnalyzeAgentPrompt } from './prompts/analyze-agent.js';
-import { getGenerateDatasetPrompt } from './prompts/generate-dataset.js';
-import { getGenerateEvaluatorsPrompt } from './prompts/generate-evaluators.js';
+import { getApiKey, loadConfig } from '../../core/config';
+import { renderTemplate } from '../../utils/template';
+import { getAnalyzeAgentPrompt } from './prompts/analyze-agent';
+import { getGenerateDatasetPrompt } from './prompts/generate-dataset';
+import { getGenerateEvaluatorsPrompt } from './prompts/generate-evaluators';
 
 /**
  * MCP Tool: cobalt_generate

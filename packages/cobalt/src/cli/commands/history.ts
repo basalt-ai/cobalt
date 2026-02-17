@@ -1,6 +1,6 @@
 import { defineCommand } from 'citty';
 import pc from 'picocolors';
-import { HistoryDB } from '../../storage/db.js';
+import { HistoryDB } from '../../storage/db';
 
 export default defineCommand({
 	meta: {

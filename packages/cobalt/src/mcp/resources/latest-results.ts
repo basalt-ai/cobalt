@@ -1,4 +1,4 @@
-import { HistoryDB } from '../../storage/db.js';
+import { HistoryDB } from '../../storage/db';
 
 /**
  * MCP Resource: cobalt://latest-results

@@ -5,9 +5,9 @@ import type {
 	ItemResult,
 	RunnerFunction,
 	SingleRun,
-} from '../types/index.js';
-import { calculateRunStats } from '../utils/stats.js';
-import type { Evaluator } from './Evaluator.js';
+} from '../types';
+import { calculateRunStats } from '../utils/stats';
+import type { Evaluator } from './Evaluator';
 
 export interface RunnerOptions {
 	concurrency: number;

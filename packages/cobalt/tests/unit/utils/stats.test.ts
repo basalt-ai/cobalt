@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateRunStats, calculateStats, standardDeviation } from '../../../src/utils/stats.js';
+import { calculateRunStats, calculateStats, standardDeviation } from '../../../src/utils/stats';
 
 describe('calculateStats', () => {
 	it('should calculate basic statistics', () => {

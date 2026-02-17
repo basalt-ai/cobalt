@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ExperimentReport } from '../../../src/types/index.js';
+import type { ExperimentReport } from '../../../src/types';
 
 // Mock node:fs
 vi.mock('node:fs', () => ({
@@ -14,7 +14,7 @@ vi.mock('node:fs/promises', () => ({
 	readdir: vi.fn().mockResolvedValue([]),
 }));
 
-import { listResults, loadResult, saveResult } from '../../../src/storage/results.js';
+import { listResults, loadResult, saveResult } from '../../../src/storage/results';
 
 function createReport(overrides: Partial<ExperimentReport> = {}): ExperimentReport {
 	return {

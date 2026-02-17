@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { Dataset } from '../../src/datasets/Dataset.js';
+import { Dataset } from '../../src/datasets/Dataset';
 import {
 	largeDataset,
 	sampleCSV,
@@ -8,7 +8,7 @@ import {
 	sampleJSONArray,
 	sampleJSONL,
 	sampleJSONObject,
-} from '../helpers/fixtures.js';
+} from '../helpers/fixtures';
 
 // Mock fs module
 vi.mock('node:fs', () => ({

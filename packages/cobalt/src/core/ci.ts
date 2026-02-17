@@ -14,7 +14,7 @@ import type {
 	ThresholdConfig,
 	ThresholdMetric,
 	ThresholdViolation,
-} from '../types/index.js';
+} from '../types';
 
 /**
  * Validate experiment results against CI thresholds

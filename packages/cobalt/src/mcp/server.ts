@@ -9,17 +9,14 @@ import {
 	ReadResourceRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 
-import { cobaltCompareTool, handleCobaltCompare } from './tools/compare.js';
-import { cobaltGenerateTool, handleCobaltGenerate } from './tools/generate.js';
-import { cobaltResultsTool, handleCobaltResults } from './tools/results.js';
-import { cobaltRunTool, handleCobaltRun } from './tools/run.js';
+import { cobaltCompareTool, handleCobaltCompare } from './tools/compare';
+import { cobaltGenerateTool, handleCobaltGenerate } from './tools/generate';
+import { cobaltResultsTool, handleCobaltResults } from './tools/results';
+import { cobaltRunTool, handleCobaltRun } from './tools/run';
 
-import { cobaltConfigResource, handleCobaltConfig } from './resources/config.js';
-import { cobaltExperimentsResource, handleCobaltExperiments } from './resources/experiments.js';
-import {
-	cobaltLatestResultsResource,
-	handleCobaltLatestResults,
-} from './resources/latest-results.js';
+import { cobaltConfigResource, handleCobaltConfig } from './resources/config';
+import { cobaltExperimentsResource, handleCobaltExperiments } from './resources/experiments';
+import { cobaltLatestResultsResource, handleCobaltLatestResults } from './resources/latest-results';
 
 import {
 	cobaltGenerateTestsPrompt,
@@ -28,7 +25,7 @@ import {
 	getCobaltGenerateTestsPrompt,
 	getCobaltImproveAgentPrompt,
 	getCobaltRegressionCheckPrompt,
-} from './prompts/index.js';
+} from './prompts';
 
 /**
  * Start the Cobalt MCP server

@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import { registry } from '../core/EvaluatorRegistry.js';
-import type { EvalContext, EvalResult, SimilarityEvaluatorConfig } from '../types/index.js';
+import { registry } from '../core/EvaluatorRegistry';
+import type { EvalContext, EvalResult, SimilarityEvaluatorConfig } from '../types';
 
 /**
  * Evaluate using semantic similarity (embeddings + cosine similarity)

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchRemoteDataset } from '../../../../src/datasets/loaders/remote.js';
+import { fetchRemoteDataset } from '../../../../src/datasets/loaders/remote';
 
 // Mock global fetch
 const mockFetch = vi.fn();

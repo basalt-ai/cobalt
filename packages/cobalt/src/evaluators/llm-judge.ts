@@ -1,8 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
-import { registry } from '../core/EvaluatorRegistry.js';
-import type { EvalContext, EvalResult, LLMJudgeEvaluatorConfig } from '../types/index.js';
-import { renderTemplate } from '../utils/template.js';
+import { registry } from '../core/EvaluatorRegistry';
+import type { EvalContext, EvalResult, LLMJudgeEvaluatorConfig } from '../types';
+import { renderTemplate } from '../utils/template';
 
 /**
  * Evaluate using LLM as judge

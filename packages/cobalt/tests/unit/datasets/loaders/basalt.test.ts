@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fetchBasaltDataset } from '../../../../src/datasets/loaders/basalt.js';
+import { fetchBasaltDataset } from '../../../../src/datasets/loaders/basalt';
 
 // Mock global fetch
 const mockFetch = vi.fn();

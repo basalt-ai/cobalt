@@ -4,7 +4,7 @@
  * Allows users to extend Cobalt with custom evaluator types.
  */
 
-import type { EvalContext, EvalResult } from '../types/index.js';
+import type { EvalContext, EvalResult } from '../types';
 
 /**
  * Evaluator handler function signature

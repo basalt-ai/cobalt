@@ -1,4 +1,4 @@
-import type { ExperimentItem } from '../../types/index.js';
+import type { ExperimentItem } from '../../types';
 
 /**
  * LangSmith dataset example format (from their API)

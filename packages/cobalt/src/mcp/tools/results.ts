@@ -1,5 +1,5 @@
-import { HistoryDB } from '../../storage/db.js';
-import { loadResult } from '../../storage/results.js';
+import { HistoryDB } from '../../storage/db';
+import { loadResult } from '../../storage/results';
 
 /**
  * MCP Tool: cobalt_results

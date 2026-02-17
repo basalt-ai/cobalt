@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import type { EvalResult } from '../types/index.js';
-import { generateHash } from '../utils/hash.js';
+import type { EvalResult } from '../types';
+import { generateHash } from '../utils/hash';
 
 interface CacheEntry {
 	result: EvalResult;

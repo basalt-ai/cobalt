@@ -8,7 +8,7 @@ import {
 	generateSkillsFile,
 	integrateWithAITools,
 	printAIFilesSuggestion,
-} from '../utils/skills.js';
+} from '../utils/skills';
 
 export default defineCommand({
 	meta: {

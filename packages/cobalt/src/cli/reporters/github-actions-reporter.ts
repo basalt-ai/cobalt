@@ -1,8 +1,8 @@
 import { appendFileSync } from 'node:fs';
-import type { ProgressInfo } from '../../core/runner.js';
-import type { CIResult, ExperimentReport } from '../../types/index.js';
-import { formatCost } from '../../utils/cost.js';
-import { BaseReporter, type ExperimentStartInfo } from './base-reporter.js';
+import type { ProgressInfo } from '../../core/runner';
+import type { CIResult, ExperimentReport } from '../../types';
+import { formatCost } from '../../utils/cost';
+import { BaseReporter, type ExperimentStartInfo } from './base-reporter';
 
 /**
  * GitHub Actions reporter for CI/CD output with annotations and step summary

@@ -1,6 +1,6 @@
-import type { EvalContext, EvalResult, EvaluatorConfig } from '../types/index.js';
+import type { EvalContext, EvalResult, EvaluatorConfig } from '../types';
 
-import { registry } from './EvaluatorRegistry.js';
+import { registry } from './EvaluatorRegistry';
 
 /**
  * Evaluator class for scoring agent outputs

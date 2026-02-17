@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { EvalResult } from '../../src/types/index.js';
+import type { EvalResult } from '../../src/types';
 
 /**
  * Mock LLM response for testing evaluators

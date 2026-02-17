@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { evaluateFunction } from '../../../src/evaluators/function.js';
-import type { FunctionEvaluatorConfig } from '../../../src/types/index.js';
-import { sampleEvalContext } from '../../helpers/fixtures.js';
+import { evaluateFunction } from '../../../src/evaluators/function';
+import type { FunctionEvaluatorConfig } from '../../../src/types';
+import { sampleEvalContext } from '../../helpers/fixtures';
 
 describe('evaluateFunction', () => {
 	it('should execute custom function and return result', async () => {

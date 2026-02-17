@@ -1,5 +1,5 @@
 import type { Context } from 'hono';
-import { HistoryDB } from '../../storage/db.js';
+import { HistoryDB } from '../../storage/db';
 
 /**
  * GET /api/trends?experiment=name&evaluator=name
