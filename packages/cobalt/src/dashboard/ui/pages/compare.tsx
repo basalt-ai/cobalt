@@ -10,6 +10,8 @@ import {
 	XAxis,
 } from 'recharts';
 import { compareRuns } from '../api/compare';
+import { getRuns } from '../api/runs';
+import type { RunsResponse } from '../api/types';
 import type { CompareResponse } from '../api/types';
 import { ColumnCell } from '../components/data/column-cell';
 import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
@@ -17,6 +19,13 @@ import { FilterBar, type FilterDef, type FilterValue } from '../components/data/
 import { ScoreBadge, ScoreChange } from '../components/data/score-badge';
 import { PageHeader } from '../components/layout/page-header';
 import { Button } from '../components/ui/button';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '../components/ui/select';
 import { Skeleton } from '../components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { useApi } from '../hooks/use-api';
@@ -54,7 +63,7 @@ const RUN_COLORS = [
 ] as const;
 
 export function ComparePage() {
-	const [searchParams] = useSearchParams();
+	const [searchParams, setSearchParams] = useSearchParams();
 	const a = searchParams.get('a');
 	const b = searchParams.get('b');
 	const c = searchParams.get('c');
@@ -64,6 +73,9 @@ export function ComparePage() {
 		if (c) ids.push(c);
 		return ids;
 	}, [a, b, c]);
+
+	// Fetch all runs for the run selector dropdowns
+	const { data: runsData } = useApi<RunsResponse>(() => getRuns());
 
 	const { data, error, loading } = useApi<CompareResponse>(() => {
 		if (runIds.length < 2) return Promise.reject(new Error('Missing run IDs'));
@@ -128,18 +140,46 @@ export function ComparePage() {
 
 			<PageHeader title="Compare Runs" />
 
-			{/* Run labels */}
-			<div className="flex flex-wrap gap-3">
+			{/* Run selectors */}
+			<div className="flex flex-wrap gap-3 items-end">
 				{data.runs.map((run, i) => (
-					<RunLabel
+					<RunSelector
 						key={run.id}
 						run={run}
 						color={RUN_COLORS[i]}
 						label={
 							i === 0 ? 'Base' : `Candidate ${data.runs.length > 2 ? RUN_COLORS[i].label : ''}`
 						}
+						allRuns={runsData?.runs ?? []}
+						selectedIds={new Set(runIds)}
+						onRunChange={(newId) => {
+							const params = new URLSearchParams(searchParams);
+							const keys = ['a', 'b', 'c'] as const;
+							params.set(keys[i], newId);
+							setSearchParams(params);
+						}}
+						onRemove={
+							i >= 2
+								? () => {
+										const params = new URLSearchParams(searchParams);
+										params.delete('c');
+										setSearchParams(params);
+									}
+								: undefined
+						}
 					/>
 				))}
+				{data.runs.length < 3 && runsData?.runs && (
+					<AddRunButton
+						allRuns={runsData.runs}
+						selectedIds={new Set(runIds)}
+						onAdd={(newId) => {
+							const params = new URLSearchParams(searchParams);
+							params.set('c', newId);
+							setSearchParams(params);
+						}}
+					/>
+				)}
 			</div>
 
 			{/* Score Comparison Cards */}
@@ -203,34 +243,86 @@ export function ComparePage() {
 	);
 }
 
-function RunLabel({
+function RunSelector({
 	run,
 	color,
 	label,
+	allRuns,
+	selectedIds,
+	onRunChange,
+	onRemove,
 }: {
 	run: { id: string; name: string; timestamp: string };
 	color: (typeof RUN_COLORS)[number];
 	label: string;
+	allRuns: Array<{ id: string; name: string; timestamp: string }>;
+	selectedIds: Set<string>;
+	onRunChange: (newId: string) => void;
+	onRemove?: () => void;
 }) {
+	const available = allRuns.filter((r) => !selectedIds.has(r.id) || r.id === run.id);
+
 	return (
 		<div className={cn('rounded-lg border px-3 py-2', color.bg, color.border)}>
 			<div className="flex items-center gap-2">
 				<span
 					className={cn(
-						'inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-white',
+						'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold text-white',
 						color.fill,
 					)}
 				>
 					{color.label}
 				</span>
-				<div>
-					<p className="text-sm font-medium">
-						{label}: {run.name}
-					</p>
-					<p className="text-xs text-muted-foreground">{run.id.slice(0, 8)}</p>
+				<div className="min-w-0 flex-1">
+					<p className="text-xs text-muted-foreground mb-1">{label}</p>
+					<Select value={run.id} onValueChange={onRunChange}>
+						<SelectTrigger className="h-7 text-xs">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{available.map((r) => (
+								<SelectItem key={r.id} value={r.id}>
+									{r.name} <span className="text-muted-foreground">({r.id.slice(0, 8)})</span>
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
+				{onRemove && (
+					<Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
+						<span className="text-xs">x</span>
+					</Button>
+				)}
 			</div>
 		</div>
+	);
+}
+
+function AddRunButton({
+	allRuns,
+	selectedIds,
+	onAdd,
+}: {
+	allRuns: Array<{ id: string; name: string; timestamp: string }>;
+	selectedIds: Set<string>;
+	onAdd: (id: string) => void;
+}) {
+	const available = allRuns.filter((r) => !selectedIds.has(r.id));
+	if (available.length === 0) return null;
+
+	return (
+		<Select onValueChange={onAdd}>
+			<SelectTrigger className="h-auto rounded-lg border-dashed px-3 py-2 text-xs text-muted-foreground w-40">
+				<SelectValue placeholder="+ Add run" />
+			</SelectTrigger>
+			<SelectContent>
+				{available.map((r) => (
+					<SelectItem key={r.id} value={r.id}>
+						{r.name} <span className="text-muted-foreground">({r.id.slice(0, 8)})</span>
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
 	);
 }
 
