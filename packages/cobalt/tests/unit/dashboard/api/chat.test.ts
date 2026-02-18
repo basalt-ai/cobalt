@@ -112,14 +112,16 @@ describe('Chat API', () => {
 
 		it('should call streamText with messages and system prompt', async () => {
 			const mockStreamResult = {
-				toDataStreamResponse: vi.fn(() => new Response('stream')),
+				toUIMessageStreamResponse: vi.fn(() => new Response('stream')),
 			}
 			vi.mocked(streamText).mockReturnValue(mockStreamResult as never)
 
 			const handler = createChatHandler({ provider: 'openai', model: 'gpt-4o-mini' })
 			const c = createMockContext({
 				body: {
-					messages: [{ role: 'user', content: 'analyze my results' }],
+					messages: [
+						{ id: '1', role: 'user', parts: [{ type: 'text', text: 'analyze my results' }] },
+					],
 					context: { page: 'runs' },
 				},
 			})
@@ -134,7 +136,7 @@ describe('Chat API', () => {
 					messages: [{ role: 'user', content: 'analyze my results' }],
 				}),
 			)
-			expect(mockStreamResult.toDataStreamResponse).toHaveBeenCalled()
+			expect(mockStreamResult.toUIMessageStreamResponse).toHaveBeenCalled()
 		})
 	})
 

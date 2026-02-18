@@ -1,13 +1,35 @@
 import { Robot, User } from '@phosphor-icons/react'
 import { cn } from '../../lib/utils'
 
-interface ChatMessageProps {
-	role: 'user' | 'assistant' | 'system'
-	content: string
+interface MessagePart {
+	type: string
+	text?: string
 }
 
-export function ChatMessage({ role, content }: ChatMessageProps) {
-	const isUser = role === 'user'
+interface ChatMessageProps {
+	message: {
+		id: string
+		role: 'user' | 'assistant' | 'system'
+		parts?: MessagePart[]
+		content?: string
+	}
+}
+
+function getTextContent(message: ChatMessageProps['message']): string {
+	if (message.parts?.length) {
+		return message.parts
+			.filter(p => p.type === 'text' && p.text)
+			.map(p => p.text)
+			.join('')
+	}
+	return message.content ?? ''
+}
+
+export function ChatMessage({ message }: ChatMessageProps) {
+	const isUser = message.role === 'user'
+	const text = getTextContent(message)
+
+	if (!text) return null
 
 	return (
 		<div className={cn('flex gap-2.5', isUser && 'flex-row-reverse')}>
@@ -25,7 +47,7 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
 					isUser ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground',
 				)}
 			>
-				<p className="whitespace-pre-wrap">{content}</p>
+				<p className="whitespace-pre-wrap">{text}</p>
 			</div>
 		</div>
 	)

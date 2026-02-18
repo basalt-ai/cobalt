@@ -16,10 +16,12 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 	const [input, setInput] = useState('')
 
-	const { messages, append, isLoading } = useChat({
+	const { messages, sendMessage, status } = useChat({
 		api: '/api/chat',
 		body: { context: chatContext },
 	})
+
+	const isLoading = status === 'submitted' || status === 'streaming'
 
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {
@@ -33,7 +35,7 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 		const text = input.trim()
 		if (!text || isLoading) return
 		setInput('')
-		append({ role: 'user', content: text })
+		sendMessage({ text })
 	}
 
 	if (!open) return null
@@ -66,7 +68,7 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 					</div>
 				)}
 				{messages.map(m => (
-					<ChatMessage key={m.id} role={m.role as 'user' | 'assistant'} content={m.content} />
+					<ChatMessage key={m.id} message={m} />
 				))}
 				{isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
 					<div className="flex gap-2.5">

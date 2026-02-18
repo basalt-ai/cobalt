@@ -6,9 +6,16 @@ import { loadResult } from '../../storage/results'
 import { listResults } from '../../storage/results'
 import type { DashboardChatConfig, ExperimentReport } from '../../types'
 
-interface ChatMessage {
+interface UIMessagePart {
+	type: string
+	text?: string
+}
+
+interface UIMessage {
+	id: string
 	role: 'user' | 'assistant' | 'system'
-	content: string
+	parts?: UIMessagePart[]
+	content?: string
 }
 
 interface ChatContext {
@@ -19,8 +26,18 @@ interface ChatContext {
 }
 
 interface ChatRequest {
-	messages: ChatMessage[]
+	messages: UIMessage[]
 	context?: ChatContext
+}
+
+function extractText(msg: UIMessage): string {
+	if (msg.parts?.length) {
+		return msg.parts
+			.filter(p => p.type === 'text' && p.text)
+			.map(p => p.text)
+			.join('')
+	}
+	return msg.content ?? ''
 }
 
 function getModel(config: DashboardChatConfig) {
@@ -128,10 +145,10 @@ export function createChatHandler(chatConfig?: DashboardChatConfig) {
 			const result = streamText({
 				model,
 				system: systemPrompt,
-				messages: body.messages.map(m => ({ role: m.role, content: m.content })),
+				messages: body.messages.map(m => ({ role: m.role, content: extractText(m) })),
 			})
 
-			return result.toDataStreamResponse()
+			return result.toUIMessageStreamResponse()
 		} catch (error) {
 			console.error('Chat error:', error)
 			return c.json(
