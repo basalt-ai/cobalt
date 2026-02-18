@@ -15,7 +15,13 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 	const chatContext = useChatContext()
 	const scrollRef = useRef<HTMLDivElement>(null)
 
-	const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+	const {
+		messages,
+		input = '',
+		handleInputChange,
+		handleSubmit,
+		isLoading,
+	} = useChat({
 		api: '/api/chat',
 		body: { context: chatContext },
 	})
