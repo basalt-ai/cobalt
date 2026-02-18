@@ -4,6 +4,9 @@ import { fileURLToPath } from 'node:url'
 import { serve } from '@hono/node-server'
 import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
+import type { DashboardChatConfig } from '../types'
+import { createCompareAnalysisHandler, createRunAnalysisHandler } from './api/analysis'
+import { createChatHandler } from './api/chat'
 import { compareRuns } from './api/compare'
 import { getRunDetail, getRuns } from './api/runs'
 import { getTrends } from './api/trends'
@@ -21,8 +24,13 @@ function getDashboardRoot(): string {
  * Start the Cobalt dashboard server
  * @param port - Port to listen on
  * @param open - Whether to open browser automatically
+ * @param chatConfig - Optional AI chat configuration
  */
-export async function startDashboard(port = 4000, open = true): Promise<void> {
+export async function startDashboard(
+	port = 4000,
+	open = true,
+	chatConfig?: DashboardChatConfig,
+): Promise<void> {
 	const app = new Hono()
 
 	// API routes
@@ -31,11 +39,26 @@ export async function startDashboard(port = 4000, open = true): Promise<void> {
 	app.get('/api/compare', compareRuns)
 	app.get('/api/trends', getTrends)
 
+	// AI chat routes
+	app.post('/api/chat', createChatHandler(chatConfig))
+	app.get('/api/runs/:id/analysis', createRunAnalysisHandler(chatConfig))
+	app.get('/api/compare/analysis', createCompareAnalysisHandler(chatConfig))
+
 	// API index
 	app.get('/api', c =>
 		c.json({
 			name: 'Cobalt Dashboard API',
-			endpoints: ['/api/runs', '/api/runs/:id', '/api/compare', '/api/trends', '/api/health'],
+			endpoints: [
+				'/api/runs',
+				'/api/runs/:id',
+				'/api/compare',
+				'/api/trends',
+				'/api/chat',
+				'/api/runs/:id/analysis',
+				'/api/compare/analysis',
+				'/api/health',
+			],
+			chat: { enabled: !!chatConfig },
 		}),
 	)
 
@@ -63,6 +86,9 @@ export async function startDashboard(port = 4000, open = true): Promise<void> {
 	console.log('\n🔷 Cobalt Dashboard')
 	console.log(`   Server: http://localhost:${port}`)
 	console.log(`   API: http://localhost:${port}/api`)
+	if (chatConfig) {
+		console.log(`   AI Chat: enabled (${chatConfig.provider})`)
+	}
 	console.log('')
 
 	serve({
