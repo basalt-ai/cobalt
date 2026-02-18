@@ -26,7 +26,7 @@ export default defineCommand({
 			const port = args.port ? Number.parseInt(args.port, 10) : config.dashboard.port
 			const open = !args['no-open'] && config.dashboard.open
 
-			await startDashboard(port, open)
+			await startDashboard(port, open, config.dashboard.chat)
 
 			// Keep process alive
 			await new Promise(() => {})

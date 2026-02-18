@@ -25,6 +25,7 @@ export default defineConfig({
 			output: {
 				manualChunks: {
 					recharts: ['recharts'],
+					'ai-sdk': ['@ai-sdk/react'],
 					radix: [
 						'@radix-ui/react-dialog',
 						'@radix-ui/react-popover',

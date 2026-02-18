@@ -1,14 +1,40 @@
 import { ArrowLeft, Clock } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useOutletContext, useSearchParams } from 'react-router'
+import {
+	Bar,
+	BarChart,
+	Cell,
+	Tooltip as RechartsTooltip,
+	ResponsiveContainer,
+	XAxis,
+	YAxis,
+} from 'recharts'
 import { compareRuns } from '../api/compare'
+import { getRuns } from '../api/runs'
+import type { RunsResponse } from '../api/types'
 import type { CompareResponse } from '../api/types'
+import { InsightCard } from '../components/chat/insight-card'
 import { ColumnCell } from '../components/data/column-cell'
 import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options'
 import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar'
 import { ScoreBadge, ScoreChange } from '../components/data/score-badge'
 import { PageHeader } from '../components/layout/page-header'
 import { Button } from '../components/ui/button'
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from '../components/ui/dialog'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '../components/ui/select'
 import { Skeleton } from '../components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { useApi } from '../hooks/use-api'
@@ -46,7 +72,8 @@ const RUN_COLORS = [
 ] as const
 
 export function ComparePage() {
-	const [searchParams] = useSearchParams()
+	const [searchParams, setSearchParams] = useSearchParams()
+	const { chatEnabled } = useOutletContext<{ chatEnabled: boolean }>()
 	const a = searchParams.get('a')
 	const b = searchParams.get('b')
 	const c = searchParams.get('c')
@@ -56,6 +83,9 @@ export function ComparePage() {
 		if (c) ids.push(c)
 		return ids
 	}, [a, b, c])
+
+	// Fetch all runs for the run selector dropdowns
+	const { data: runsData } = useApi<RunsResponse>(() => getRuns())
 
 	const { data, error, loading } = useApi<CompareResponse>(() => {
 		if (runIds.length < 2) return Promise.reject(new Error('Missing run IDs'))
@@ -120,18 +150,46 @@ export function ComparePage() {
 
 			<PageHeader title="Compare Runs" />
 
-			{/* Run labels */}
-			<div className="flex flex-wrap gap-3">
+			{/* Run selectors */}
+			<div className="flex flex-wrap gap-3 items-end">
 				{data.runs.map((run, i) => (
-					<RunLabel
+					<RunSelector
 						key={run.id}
 						run={run}
 						color={RUN_COLORS[i]}
 						label={
 							i === 0 ? 'Base' : `Candidate ${data.runs.length > 2 ? RUN_COLORS[i].label : ''}`
 						}
+						allRuns={runsData?.runs ?? []}
+						selectedIds={new Set(runIds)}
+						onRunChange={newId => {
+							const params = new URLSearchParams(searchParams)
+							const keys = ['a', 'b', 'c'] as const
+							params.set(keys[i], newId)
+							setSearchParams(params)
+						}}
+						onRemove={
+							i >= 2
+								? () => {
+										const params = new URLSearchParams(searchParams)
+										params.delete('c')
+										setSearchParams(params)
+									}
+								: undefined
+						}
 					/>
 				))}
+				{data.runs.length < 3 && runsData?.runs && (
+					<AddRunButton
+						allRuns={runsData.runs}
+						selectedIds={new Set(runIds)}
+						onAdd={newId => {
+							const params = new URLSearchParams(searchParams)
+							params.set('c', newId)
+							setSearchParams(params)
+						}}
+					/>
+				)}
 			</div>
 
 			{/* Score Comparison Cards */}
@@ -147,15 +205,21 @@ export function ComparePage() {
 									<span className="ml-1.5 text-[10px] text-muted-foreground/70">(pass rate)</span>
 								)}
 							</p>
-							<div className="space-y-2">
-								{diff.scores.map((score, i) => (
-									<ScoreRow
-										key={RUN_COLORS[i].label}
-										label={RUN_COLORS[i].label}
-										score={score}
-										color={RUN_COLORS[i]}
-									/>
-								))}
+							<div className="flex items-center gap-3">
+								<div className="flex-1">
+									<ScoreBarChart scores={diff.scores} />
+								</div>
+								<div className="flex flex-col gap-1">
+									{diff.scores.map((score, i) => (
+										<div key={RUN_COLORS[i].label} className="flex items-center gap-1.5">
+											<span
+												className="inline-block h-2 w-2 rounded-sm"
+												style={{ backgroundColor: BAR_FILLS[i] }}
+											/>
+											<ScoreBadge score={score} className="text-xs" />
+										</div>
+									))}
+								</div>
 							</div>
 							{diff.diffs.some(d => d !== 0) && (
 								<div className="mt-3 pt-2 border-t">
@@ -180,6 +244,9 @@ export function ComparePage() {
 				})}
 			</div>
 
+			{/* AI Insight */}
+			<InsightCard compareIds={runIds} chatEnabled={chatEnabled} />
+
 			{/* Latency & Tokens Stats */}
 			<CompareStatsTabs data={data} />
 
@@ -189,58 +256,120 @@ export function ComparePage() {
 	)
 }
 
-function RunLabel({
+function RunSelector({
 	run,
 	color,
 	label,
+	allRuns,
+	selectedIds,
+	onRunChange,
+	onRemove,
 }: {
 	run: { id: string; name: string; timestamp: string }
 	color: (typeof RUN_COLORS)[number]
 	label: string
+	allRuns: Array<{ id: string; name: string; timestamp: string }>
+	selectedIds: Set<string>
+	onRunChange: (newId: string) => void
+	onRemove?: () => void
 }) {
+	const available = allRuns.filter(r => !selectedIds.has(r.id) || r.id === run.id)
+
 	return (
 		<div className={cn('rounded-lg border px-3 py-2', color.bg, color.border)}>
 			<div className="flex items-center gap-2">
 				<span
 					className={cn(
-						'inline-flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-white',
+						'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded text-xs font-bold text-white',
 						color.fill,
 					)}
 				>
 					{color.label}
 				</span>
-				<div>
-					<p className="text-sm font-medium">
-						{label}: {run.name}
-					</p>
-					<p className="text-xs text-muted-foreground">{run.id.slice(0, 8)}</p>
+				<div className="min-w-0 flex-1">
+					<p className="text-xs text-muted-foreground mb-1">{label}</p>
+					<Select value={run.id} onValueChange={onRunChange}>
+						<SelectTrigger className="h-7 text-xs">
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{available.map(r => (
+								<SelectItem key={r.id} value={r.id}>
+									{r.name} <span className="text-muted-foreground">({r.id.slice(0, 8)})</span>
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
+				{onRemove && (
+					<Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
+						<span className="text-xs">x</span>
+					</Button>
+				)}
 			</div>
 		</div>
 	)
 }
 
-function ScoreRow({
-	label,
-	score,
-	color,
+function AddRunButton({
+	allRuns,
+	selectedIds,
+	onAdd,
 }: {
-	label: string
-	score: number
-	color: (typeof RUN_COLORS)[number]
+	allRuns: Array<{ id: string; name: string; timestamp: string }>
+	selectedIds: Set<string>
+	onAdd: (id: string) => void
 }) {
+	const available = allRuns.filter(r => !selectedIds.has(r.id))
+	if (available.length === 0) return null
+
 	return (
-		<div className="flex items-center gap-2">
-			<span className={cn('h-2 w-2 rounded-sm', color.fill)} />
-			<span className="text-xs text-muted-foreground w-3">{label}</span>
-			<div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-				<div
-					className={cn('h-full rounded-full transition-all', color.fill)}
-					style={{ width: `${Math.max(score * 100, 2)}%` }}
+		<Select onValueChange={onAdd}>
+			<SelectTrigger className="h-auto rounded-lg border-dashed px-3 py-2 text-xs text-muted-foreground w-40">
+				<SelectValue placeholder="+ Add run" />
+			</SelectTrigger>
+			<SelectContent>
+				{available.map(r => (
+					<SelectItem key={r.id} value={r.id}>
+						{r.name} <span className="text-muted-foreground">({r.id.slice(0, 8)})</span>
+					</SelectItem>
+				))}
+			</SelectContent>
+		</Select>
+	)
+}
+
+const BAR_FILLS = ['#231F1C', '#3358D4', '#CF3897'] as const
+
+function ScoreBarChart({ scores }: { scores: number[] }) {
+	const data = scores.map((score, i) => ({
+		name: `Run ${RUN_COLORS[i].label}`,
+		score,
+		fill: BAR_FILLS[i],
+	}))
+
+	return (
+		<ResponsiveContainer width="100%" height={scores.length * 28 + 8}>
+			<BarChart data={data} layout="vertical" margin={{ left: 0, right: 4, top: 4, bottom: 4 }}>
+				<XAxis type="number" domain={[0, 1]} hide />
+				<YAxis type="category" dataKey="name" hide />
+				<RechartsTooltip
+					formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'Score']}
+					labelFormatter={(label: string) => label}
+					contentStyle={{
+						fontSize: 12,
+						borderRadius: 8,
+						border: '1px solid var(--border)',
+						background: 'var(--card)',
+					}}
 				/>
-			</div>
-			<ScoreBadge score={score} className="ml-1" />
-		</div>
+				<Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={14}>
+					{data.map(entry => (
+						<Cell key={entry.name} fill={entry.fill} />
+					))}
+				</Bar>
+			</BarChart>
+		</ResponsiveContainer>
 	)
 }
 
@@ -347,6 +476,8 @@ function CompareStatsTable({
 	)
 }
 
+type CompareItem = CompareResponse['items'][number]
+
 function CompareItemsTable({
 	data,
 	evaluatorNames,
@@ -358,6 +489,7 @@ function CompareItemsTable({
 }) {
 	const [filters, setFilters] = useState<FilterValue[]>([])
 	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({})
+	const [selectedItem, setSelectedItem] = useState<CompareItem | null>(null)
 
 	// Detect which optional columns have data
 	const hasTokens = useMemo(
@@ -517,7 +649,11 @@ function CompareItemsTable({
 						{filteredItems.map(item => (
 							<tr
 								key={item.index}
-								className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+								className="border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
+								onClick={() => setSelectedItem(item)}
+								onKeyDown={e => {
+									if (e.key === 'Enter' || e.key === ' ') setSelectedItem(item)
+								}}
 							>
 								<td className="px-4 py-2.5 tabular-nums text-muted-foreground align-top">
 									{item.index + 1}
@@ -613,7 +749,157 @@ function CompareItemsTable({
 					</tbody>
 				</table>
 			</div>
+
+			<CompareItemDetailDialog
+				item={selectedItem}
+				runs={data.runs}
+				evaluatorNames={evaluatorNames}
+				booleanEvals={booleanEvals}
+				onClose={() => setSelectedItem(null)}
+			/>
 		</div>
+	)
+}
+
+function CompareItemDetailDialog({
+	item,
+	runs,
+	evaluatorNames,
+	booleanEvals,
+	onClose,
+}: {
+	item: CompareItem | null
+	runs: CompareResponse['runs']
+	evaluatorNames: string[]
+	booleanEvals: Set<string>
+	onClose: () => void
+}) {
+	if (!item) return null
+
+	return (
+		<Dialog open={!!item} onOpenChange={open => !open && onClose()}>
+			<DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>Item #{item.index + 1}</DialogTitle>
+					<DialogDescription>Comparing across {runs.length} runs</DialogDescription>
+				</DialogHeader>
+
+				<div className="space-y-5">
+					{/* Shared input */}
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-1">Input</h4>
+						<pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap">
+							{JSON.stringify(item.input, null, 2)}
+						</pre>
+					</div>
+
+					{/* Side-by-side outputs */}
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-2">Outputs</h4>
+						<div className={cn('grid gap-3', runs.length === 2 ? 'grid-cols-2' : 'grid-cols-3')}>
+							{runs.map((run, i) => {
+								const out = item.outputs[i]
+								const outputVal = out ? getOutputValue(out.output) : null
+								return (
+									<div
+										key={run.id}
+										className={cn('rounded-lg border p-3', RUN_COLORS[i].bg, RUN_COLORS[i].border)}
+									>
+										<div className="flex items-center gap-1.5 mb-2">
+											<span
+												className={cn(
+													'inline-flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold text-white',
+													RUN_COLORS[i].fill,
+												)}
+											>
+												{RUN_COLORS[i].label}
+											</span>
+											<span className="text-xs font-medium">{run.name}</span>
+										</div>
+										{out?.error ? (
+											<pre className="rounded-md bg-tomato-3 p-2 text-xs text-tomato-12 overflow-x-auto">
+												{out.error}
+											</pre>
+										) : (
+											<pre className="rounded-md bg-muted p-2 text-xs overflow-x-auto whitespace-pre-wrap max-h-48">
+												{outputVal
+													? typeof outputVal === 'string'
+														? outputVal
+														: JSON.stringify(outputVal, null, 2)
+													: '-'}
+											</pre>
+										)}
+										{out && (
+											<p className="mt-1.5 text-[10px] text-muted-foreground">
+												{formatDuration(out.latencyMs)}
+											</p>
+										)}
+									</div>
+								)
+							})}
+						</div>
+					</div>
+
+					{/* Side-by-side evaluations */}
+					{evaluatorNames.length > 0 && (
+						<div>
+							<h4 className="text-xs font-medium text-muted-foreground mb-2">Evaluations</h4>
+							<div className="space-y-3">
+								{evaluatorNames.map(evalName => (
+									<div key={evalName} className="rounded-lg border p-3">
+										<p className="text-sm font-medium mb-2">{evalName}</p>
+										<div
+											className={cn(
+												'grid gap-3',
+												runs.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+											)}
+										>
+											{runs.map((run, i) => {
+												const ev = item.outputs[i]?.evaluations[evalName]
+												return (
+													<div key={run.id} className={cn('rounded-md p-2', RUN_COLORS[i].bg)}>
+														<div className="flex items-center justify-between mb-1">
+															<span className="text-xs text-muted-foreground">
+																Run {RUN_COLORS[i].label}
+															</span>
+															{ev ? (
+																<ScoreBadge score={ev.score} boolean={booleanEvals.has(evalName)} />
+															) : (
+																<span className="text-xs text-muted-foreground">-</span>
+															)}
+														</div>
+														{ev?.reason && (
+															<p className="text-xs text-muted-foreground mt-1">{ev.reason}</p>
+														)}
+													</div>
+												)
+											})}
+										</div>
+										{/* Delta vs base */}
+										{runs.length > 1 && item.outputs[0]?.evaluations[evalName] && (
+											<div className="mt-2 pt-2 border-t flex gap-4">
+												{runs.slice(1).map((_, i) => {
+													const baseScore = item.outputs[0]?.evaluations[evalName]?.score ?? 0
+													const compScore = item.outputs[i + 1]?.evaluations[evalName]?.score
+													if (compScore == null) return null
+													const diff = compScore - baseScore
+													return (
+														<span key={RUN_COLORS[i + 1].label} className="text-xs">
+															{RUN_COLORS[i + 1].label} vs A:{' '}
+															<ScoreChange value={baseScore !== 0 ? diff / baseScore : 0} />
+														</span>
+													)
+												})}
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+				</div>
+			</DialogContent>
+		</Dialog>
 	)
 }
 

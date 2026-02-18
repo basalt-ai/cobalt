@@ -198,9 +198,16 @@ export interface JudgeConfig {
 	apiKey?: string
 }
 
+export interface DashboardChatConfig {
+	provider: 'openai' | 'anthropic'
+	model?: string
+	apiKey?: string
+}
+
 export interface DashboardConfig {
 	port: number
 	open: boolean
+	chat?: DashboardChatConfig
 }
 
 export interface CacheConfig {

@@ -428,7 +428,7 @@ During implementation, several mismatches were discovered and fixed:
 **Project Metrics:**
 - **Lines of Code**: ~5,800+ (src/)
 - **Test Files**: 19+
-- **Test Cases**: 231+ (across 12+ test suites)
+- **Test Cases**: 537+ (across 14+ test suites)
 - **Test Coverage**: 75%+ enforced (lines 75%, functions 80%, branches 70%)
 - **CLI Commands**: 8 (run, init, history, compare, serve, clean, mcp, update)
 - **Evaluator Types**: 4 built-in + 11 via Autoevals
@@ -439,7 +439,7 @@ During implementation, several mismatches were discovered and fixed:
 - ✅ P1 (Usable): 100% complete
 - ✅ P2 (Powerful): 100% complete
 - ✅ P3 (Connected): 100% complete
-- 🔄 P4 (Dashboard): ~85% (design system + all 4 pages styled, missing AI chat + export)
+- 🔄 P4 (Dashboard): ~95% (all pages + AI chat complete, missing polish: export, Cmd+K, error boundaries)
 
 ---
 
@@ -506,11 +506,80 @@ Button, Badge (with color variants), Card, Dialog, Popover, Select, Tabs, Toolti
 **TrendsPage**: Experiment name selector, Recharts LineChart with one line per evaluator, interactive tooltips, runs summary table with click-to-navigate.
 
 ### Remaining P4 Work
-- [ ] AI chat integration (Phase 6 — Vercel AI SDK)
 - [ ] Export results (CSV, Markdown)
-- [ ] Compare page: Recharts bar charts in metric cards
-- [ ] Compare page: Item comparison drawer (A vs B side-by-side)
-- [ ] Trends page: Evaluator filter dropdown
+- [ ] Cmd+K command palette
+- [ ] Error boundaries
+- [ ] React.lazy/memo performance optimization
+- [ ] Missing UI primitives: `input.tsx`, `scroll-area.tsx`, `text.tsx`, `json-viewer.tsx`
+
+---
+
+## 2026-02-17: Dashboard Phase A + B + C — Compare Gaps + AI Chat ✅
+
+### Phase A: Compare Page Gaps ✅
+
+**A1. Recharts bar charts** (`b6b050f`)
+- Replaced CSS progress bars in score comparison cards with horizontal `BarChart` from Recharts
+- Uses `RUN_COLORS` hex values (`#231F1C`, `#3358D4`, `#CF3897`) for bar fills
+- Compact layout with `ResponsiveContainer`, hidden axes, tooltip on hover
+
+**A2. Run selector dropdowns** (`6baa9c9`)
+- Added `Select` dropdowns next to each run label to swap compared runs
+- Fetches full runs list via `useApi(() => getRuns())`
+- On change, updates URL `searchParams` via `setSearchParams`
+- "Add run C" button when <3 runs selected
+
+**A3. Item comparison drawer** (`3ee771d`)
+- Click any items table row to open a detail dialog
+- Side-by-side layout: shared input at top, columns per run with output + evaluator scores/reasons
+- Color-coded column headers with `RUN_COLORS`
+- Keyboard accessible (Enter/Space to open)
+
+### Phase B: AI Chat Backend ✅
+
+**B1-B2. Dependencies and config** (`b9af306`)
+- Added `ai`, `@ai-sdk/openai`, `@ai-sdk/anthropic`, `@ai-sdk/react` dependencies
+- Added `DashboardChatConfig` interface to `src/types/index.ts`
+
+**B3-B5. API endpoints** (`ce90a77`)
+- `POST /api/chat` — streaming endpoint using `streamText()` from Vercel AI SDK
+- Context-aware system prompts per page (runs, run-detail, compare, trends)
+- `GET /api/runs/:id/analysis` — cached one-shot run analysis
+- `GET /api/compare/analysis?a=&b=` — cached comparison analysis
+- File-based JSON cache with 24h TTL at `.cobalt/data/cache/analysis/`
+- Updated `server.ts` to register routes and expose `chat.enabled` in `/api` response
+- Files: `src/dashboard/api/chat.ts`, `src/dashboard/api/analysis.ts`, `src/dashboard/server.ts`
+
+**B6. Backend tests** (`62e6432`)
+- 10 tests for chat handler + system prompt building + context formatting
+- 6 tests for analysis handlers (cache hit/miss, TTL expiry, error states)
+- All 537 tests passing
+
+### Phase C: AI Chat Frontend ✅ (`218623a`)
+
+**C1. Frontend API layer** — `src/dashboard/ui/api/chat.ts`
+- `getChatConfig()`, `getRunAnalysis(runId)`, `getCompareAnalysis(ids)` functions
+
+**C2. Chat context hook** — `src/dashboard/ui/hooks/use-chat-context.ts`
+- React context tracking current page + relevant IDs (runId, compareIds, experiment)
+- Derived from React Router location + params in root layout
+
+**C3. ChatPanel component** — `src/dashboard/ui/components/chat/chat-panel.tsx`
+- Full-height right panel (`fixed right-0 top-14 bottom-0 w-96`)
+- Uses `useChat()` from `@ai-sdk/react` with `/api/chat` endpoint
+- Auto-scroll on new messages, context-aware requests
+
+**C4-C5. Layout + TopBar integration**
+- `root-layout.tsx`: ChatPanel, ChatContext provider, `chatEnabled` state, `mr-96` offset
+- `top-bar.tsx`: Chat toggle button with disabled tooltip when not configured
+
+**C6. InsightCard** — `src/dashboard/ui/components/chat/insight-card.tsx`
+- Inline card fetching cached AI analysis with sparkle icon
+- Integrated into `run-detail.tsx` and `compare.tsx`
+- Skeleton loading, graceful disabled state
+
+**C7. Disabled state**
+- When `dashboard.chat` not configured: button tooltip + InsightCard CTA
 
 ---
 

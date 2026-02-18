@@ -7,9 +7,10 @@ import {
 	XCircle,
 } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useOutletContext, useParams } from 'react-router'
 import { getRunDetail, getRuns } from '../api/runs'
 import type { ItemEvaluation, ItemResult, RunDetailResponse, RunsResponse } from '../api/types'
+import { InsightCard } from '../components/chat/insight-card'
 import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options'
 import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar'
 import { MetricCard } from '../components/data/metric-card'
@@ -73,6 +74,7 @@ export function RunDetailPage() {
 	const { data, error, loading } = useApi<RunDetailResponse>(() => getRunDetail(id ?? ''), [id])
 	const [selectedItem, setSelectedItem] = useState<ItemResult | null>(null)
 	const navigate = useNavigate()
+	const { chatEnabled } = useOutletContext<{ chatEnabled: boolean }>()
 
 	// Fetch all runs for compare selector
 	const { data: runsData } = useApi<RunsResponse>(() => getRuns())
@@ -165,6 +167,9 @@ export function RunDetailPage() {
 					<MetricCard label="Cost" value={`$${run.summary.estimatedCost.toFixed(4)}`} />
 				)}
 			</div>
+
+			{/* AI Insight */}
+			<InsightCard runId={run.id} chatEnabled={chatEnabled} />
 
 			{/* CI Status */}
 			{run.ciStatus && (
