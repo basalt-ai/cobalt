@@ -18,7 +18,6 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 
 	const { messages, sendMessage, status } = useChat({
 		api: '/api/chat',
-		body: { context: chatContext },
 	})
 
 	const isLoading = status === 'submitted' || status === 'streaming'
@@ -35,7 +34,7 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 		const text = input.trim()
 		if (!text || isLoading) return
 		setInput('')
-		sendMessage({ text })
+		sendMessage({ text }, { body: { context: chatContext } })
 	}
 
 	if (!open) return null

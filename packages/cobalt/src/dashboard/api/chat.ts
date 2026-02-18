@@ -52,30 +52,46 @@ function getModel(config: DashboardChatConfig) {
 async function buildSystemPrompt(context?: ChatContext): Promise<string> {
 	const base = `You are an AI assistant for Cobalt, an AI agent testing framework.
 You help developers analyze experiment results, identify patterns, and suggest improvements.
-Be concise and focused. Use data from the context to support your analysis.`
+
+IMPORTANT: Keep responses short and concise (3-5 sentences max). Use bullet points for lists. Only elaborate if the user explicitly asks for more detail.`
 
 	if (!context) return base
 
-	let contextData = ''
+	let pageData = ''
+	let runsInventory = ''
 
+	// Always load the runs inventory for reference
+	try {
+		const results = await listResults()
+		if (results.length > 0) {
+			runsInventory = '\nAvailable runs:\n'
+			for (const r of results.slice(0, 20)) {
+				const scores = Object.entries(r.avgScores)
+					.map(([k, v]) => `${k}=${v.toFixed(2)}`)
+					.join(', ')
+				runsInventory += `  - ${r.id.slice(0, 12)} "${r.name}" (${new Date(r.timestamp).toLocaleDateString()}) [${scores}]\n`
+			}
+		}
+	} catch {
+		// runs inventory loading failed
+	}
+
+	// Load page-specific data
 	try {
 		if (context.page === 'run-detail' && context.runId) {
 			const report = await loadResult(context.runId)
-			contextData = formatRunContext(report)
+			pageData = formatRunContext(report)
 		} else if (context.page === 'compare' && context.compareIds?.length) {
 			const reports = await Promise.all(context.compareIds.map(id => loadResult(id)))
-			contextData = formatCompareContext(reports)
+			pageData = formatCompareContext(reports)
 		} else if (context.page === 'trends' && context.experiment) {
-			contextData = `The user is viewing score trends for experiment "${context.experiment}".`
-		} else if (context.page === 'runs') {
-			const results = await listResults()
-			contextData = `The user is viewing the runs list with ${results.length} experiment runs.`
+			pageData = `Viewing score trends for experiment "${context.experiment}".`
 		}
 	} catch {
-		// Context loading failed, continue without it
+		// page data loading failed
 	}
 
-	return `${base}\n\nCurrent page: ${context.page}\n${contextData}`
+	return `${base}\n\nCurrent page: ${context.page}\n${pageData}\n${runsInventory}`
 }
 
 function formatRunContext(report: ExperimentReport): string {
@@ -100,7 +116,7 @@ function formatRunContext(report: ExperimentReport): string {
 		})
 		.join('\n')
 
-	return `Run: "${report.name}" (${report.id.slice(0, 8)})
+	return `Run: "${report.name}" (${report.id})
 Date: ${report.timestamp}
 Items: ${report.summary.totalItems}, Duration: ${report.summary.totalDurationMs}ms
 Scores:
@@ -110,9 +126,7 @@ ${lowItems ? `\nLow-scoring items:\n${lowItems}` : ''}`
 
 function formatCompareContext(reports: ExperimentReport[]): string {
 	const labels = ['A', 'B', 'C']
-	const runsSummary = reports
-		.map((r, i) => `Run ${labels[i]}: "${r.name}" (${r.id.slice(0, 8)})`)
-		.join('\n')
+	const runsSummary = reports.map((r, i) => `Run ${labels[i]}: "${r.name}" (${r.id})`).join('\n')
 
 	const allEvaluators = new Set<string>()
 	for (const r of reports) {
