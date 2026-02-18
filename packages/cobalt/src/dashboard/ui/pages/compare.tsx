@@ -1,6 +1,6 @@
 import { ArrowLeft, Clock } from '@phosphor-icons/react';
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link, useOutletContext, useSearchParams } from 'react-router';
 import {
 	Bar,
 	BarChart,
@@ -13,6 +13,7 @@ import { compareRuns } from '../api/compare';
 import { getRuns } from '../api/runs';
 import type { RunsResponse } from '../api/types';
 import type { CompareResponse } from '../api/types';
+import { InsightCard } from '../components/chat/insight-card';
 import { ColumnCell } from '../components/data/column-cell';
 import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
 import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
@@ -71,6 +72,7 @@ const RUN_COLORS = [
 
 export function ComparePage() {
 	const [searchParams, setSearchParams] = useSearchParams();
+	const { chatEnabled } = useOutletContext<{ chatEnabled: boolean }>();
 	const a = searchParams.get('a');
 	const b = searchParams.get('b');
 	const c = searchParams.get('c');
@@ -240,6 +242,9 @@ export function ComparePage() {
 					);
 				})}
 			</div>
+
+			{/* AI Insight */}
+			<InsightCard compareIds={runIds} chatEnabled={chatEnabled} />
 
 			{/* Latency & Tokens Stats */}
 			<CompareStatsTabs data={data} />
