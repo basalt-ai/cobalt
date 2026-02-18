@@ -1,0 +1,46 @@
+name: Cobalt Experiments
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/cobalt/src/**'
+      - 'packages/cobalt/experiments/**'
+      - 'packages/cobalt/cobalt.config.ts'
+
+jobs:
+  experiments:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build
+
+      - name: Run Cobalt Experiments
+        uses: ./
+        with:
+          experiment_files: 'experiments/chat-quality.cobalt.ts,experiments/analysis-quality.cobalt.ts'
+          working_directory: packages/cobalt
+          ci: 'true'
+          api_key: ${{ secrets.OPENAI_API_KEY }}
+          comment_on_pr: 'true'
+          ai_summary: 'true'
+          install_deps: 'false'
