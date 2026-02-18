@@ -49,17 +49,12 @@ export function RootLayout() {
 						chatOpen={chatOpen}
 						onChatToggle={() => setChatOpen(!chatOpen)}
 					/>
-					<div className="flex">
-						<main
-							className={cn(
-								'mx-auto max-w-7xl px-6 py-6 flex-1 transition-all duration-200',
-								chatOpen && chatEnabled && 'mr-96',
-							)}
-						>
+					<div className={cn('transition-all duration-200', chatOpen && chatEnabled && 'mr-96')}>
+						<main className="mx-auto max-w-7xl px-6 py-6">
 							<Outlet context={{ chatEnabled }} />
 						</main>
-						{chatEnabled && <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />}
 					</div>
+					{chatEnabled && <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} />}
 				</div>
 			</TooltipProvider>
 		</ChatContext>
