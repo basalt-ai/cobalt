@@ -1,0 +1,61 @@
+name: "Cobalt Eval"
+description: "Run Cobalt AI agent experiments and post rich PR comments with results, comparisons, and AI analysis"
+author: "basalt-ai"
+
+branding:
+  icon: "activity"
+  color: "blue"
+
+inputs:
+  experiment_files:
+    description: "Experiment file(s) to run (glob pattern or comma-separated). Uses cobalt.config defaults if empty."
+    required: false
+    default: ""
+  working_directory:
+    description: "Working directory for running experiments"
+    required: false
+    default: "."
+  ci:
+    description: "Enable CI mode with threshold validation"
+    required: false
+    default: "false"
+  api_key:
+    description: "OpenAI or Anthropic API key for LLM judges and AI summary"
+    required: false
+    default: ""
+  ai_summary:
+    description: "Generate an AI-powered analysis of results (requires api_key)"
+    required: false
+    default: "false"
+  github_token:
+    description: "GitHub token for posting PR comments"
+    required: false
+    default: ${{ github.token }}
+  comment_on_pr:
+    description: "Whether to post a comment on the PR"
+    required: false
+    default: "true"
+  package_manager:
+    description: "Package manager to use: npm, pnpm, yarn, or auto (detect from lockfile)"
+    required: false
+    default: "auto"
+  install_deps:
+    description: "Whether to install dependencies before running experiments"
+    required: false
+    default: "true"
+  step_key:
+    description: "Unique key for comment deduplication. Change only if running multiple Cobalt steps in one workflow."
+    required: false
+    default: ""
+
+outputs:
+  passed:
+    description: "Whether all experiments passed CI thresholds (true/false)"
+  total_experiments:
+    description: "Number of experiments that ran"
+  summary_json:
+    description: "JSON string of all experiment summaries"
+
+runs:
+  using: node20
+  main: packages/github-action/dist/index.js
