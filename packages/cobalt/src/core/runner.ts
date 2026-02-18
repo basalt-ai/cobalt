@@ -1,43 +1,43 @@
-import pMap from 'p-map';
+import pMap from 'p-map'
 import type {
 	ExperimentItem,
 	ExperimentResult,
 	ItemResult,
 	RunnerFunction,
 	SingleRun,
-} from '../types';
-import { calculateRunStats } from '../utils/stats';
-import type { Evaluator } from './Evaluator';
+} from '../types'
+import { calculateRunStats } from '../utils/stats'
+import type { Evaluator } from './Evaluator'
 
 export interface RunnerOptions {
-	concurrency: number;
-	timeout: number;
-	evaluators: Evaluator[];
-	apiKey?: string;
-	model?: string;
-	runs?: number; // Number of times to run each item (default: 1)
-	onProgress?: (info: ProgressInfo) => void;
+	concurrency: number
+	timeout: number
+	evaluators: Evaluator[]
+	apiKey?: string
+	model?: string
+	runs?: number // Number of times to run each item (default: 1)
+	onProgress?: (info: ProgressInfo) => void
 }
 
 export interface ProgressInfo {
-	itemIndex: number;
-	runIndex: number;
-	totalItems: number;
-	totalRuns: number;
-	completedExecutions: number;
-	totalExecutions: number;
-	itemResult?: ItemResult;
+	itemIndex: number
+	runIndex: number
+	totalItems: number
+	totalRuns: number
+	completedExecutions: number
+	totalExecutions: number
+	itemResult?: ItemResult
 }
 
 export interface RunItemOptions {
-	item: ExperimentItem;
-	index: number;
-	runIndex: number;
-	runner: RunnerFunction;
-	evaluators: Evaluator[];
-	timeout: number;
-	apiKey?: string;
-	model?: string;
+	item: ExperimentItem
+	index: number
+	runIndex: number
+	runner: RunnerFunction
+	evaluators: Evaluator[]
+	timeout: number
+	apiKey?: string
+	model?: string
 }
 
 /**
@@ -52,11 +52,11 @@ export async function runExperiment(
 	runner: RunnerFunction,
 	options: RunnerOptions,
 ): Promise<ItemResult[]> {
-	const runs = options.runs || 1;
+	const runs = options.runs || 1
 
 	// Fast path for single run (backward compatible)
 	if (runs === 1) {
-		let completedCount = 0;
+		let completedCount = 0
 
 		const results = await pMap(
 			items,
@@ -70,9 +70,9 @@ export async function runExperiment(
 					timeout: options.timeout,
 					apiKey: options.apiKey,
 					model: options.model,
-				});
+				})
 
-				completedCount++;
+				completedCount++
 
 				// Convert SingleRun to ItemResult for backward compatibility
 				const itemResult: ItemResult = {
@@ -83,7 +83,7 @@ export async function runExperiment(
 					evaluations: singleRun.evaluations,
 					error: singleRun.error,
 					runs: [singleRun],
-				};
+				}
 
 				if (options.onProgress) {
 					options.onProgress({
@@ -94,25 +94,25 @@ export async function runExperiment(
 						completedExecutions: completedCount,
 						totalExecutions: items.length,
 						itemResult,
-					});
+					})
 				}
 
-				return itemResult;
+				return itemResult
 			},
 			{ concurrency: options.concurrency },
-		);
+		)
 
-		return results;
+		return results
 	}
 
 	// Multiple runs: sequential per item, parallel across items
-	let totalCompletedExecutions = 0;
-	const totalExecutions = items.length * runs;
+	let totalCompletedExecutions = 0
+	const totalExecutions = items.length * runs
 
 	const results = await pMap(
 		items,
 		async (item, index) => {
-			const runResults: SingleRun[] = [];
+			const runResults: SingleRun[] = []
 
 			// Execute N runs sequentially for this item
 			for (let runIndex = 0; runIndex < runs; runIndex++) {
@@ -125,11 +125,11 @@ export async function runExperiment(
 					timeout: options.timeout,
 					apiKey: options.apiKey,
 					model: options.model,
-				});
+				})
 
-				runResults.push(singleRun);
+				runResults.push(singleRun)
 
-				totalCompletedExecutions++;
+				totalCompletedExecutions++
 				if (options.onProgress) {
 					options.onProgress({
 						itemIndex: index,
@@ -138,17 +138,17 @@ export async function runExperiment(
 						totalRuns: runs,
 						completedExecutions: totalCompletedExecutions,
 						totalExecutions,
-					});
+					})
 				}
 			}
 
 			// Aggregate the runs
-			return aggregateRuns(item, index, runResults);
+			return aggregateRuns(item, index, runResults)
 		},
 		{ concurrency: options.concurrency },
-	);
+	)
 
-	return results;
+	return results
 }
 
 /**
@@ -157,11 +157,11 @@ export async function runExperiment(
  * @returns Single run result
  */
 async function runItem(options: RunItemOptions): Promise<SingleRun> {
-	const { item, index, runIndex, runner, evaluators, timeout, apiKey, model } = options;
+	const { item, index, runIndex, runner, evaluators, timeout, apiKey, model } = options
 
-	const startTime = Date.now();
-	let output: ExperimentResult | null = null;
-	let error: string | undefined;
+	const startTime = Date.now()
+	let output: ExperimentResult | null = null
+	let error: string | undefined
 
 	try {
 		// Run the agent with timeout
@@ -169,9 +169,9 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
 			runner({ item, index, runIndex }),
 			timeout,
 			`Item #${index} (run ${runIndex}) timed out after ${timeout}ms`,
-		);
+		)
 	} catch (err) {
-		error = err instanceof Error ? err.message : String(err);
+		error = err instanceof Error ? err.message : String(err)
 
 		// Return early if agent failed
 		return {
@@ -179,13 +179,13 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
 			latencyMs: Date.now() - startTime,
 			evaluations: {},
 			error,
-		};
+		}
 	}
 
-	const latencyMs = Date.now() - startTime;
+	const latencyMs = Date.now() - startTime
 
 	// Evaluate output
-	const evaluations: Record<string, { score: number; reason?: string }> = {};
+	const evaluations: Record<string, { score: number; reason?: string }> = {}
 
 	for (const evaluator of evaluators) {
 		try {
@@ -197,14 +197,14 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
 				},
 				apiKey,
 				model,
-			);
+			)
 
-			evaluations[evaluator.name] = evalResult;
+			evaluations[evaluator.name] = evalResult
 		} catch (evalError) {
 			evaluations[evaluator.name] = {
 				score: 0,
 				reason: `Evaluation error: ${evalError instanceof Error ? evalError.message : String(evalError)}`,
-			};
+			}
 		}
 	}
 
@@ -213,7 +213,7 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
 		latencyMs,
 		evaluations,
 		error,
-	};
+	}
 }
 
 /**
@@ -225,34 +225,34 @@ async function runItem(options: RunItemOptions): Promise<SingleRun> {
  */
 function aggregateRuns(item: ExperimentItem, index: number, runResults: SingleRun[]): ItemResult {
 	if (runResults.length === 0) {
-		throw new Error('Cannot aggregate empty run results');
+		throw new Error('Cannot aggregate empty run results')
 	}
 
 	// Collect scores by evaluator
-	const scoresByEvaluator: Record<string, number[]> = {};
-	const latencies: number[] = [];
+	const scoresByEvaluator: Record<string, number[]> = {}
+	const latencies: number[] = []
 
 	for (const run of runResults) {
-		latencies.push(run.latencyMs);
+		latencies.push(run.latencyMs)
 
 		for (const [evaluatorName, evaluation] of Object.entries(run.evaluations)) {
 			if (!scoresByEvaluator[evaluatorName]) {
-				scoresByEvaluator[evaluatorName] = [];
+				scoresByEvaluator[evaluatorName] = []
 			}
-			scoresByEvaluator[evaluatorName].push(evaluation.score);
+			scoresByEvaluator[evaluatorName].push(evaluation.score)
 		}
 	}
 
 	// Calculate aggregated statistics
-	const avgLatencyMs = latencies.reduce((acc, lat) => acc + lat, 0) / latencies.length;
+	const avgLatencyMs = latencies.reduce((acc, lat) => acc + lat, 0) / latencies.length
 
-	const aggregatedEvaluations: Record<string, import('../types/index.js').RunAggregation> = {};
+	const aggregatedEvaluations: Record<string, import('../types/index.js').RunAggregation> = {}
 	for (const [evaluatorName, scores] of Object.entries(scoresByEvaluator)) {
-		aggregatedEvaluations[evaluatorName] = calculateRunStats(scores);
+		aggregatedEvaluations[evaluatorName] = calculateRunStats(scores)
 	}
 
 	// Use first run or median run as representative for flat fields (backward compatibility)
-	const representativeRun = runResults[0];
+	const representativeRun = runResults[0]
 
 	return {
 		index,
@@ -268,7 +268,7 @@ function aggregateRuns(item: ExperimentItem, index: number, runResults: SingleRu
 			avgLatencyMs,
 			evaluations: aggregatedEvaluations,
 		},
-	};
+	}
 }
 
 /**
@@ -282,5 +282,5 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutError: st
 	return Promise.race([
 		promise,
 		new Promise<never>((_, reject) => setTimeout(() => reject(new Error(timeoutError)), timeoutMs)),
-	]);
+	])
 }

@@ -1,7 +1,7 @@
-import { defineCommand } from 'citty';
-import pc from 'picocolors';
-import { loadConfig } from '../../core/config';
-import { startDashboard } from '../../dashboard/server';
+import { defineCommand } from 'citty'
+import pc from 'picocolors'
+import { loadConfig } from '../../core/config'
+import { startDashboard } from '../../dashboard/server'
 
 export default defineCommand({
 	meta: {
@@ -21,18 +21,18 @@ export default defineCommand({
 	},
 	async run({ args }) {
 		try {
-			const config = await loadConfig();
+			const config = await loadConfig()
 
-			const port = args.port ? Number.parseInt(args.port, 10) : config.dashboard.port;
-			const open = !args['no-open'] && config.dashboard.open;
+			const port = args.port ? Number.parseInt(args.port, 10) : config.dashboard.port
+			const open = !args['no-open'] && config.dashboard.open
 
-			await startDashboard(port, open);
+			await startDashboard(port, open)
 
 			// Keep process alive
-			await new Promise(() => {});
+			await new Promise(() => {})
 		} catch (error) {
-			console.error(pc.red('\n❌ Failed to start dashboard:'), error);
-			process.exit(1);
+			console.error(pc.red('\n❌ Failed to start dashboard:'), error)
+			process.exit(1)
 		}
 	},
-});
+})

@@ -19,18 +19,18 @@ export const cobaltGenerateTestsPrompt = {
 			required: false,
 		},
 	],
-};
+}
 
 /**
  * Get the prompt message for generating additional test cases
  */
 export function getCobaltGenerateTestsPrompt(args: {
-	experimentFile?: string;
-	focus?: string;
+	experimentFile?: string
+	focus?: string
 }) {
 	const focusInstruction = args.focus
 		? `Focus specifically on **${args.focus}** test cases.`
-		: 'Generate a balanced mix of normal, edge, and adversarial cases.';
+		: 'Generate a balanced mix of normal, edge, and adversarial cases.'
 
 	return {
 		messages: [
@@ -69,5 +69,5 @@ Explain the rationale for each new test case and how it improves coverage.`,
 				},
 			},
 		],
-	};
+	}
 }

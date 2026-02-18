@@ -1,12 +1,12 @@
-import { X } from '@phosphor-icons/react';
-import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { forwardRef } from 'react';
-import { cn } from '../../lib/utils';
+import { X } from '@phosphor-icons/react'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { forwardRef } from 'react'
+import { cn } from '../../lib/utils'
 
-const Dialog = DialogPrimitive.Root;
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogPortal = DialogPrimitive.Portal;
-const DialogClose = DialogPrimitive.Close;
+const Dialog = DialogPrimitive.Root
+const DialogTrigger = DialogPrimitive.Trigger
+const DialogPortal = DialogPrimitive.Portal
+const DialogClose = DialogPrimitive.Close
 
 const DialogOverlay = forwardRef<
 	React.ComponentRef<typeof DialogPrimitive.Overlay>,
@@ -20,8 +20,8 @@ const DialogOverlay = forwardRef<
 		)}
 		{...props}
 	/>
-));
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
+))
+DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
 const DialogContent = forwardRef<
 	React.ComponentRef<typeof DialogPrimitive.Content>,
@@ -44,8 +44,8 @@ const DialogContent = forwardRef<
 			</DialogPrimitive.Close>
 		</DialogPrimitive.Content>
 	</DialogPortal>
-));
-DialogContent.displayName = DialogPrimitive.Content.displayName;
+))
+DialogContent.displayName = DialogPrimitive.Content.displayName
 
 function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
 	return (
@@ -53,7 +53,7 @@ function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 			className={cn('flex flex-col space-y-1.5 text-center sm:text-left', className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
@@ -62,7 +62,7 @@ function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 			className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2', className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function DialogTitle({
@@ -74,7 +74,7 @@ function DialogTitle({
 			className={cn('text-lg font-semibold leading-none tracking-tight', className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 function DialogDescription({
@@ -86,7 +86,7 @@ function DialogDescription({
 			className={cn('text-sm text-muted-foreground', className)}
 			{...props}
 		/>
-	);
+	)
 }
 
 export {
@@ -98,4 +98,4 @@ export {
 	DialogTitle,
 	DialogDescription,
 	DialogClose,
-};
+}

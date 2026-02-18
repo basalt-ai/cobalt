@@ -20,11 +20,11 @@ const MODEL_PRICING: Record<string, { input: number; output: number }> = {
 	// Embeddings
 	'text-embedding-3-small': { input: 0.02, output: 0 },
 	'text-embedding-3-large': { input: 0.13, output: 0 },
-};
+}
 
 export interface TokenUsage {
-	input: number;
-	output: number;
+	input: number
+	output: number
 }
 
 /**
@@ -34,17 +34,17 @@ export interface TokenUsage {
  * @returns Estimated cost in USD
  */
 export function estimateCost(tokens: TokenUsage, model: string): number {
-	const pricing = MODEL_PRICING[model];
+	const pricing = MODEL_PRICING[model]
 
 	if (!pricing) {
-		console.warn(`Unknown model pricing for: ${model}, using gpt-4o-mini pricing`);
-		const fallback = MODEL_PRICING['gpt-4o-mini'];
+		console.warn(`Unknown model pricing for: ${model}, using gpt-4o-mini pricing`)
+		const fallback = MODEL_PRICING['gpt-4o-mini']
 		return (
 			(tokens.input / 1_000_000) * fallback.input + (tokens.output / 1_000_000) * fallback.output
-		);
+		)
 	}
 
-	return (tokens.input / 1_000_000) * pricing.input + (tokens.output / 1_000_000) * pricing.output;
+	return (tokens.input / 1_000_000) * pricing.input + (tokens.output / 1_000_000) * pricing.output
 }
 
 /**
@@ -54,7 +54,7 @@ export function estimateCost(tokens: TokenUsage, model: string): number {
  */
 export function formatCost(cost: number): string {
 	if (cost < 0.01) {
-		return '<$0.01';
+		return '<$0.01'
 	}
-	return `$${cost.toFixed(2)}`;
+	return `$${cost.toFixed(2)}`
 }

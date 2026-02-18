@@ -1,14 +1,14 @@
-import type { ExperimentItem } from '../../types';
+import type { ExperimentItem } from '../../types'
 
 /**
  * Basalt dataset item format (from their API)
  */
 interface BasaltDatasetItem {
-	id: string;
-	input: unknown;
-	output?: unknown;
-	metadata?: Record<string, unknown>;
-	[key: string]: unknown;
+	id: string
+	input: unknown
+	output?: unknown
+	metadata?: Record<string, unknown>
+	[key: string]: unknown
 }
 
 /**
@@ -20,20 +20,20 @@ interface BasaltDatasetItem {
 export async function fetchBasaltDataset(
 	datasetId: string,
 	options?: {
-		apiKey?: string;
-		baseUrl?: string;
+		apiKey?: string
+		baseUrl?: string
 	},
 ): Promise<ExperimentItem[]> {
-	const baseUrl = options?.baseUrl || 'https://api.basalt.ai';
-	const apiKey = options?.apiKey || process.env.BASALT_API_KEY;
+	const baseUrl = options?.baseUrl || 'https://api.basalt.ai'
+	const apiKey = options?.apiKey || process.env.BASALT_API_KEY
 
 	if (!apiKey) {
-		throw new Error('Basalt API key is required. Set BASALT_API_KEY in environment or config.');
+		throw new Error('Basalt API key is required. Set BASALT_API_KEY in environment or config.')
 	}
 
 	try {
 		// Construct API URL for fetching dataset
-		const url = `${baseUrl}/v1/datasets/${encodeURIComponent(datasetId)}/items`;
+		const url = `${baseUrl}/v1/datasets/${encodeURIComponent(datasetId)}/items`
 
 		// Fetch dataset from Basalt API
 		const response = await fetch(url, {
@@ -41,61 +41,60 @@ export async function fetchBasaltDataset(
 				Authorization: `Bearer ${apiKey}`,
 				'Content-Type': 'application/json',
 			},
-		});
+		})
 
 		if (!response.ok) {
-			const errorText = await response.text();
-			throw new Error(`Basalt API error ${response.status}: ${errorText}`);
+			const errorText = await response.text()
+			throw new Error(`Basalt API error ${response.status}: ${errorText}`)
 		}
 
-		const data = await response.json();
+		const data = await response.json()
 
 		// Basalt returns { items: [...] } or direct array
-		const basaltItems = (data.items || data.data || data) as BasaltDatasetItem[];
+		const basaltItems = (data.items || data.data || data) as BasaltDatasetItem[]
 
 		if (!Array.isArray(basaltItems)) {
-			throw new Error('Basalt API response is not an array');
+			throw new Error('Basalt API response is not an array')
 		}
 
 		// Transform Basalt format to Cobalt format
-		const items: ExperimentItem[] = basaltItems.map((item) => {
-			const transformed: ExperimentItem = {};
+		const items: ExperimentItem[] = basaltItems.map(item => {
+			const transformed: ExperimentItem = {}
 
 			// Map input
 			if (item.input !== undefined) {
-				transformed.input =
-					typeof item.input === 'string' ? item.input : JSON.stringify(item.input);
+				transformed.input = typeof item.input === 'string' ? item.input : JSON.stringify(item.input)
 			}
 
 			// Map output (Basalt uses "output" field)
 			if (item.output !== undefined) {
 				transformed.expectedOutput =
-					typeof item.output === 'string' ? item.output : JSON.stringify(item.output);
+					typeof item.output === 'string' ? item.output : JSON.stringify(item.output)
 			}
 
 			// Include metadata
 			if (item.metadata) {
-				transformed.metadata = item.metadata;
+				transformed.metadata = item.metadata
 			}
 
 			// Include Basalt ID for traceability
-			transformed.basaltId = item.id;
+			transformed.basaltId = item.id
 
 			// Include any other fields from Basalt item
 			for (const [key, value] of Object.entries(item)) {
 				if (!['id', 'input', 'output', 'metadata'].includes(key)) {
-					transformed[key] = value;
+					transformed[key] = value
 				}
 			}
 
-			return transformed;
-		});
+			return transformed
+		})
 
-		return items;
+		return items
 	} catch (error) {
 		if (error instanceof Error) {
-			throw new Error(`Failed to fetch Basalt dataset "${datasetId}": ${error.message}`);
+			throw new Error(`Failed to fetch Basalt dataset "${datasetId}": ${error.message}`)
 		}
-		throw new Error(`Failed to fetch Basalt dataset "${datasetId}": Unknown error`);
+		throw new Error(`Failed to fetch Basalt dataset "${datasetId}": Unknown error`)
 	}
 }

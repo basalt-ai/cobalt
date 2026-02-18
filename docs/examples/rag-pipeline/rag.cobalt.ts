@@ -1,12 +1,12 @@
-import { readFileSync } from 'node:fs';
-import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
-import { type Document, answerWithRAG } from './rag-agent.js';
+import { readFileSync } from 'node:fs'
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt'
+import { type Document, answerWithRAG } from './rag-agent.js'
 
 // Load knowledge base
-const knowledgeBase: Document[] = JSON.parse(readFileSync('./knowledge-base.json', 'utf-8'));
+const knowledgeBase: Document[] = JSON.parse(readFileSync('./knowledge-base.json', 'utf-8'))
 
 // Load queries
-const dataset = Dataset.fromJSON('./queries.json');
+const dataset = Dataset.fromJSON('./queries.json')
 
 const evaluators = [
 	// Evaluator 1: Context Relevance
@@ -69,22 +69,22 @@ Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
-];
+]
 
 experiment(
 	'rag-test',
 	dataset,
 	async ({ item }) => {
-		const response = await answerWithRAG(item.query, knowledgeBase);
+		const response = await answerWithRAG(item.query, knowledgeBase)
 
 		return {
 			output: response.answer,
 			metadata: {
-				context: response.retrievedDocs.map((d) => d.content).join('\n---\n'),
+				context: response.retrievedDocs.map(d => d.content).join('\n---\n'),
 				numDocs: response.retrievedDocs.length,
 				tokens: response.tokens,
 			},
-		};
+		}
 	},
 	{
 		evaluators,
@@ -92,4 +92,4 @@ experiment(
 		timeout: 45000,
 		tags: ['rag', 'retrieval', 'example'],
 	},
-);
+)

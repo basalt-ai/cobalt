@@ -1,28 +1,28 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { CLIReporter } from '../../../../src/cli/reporters/cli-reporter';
-import type { ExperimentReport } from '../../../../src/types';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { CLIReporter } from '../../../../src/cli/reporters/cli-reporter'
+import type { ExperimentReport } from '../../../../src/types'
 
 describe('CLIReporter', () => {
-	let reporter: CLIReporter;
-	let consoleLogs: string[];
-	let consoleErrors: string[];
+	let reporter: CLIReporter
+	let consoleLogs: string[]
+	let consoleErrors: string[]
 
 	beforeEach(() => {
-		reporter = new CLIReporter();
-		consoleLogs = [];
-		consoleErrors = [];
+		reporter = new CLIReporter()
+		consoleLogs = []
+		consoleErrors = []
 
 		vi.spyOn(console, 'log').mockImplementation((...args) => {
-			consoleLogs.push(args.join(' '));
-		});
+			consoleLogs.push(args.join(' '))
+		})
 		vi.spyOn(console, 'error').mockImplementation((...args) => {
-			consoleErrors.push(args.join(' '));
-		});
-	});
+			consoleErrors.push(args.join(' '))
+		})
+	})
 
 	afterEach(() => {
-		vi.restoreAllMocks();
-	});
+		vi.restoreAllMocks()
+	})
 
 	describe('onStart', () => {
 		it('should output compact experiment header', () => {
@@ -33,13 +33,13 @@ describe('CLIReporter', () => {
 				concurrency: 5,
 				timeout: 30000,
 				runs: 1,
-			});
+			})
 
-			expect(consoleLogs.some((log) => log.includes('Test Experiment'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('10 items'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('2 evaluators'))).toBe(true);
-		});
-	});
+			expect(consoleLogs.some(log => log.includes('Test Experiment'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('10 items'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('2 evaluators'))).toBe(true)
+		})
+	})
 
 	describe('onProgress', () => {
 		it('should output per-item result with scores', () => {
@@ -58,13 +58,13 @@ describe('CLIReporter', () => {
 					evaluations: { accuracy: { score: 0.9 }, relevance: { score: 0.85 } },
 					runs: [],
 				},
-			});
+			})
 
-			expect(consoleLogs.some((log) => log.includes('Item #1'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('accuracy: 0.90'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('relevance: 0.85'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('120ms'))).toBe(true);
-		});
+			expect(consoleLogs.some(log => log.includes('Item #1'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('accuracy: 0.90'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('relevance: 0.85'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('120ms'))).toBe(true)
+		})
 
 		it('should show error items', () => {
 			reporter.onProgress({
@@ -83,10 +83,10 @@ describe('CLIReporter', () => {
 					runs: [],
 					error: 'Timeout',
 				},
-			});
+			})
 
-			expect(consoleLogs.some((log) => log.includes('ERROR'))).toBe(true);
-		});
+			expect(consoleLogs.some(log => log.includes('ERROR'))).toBe(true)
+		})
 
 		it('should skip when no itemResult', () => {
 			reporter.onProgress({
@@ -96,11 +96,11 @@ describe('CLIReporter', () => {
 				totalRuns: 1,
 				completedExecutions: 1,
 				totalExecutions: 10,
-			});
+			})
 
-			expect(consoleLogs).toHaveLength(0);
-		});
-	});
+			expect(consoleLogs).toHaveLength(0)
+		})
+	})
 
 	describe('onCIStatus', () => {
 		it('should output passed CI status', () => {
@@ -108,10 +108,10 @@ describe('CLIReporter', () => {
 				passed: true,
 				summary: 'All thresholds passed',
 				violations: [],
-			});
+			})
 
-			expect(consoleLogs.some((log) => log.includes('CI: PASSED'))).toBe(true);
-		});
+			expect(consoleLogs.some(log => log.includes('CI: PASSED'))).toBe(true)
+		})
 
 		it('should output failed CI status with violations', () => {
 			reporter.onCIStatus({
@@ -126,14 +126,14 @@ describe('CLIReporter', () => {
 						message: 'accuracy average score 0.65 below threshold 0.8',
 					},
 				],
-			});
+			})
 
-			expect(consoleLogs.some((log) => log.includes('CI: FAILED'))).toBe(true);
+			expect(consoleLogs.some(log => log.includes('CI: FAILED'))).toBe(true)
 			expect(
-				consoleLogs.some((log) => log.includes('accuracy average score 0.65 below threshold')),
-			).toBe(true);
-		});
-	});
+				consoleLogs.some(log => log.includes('accuracy average score 0.65 below threshold')),
+			).toBe(true)
+		})
+	})
 
 	describe('onComplete', () => {
 		it('should output summary table and footer', () => {
@@ -173,20 +173,20 @@ describe('CLIReporter', () => {
 						runs: [],
 					},
 				],
-			};
+			}
 
-			reporter.onComplete(report, '.cobalt/results/test-123.json');
+			reporter.onComplete(report, '.cobalt/results/test-123.json')
 
 			// Should have score table
-			expect(consoleLogs.some((log) => log.includes('Evaluator'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('0.85'))).toBe(true);
+			expect(consoleLogs.some(log => log.includes('Evaluator'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('0.85'))).toBe(true)
 			// Should have footer with passed count and duration
-			expect(consoleLogs.some((log) => log.includes('1 passed'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('5.50s'))).toBe(true);
+			expect(consoleLogs.some(log => log.includes('1 passed'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('5.50s'))).toBe(true)
 			// Should NOT have old verbose output
-			expect(consoleLogs.some((log) => log.includes('Results saved to:'))).toBe(false);
-			expect(consoleLogs.some((log) => log.includes('Run ID:'))).toBe(false);
-		});
+			expect(consoleLogs.some(log => log.includes('Results saved to:'))).toBe(false)
+			expect(consoleLogs.some(log => log.includes('Run ID:'))).toBe(false)
+		})
 
 		it('should display cost if available', () => {
 			const report: ExperimentReport = {
@@ -208,12 +208,12 @@ describe('CLIReporter', () => {
 					scores: {},
 				},
 				items: [],
-			};
+			}
 
-			reporter.onComplete(report, '.cobalt/results/test-123.json');
+			reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-			expect(consoleLogs.some((log) => log.includes('$'))).toBe(true);
-		});
+			expect(consoleLogs.some(log => log.includes('$'))).toBe(true)
+		})
 
 		it('should show failure details for low scores', () => {
 			const report: ExperimentReport = {
@@ -255,14 +255,14 @@ describe('CLIReporter', () => {
 						runs: [],
 					},
 				],
-			};
+			}
 
-			reporter.onComplete(report, '.cobalt/results/test-123.json');
+			reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-			expect(consoleLogs.some((log) => log.includes('Item #1') && log.includes('0.30'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('1 failed'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('1 passed'))).toBe(true);
-		});
+			expect(consoleLogs.some(log => log.includes('Item #1') && log.includes('0.30'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('1 failed'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('1 passed'))).toBe(true)
+		})
 
 		it('should show error items in failure details', () => {
 			const report: ExperimentReport = {
@@ -301,28 +301,28 @@ describe('CLIReporter', () => {
 						runs: [],
 					},
 				],
-			};
+			}
 
-			reporter.onComplete(report, '.cobalt/results/test-123.json');
+			reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-			expect(consoleLogs.some((log) => log.includes('Timeout error'))).toBe(true);
-			expect(consoleLogs.some((log) => log.includes('1 failed'))).toBe(true);
-		});
-	});
+			expect(consoleLogs.some(log => log.includes('Timeout error'))).toBe(true)
+			expect(consoleLogs.some(log => log.includes('1 failed'))).toBe(true)
+		})
+	})
 
 	describe('onError', () => {
 		it('should output error with context', () => {
-			reporter.onError(new Error('Test error'), 'Loading dataset');
+			reporter.onError(new Error('Test error'), 'Loading dataset')
 
-			expect(consoleErrors.some((err) => err.includes('Loading dataset:'))).toBe(true);
-			expect(consoleErrors.some((err) => err.includes('Test error'))).toBe(true);
-		});
+			expect(consoleErrors.some(err => err.includes('Loading dataset:'))).toBe(true)
+			expect(consoleErrors.some(err => err.includes('Test error'))).toBe(true)
+		})
 
 		it('should output error without context', () => {
-			reporter.onError(new Error('Generic error'));
+			reporter.onError(new Error('Generic error'))
 
-			expect(consoleErrors.some((err) => err.includes('Error:'))).toBe(true);
-			expect(consoleErrors.some((err) => err.includes('Generic error'))).toBe(true);
-		});
-	});
-});
+			expect(consoleErrors.some(err => err.includes('Error:'))).toBe(true)
+			expect(consoleErrors.some(err => err.includes('Generic error'))).toBe(true)
+		})
+	})
+})

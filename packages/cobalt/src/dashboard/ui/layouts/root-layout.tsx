@@ -1,6 +1,6 @@
-import { Outlet } from 'react-router';
-import { TopBar } from '../components/layout/top-bar';
-import { TooltipProvider } from '../components/ui/tooltip';
+import { Outlet } from 'react-router'
+import { TopBar } from '../components/layout/top-bar'
+import { TooltipProvider } from '../components/ui/tooltip'
 
 export function RootLayout() {
 	return (
@@ -12,5 +12,5 @@ export function RootLayout() {
 				</main>
 			</div>
 		</TooltipProvider>
-	);
+	)
 }

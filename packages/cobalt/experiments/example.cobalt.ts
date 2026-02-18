@@ -1,4 +1,4 @@
-import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt'
 
 // Define evaluators
 const evaluators = [
@@ -20,16 +20,16 @@ Respond with JSON: { "score": <number>, "reason": "<string>" }`,
 		fn: ({ item, output }) => {
 			const hasAnswer = String(output)
 				.toLowerCase()
-				.includes(String(item.expectedOutput).toLowerCase());
+				.includes(String(item.expectedOutput).toLowerCase())
 			return {
 				score: hasAnswer ? 1 : 0,
 				reason: hasAnswer
 					? 'Output contains expected answer'
 					: 'Expected answer not found in output',
-			};
+			}
 		},
 	}),
-];
+]
 
 // Define dataset
 const dataset = new Dataset({
@@ -38,7 +38,7 @@ const dataset = new Dataset({
 		{ input: 'What is 2 + 2?', expectedOutput: '4' },
 		{ input: 'Who wrote Romeo and Juliet?', expectedOutput: 'Shakespeare' },
 	],
-});
+})
 
 // Run experiment
 experiment(
@@ -47,7 +47,7 @@ experiment(
 	async ({ item }) => {
 		// This is where you call your AI agent
 		// For this example, we'll just echo the expected output
-		const output = `The answer is: ${item.expectedOutput}`;
+		const output = `The answer is: ${item.expectedOutput}`
 
 		return {
 			output,
@@ -55,7 +55,7 @@ experiment(
 				model: 'example-agent',
 				tokens: 50,
 			},
-		};
+		}
 	},
 	{
 		evaluators,
@@ -63,4 +63,4 @@ experiment(
 		timeout: 10_000,
 		tags: ['example', 'v1'],
 	},
-);
+)

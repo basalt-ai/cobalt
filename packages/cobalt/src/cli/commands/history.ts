@@ -1,6 +1,7 @@
-import { defineCommand } from 'citty';
-import pc from 'picocolors';
-import { HistoryDB } from '../../storage/db';
+import { defineCommand } from 'citty'
+import pc from 'picocolors'
+import { HistoryDB } from '../../storage/db'
+import type { ResultFilter } from '../../types'
 
 export default defineCommand({
 	meta: {
@@ -21,59 +22,59 @@ export default defineCommand({
 	},
 	async run({ args }) {
 		try {
-			const db = new HistoryDB();
+			const db = new HistoryDB()
 
-			const filter: any = {};
-			if (args.experiment) filter.experiment = args.experiment;
+			const filter: ResultFilter = {}
+			if (args.experiment) filter.experiment = args.experiment
 
-			let runs = db.getRuns(filter);
-			db.close();
+			let runs = db.getRuns(filter)
+			db.close()
 
 			if (runs.length === 0) {
-				console.log(pc.yellow('\nNo runs found.\n'));
-				console.log(pc.dim('Run experiments with: npx cobalt run\n'));
-				return;
+				console.log(pc.yellow('\nNo runs found.\n'))
+				console.log(pc.dim('Run experiments with: npx cobalt run\n'))
+				return
 			}
 
 			// Apply limit
 			if (args.limit) {
-				const limit = Number.parseInt(args.limit, 10);
-				runs = runs.slice(0, limit);
+				const limit = Number.parseInt(args.limit, 10)
+				runs = runs.slice(0, limit)
 			}
 
-			console.log(pc.bold('\n🔷 Experiment History\n'));
+			console.log(pc.bold('\n🔷 Experiment History\n'))
 
 			for (const run of runs) {
-				const date = new Date(run.timestamp).toLocaleString();
+				const date = new Date(run.timestamp).toLocaleString()
 				const avgScore =
 					Object.values(run.avgScores).reduce((a, b) => a + b, 0) /
-					Object.keys(run.avgScores).length;
+					Object.keys(run.avgScores).length
 
-				console.log(pc.bold(`${run.name} (${run.id})`));
-				console.log(pc.dim(`  Date: ${date}`));
+				console.log(pc.bold(`${run.name} (${run.id})`))
+				console.log(pc.dim(`  Date: ${date}`))
 				console.log(
 					pc.dim(`  Items: ${run.totalItems} | Duration: ${(run.durationMs / 1000).toFixed(2)}s`),
-				);
-				console.log(`  Avg Score: ${avgScore.toFixed(2)}`);
+				)
+				console.log(`  Avg Score: ${avgScore.toFixed(2)}`)
 
 				if (run.tags.length > 0) {
-					console.log(pc.dim(`  Tags: ${run.tags.join(', ')}`));
+					console.log(pc.dim(`  Tags: ${run.tags.join(', ')}`))
 				}
 
 				// Show individual evaluator scores
 				const scores = Object.entries(run.avgScores)
 					.map(([name, score]) => `${name}=${score.toFixed(2)}`)
-					.join(' | ');
-				console.log(pc.dim(`  Scores: ${scores}`));
+					.join(' | ')
+				console.log(pc.dim(`  Scores: ${scores}`))
 
-				console.log('');
+				console.log('')
 			}
 
-			console.log(pc.dim(`Showing ${runs.length} run(s)\n`));
-			console.log(pc.dim('View details: npx cobalt serve\n'));
+			console.log(pc.dim(`Showing ${runs.length} run(s)\n`))
+			console.log(pc.dim('View details: npx cobalt serve\n'))
 		} catch (error) {
-			console.error(pc.red('\n❌ Failed to load history:'), error);
-			process.exit(1);
+			console.error(pc.red('\n❌ Failed to load history:'), error)
+			process.exit(1)
 		}
 	},
-});
+})

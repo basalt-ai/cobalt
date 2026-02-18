@@ -1,12 +1,12 @@
-import { existsSync } from 'node:fs';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import type { EvalResult } from '../types';
-import { generateHash } from '../utils/hash';
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { join, resolve } from 'node:path'
+import type { EvalResult } from '../types'
+import { generateHash } from '../utils/hash'
 
 interface CacheEntry {
-	result: EvalResult;
-	timestamp: number;
+	result: EvalResult
+	timestamp: number
 }
 
 /**
@@ -14,22 +14,22 @@ interface CacheEntry {
  * Caches LLM evaluation responses to reduce API calls and costs
  */
 export class LLMJudgeCache {
-	private cache: Map<string, CacheEntry> = new Map();
-	private cachePath: string;
-	private enabled: boolean;
-	private ttlMs: number;
+	private cache: Map<string, CacheEntry> = new Map()
+	private cachePath: string
+	private enabled: boolean
+	private ttlMs: number
 
 	constructor(outputDir = '.cobalt/data', enabled = true, ttl = '7d') {
-		const cacheDir = resolve(process.cwd(), outputDir, 'cache');
-		this.cachePath = join(cacheDir, 'llm-judge-cache.json');
-		this.enabled = enabled;
-		this.ttlMs = parseTTL(ttl);
+		const cacheDir = resolve(process.cwd(), outputDir, 'cache')
+		this.cachePath = join(cacheDir, 'llm-judge-cache.json')
+		this.enabled = enabled
+		this.ttlMs = parseTTL(ttl)
 
 		// Load cache from disk
 		if (enabled) {
-			this.loadCache().catch((err) => {
-				console.warn('Failed to load cache, starting fresh:', err);
-			});
+			this.loadCache().catch(err => {
+				console.warn('Failed to load cache, starting fresh:', err)
+			})
 		}
 	}
 
@@ -40,22 +40,22 @@ export class LLMJudgeCache {
 	 * @param output - Output data
 	 * @returns Cached result or null if not found/expired
 	 */
-	async get(prompt: string, input: any, output: any): Promise<EvalResult | null> {
-		if (!this.enabled) return null;
+	async get(prompt: string, input: unknown, output: unknown): Promise<EvalResult | null> {
+		if (!this.enabled) return null
 
-		const key = this.generateKey(prompt, input, output);
-		const entry = this.cache.get(key);
+		const key = this.generateKey(prompt, input, output)
+		const entry = this.cache.get(key)
 
-		if (!entry) return null;
+		if (!entry) return null
 
 		// Check if expired
-		const age = Date.now() - entry.timestamp;
+		const age = Date.now() - entry.timestamp
 		if (age > this.ttlMs) {
-			this.cache.delete(key);
-			return null;
+			this.cache.delete(key)
+			return null
 		}
 
-		return entry.result;
+		return entry.result
 	}
 
 	/**
@@ -65,29 +65,29 @@ export class LLMJudgeCache {
 	 * @param output - Output data
 	 * @param result - Evaluation result to cache
 	 */
-	async set(prompt: string, input: any, output: any, result: EvalResult): Promise<void> {
-		if (!this.enabled) return;
+	async set(prompt: string, input: unknown, output: unknown, result: EvalResult): Promise<void> {
+		if (!this.enabled) return
 
-		const key = this.generateKey(prompt, input, output);
+		const key = this.generateKey(prompt, input, output)
 
 		this.cache.set(key, {
 			result,
 			timestamp: Date.now(),
-		});
+		})
 
 		// Periodically flush to disk (every 10 entries)
 		if (this.cache.size % 10 === 0) {
-			await this.flushCache().catch((err) => {
-				console.warn('Failed to flush cache:', err);
-			});
+			await this.flushCache().catch(err => {
+				console.warn('Failed to flush cache:', err)
+			})
 		}
 	}
 
 	/**
 	 * Generate cache key from prompt, input, and output
 	 */
-	generateKey(prompt: string, input: any, output: any): string {
-		return generateHash(prompt, input, output);
+	generateKey(prompt: string, input: unknown, output: unknown): string {
+		return generateHash(prompt, input, output)
 	}
 
 	/**
@@ -95,24 +95,24 @@ export class LLMJudgeCache {
 	 */
 	private async loadCache(): Promise<void> {
 		if (!existsSync(this.cachePath)) {
-			return;
+			return
 		}
 
 		try {
-			const content = await readFile(this.cachePath, 'utf-8');
-			const data = JSON.parse(content);
+			const content = await readFile(this.cachePath, 'utf-8')
+			const data = JSON.parse(content)
 
 			// Convert to Map
 			for (const [key, entry] of Object.entries(data)) {
-				this.cache.set(key, entry as CacheEntry);
+				this.cache.set(key, entry as CacheEntry)
 			}
 
 			// Clean expired entries
-			this.cleanExpired();
+			this.cleanExpired()
 
-			console.log(`Loaded ${this.cache.size} cached evaluations`);
+			console.log(`Loaded ${this.cache.size} cached evaluations`)
 		} catch (error) {
-			console.warn('Failed to load cache file:', error);
+			console.warn('Failed to load cache file:', error)
 		}
 	}
 
@@ -120,38 +120,38 @@ export class LLMJudgeCache {
 	 * Flush cache to disk
 	 */
 	async flushCache(): Promise<void> {
-		const cacheDir = resolve(process.cwd(), '.cobalt', 'data', 'cache');
+		const cacheDir = resolve(process.cwd(), '.cobalt', 'data', 'cache')
 
 		// Ensure directory exists
 		if (!existsSync(cacheDir)) {
-			await mkdir(cacheDir, { recursive: true });
+			await mkdir(cacheDir, { recursive: true })
 		}
 
 		// Convert Map to plain object
-		const data: Record<string, CacheEntry> = {};
+		const data: Record<string, CacheEntry> = {}
 		for (const [key, entry] of this.cache.entries()) {
-			data[key] = entry;
+			data[key] = entry
 		}
 
-		await writeFile(this.cachePath, JSON.stringify(data, null, 2), 'utf-8');
+		await writeFile(this.cachePath, JSON.stringify(data, null, 2), 'utf-8')
 	}
 
 	/**
 	 * Clean expired cache entries
 	 */
 	private cleanExpired(): void {
-		const now = Date.now();
-		let removed = 0;
+		const now = Date.now()
+		let removed = 0
 
 		for (const [key, entry] of this.cache.entries()) {
 			if (now - entry.timestamp > this.ttlMs) {
-				this.cache.delete(key);
-				removed++;
+				this.cache.delete(key)
+				removed++
 			}
 		}
 
 		if (removed > 0) {
-			console.log(`Cleaned ${removed} expired cache entries`);
+			console.log(`Cleaned ${removed} expired cache entries`)
 		}
 	}
 
@@ -159,18 +159,18 @@ export class LLMJudgeCache {
 	 * Get cache statistics
 	 */
 	getStats(): { size: number; oldestEntry: number | null } {
-		let oldest: number | null = null;
+		let oldest: number | null = null
 
 		for (const entry of this.cache.values()) {
 			if (oldest === null || entry.timestamp < oldest) {
-				oldest = entry.timestamp;
+				oldest = entry.timestamp
 			}
 		}
 
 		return {
 			size: this.cache.size,
 			oldestEntry: oldest,
-		};
+		}
 	}
 }
 
@@ -180,26 +180,26 @@ export class LLMJudgeCache {
  * @returns TTL in milliseconds
  */
 function parseTTL(ttl: string): number {
-	const match = ttl.match(/^(\d+)([dhms])$/);
+	const match = ttl.match(/^(\d+)([dhms])$/)
 
 	if (!match) {
-		console.warn(`Invalid TTL format: ${ttl}, using default 7d`);
-		return 7 * 24 * 60 * 60 * 1000; // 7 days
+		console.warn(`Invalid TTL format: ${ttl}, using default 7d`)
+		return 7 * 24 * 60 * 60 * 1000 // 7 days
 	}
 
-	const value = Number.parseInt(match[1], 10);
-	const unit = match[2];
+	const value = Number.parseInt(match[1], 10)
+	const unit = match[2]
 
 	switch (unit) {
 		case 'd':
-			return value * 24 * 60 * 60 * 1000;
+			return value * 24 * 60 * 60 * 1000
 		case 'h':
-			return value * 60 * 60 * 1000;
+			return value * 60 * 60 * 1000
 		case 'm':
-			return value * 60 * 1000;
+			return value * 60 * 1000
 		case 's':
-			return value * 1000;
+			return value * 1000
 		default:
-			return 7 * 24 * 60 * 60 * 1000;
+			return 7 * 24 * 60 * 60 * 1000
 	}
 }

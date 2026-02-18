@@ -1,6 +1,6 @@
-import { ArrowLeft } from '@phosphor-icons/react';
-import { useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router';
+import { ArrowLeft } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 import {
 	CartesianGrid,
 	Legend,
@@ -10,23 +10,23 @@ import {
 	ResponsiveContainer,
 	XAxis,
 	YAxis,
-} from 'recharts';
-import { getRuns } from '../api/runs';
-import { getTrends } from '../api/trends';
-import type { RunsResponse, TrendsResponse } from '../api/types';
-import { ScoreBadge } from '../components/data/score-badge';
-import { PageHeader } from '../components/layout/page-header';
-import { Button } from '../components/ui/button';
+} from 'recharts'
+import { getRuns } from '../api/runs'
+import { getTrends } from '../api/trends'
+import type { RunsResponse, TrendsResponse } from '../api/types'
+import { ScoreBadge } from '../components/data/score-badge'
+import { PageHeader } from '../components/layout/page-header'
+import { Button } from '../components/ui/button'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../components/ui/select';
-import { Skeleton } from '../components/ui/skeleton';
-import { useApi } from '../hooks/use-api';
-import { formatRelativeTime } from '../lib/utils';
+} from '../components/ui/select'
+import { Skeleton } from '../components/ui/skeleton'
+import { useApi } from '../hooks/use-api'
+import { formatRelativeTime } from '../lib/utils'
 
 const LINE_COLORS = [
 	'#db5704',
@@ -37,52 +37,52 @@ const LINE_COLORS = [
 	'#f5a623',
 	'#6e56cf',
 	'#00a2c7',
-];
+]
 
 export function TrendsPage() {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const experiment = searchParams.get('experiment') ?? '';
-	const navigate = useNavigate();
+	const [searchParams, setSearchParams] = useSearchParams()
+	const experiment = searchParams.get('experiment') ?? ''
+	const navigate = useNavigate()
 
 	// Fetch all runs to get unique experiment names
-	const { data: runsData } = useApi<RunsResponse>(() => getRuns());
+	const { data: runsData } = useApi<RunsResponse>(() => getRuns())
 
 	const experimentNames = useMemo(() => {
-		if (!runsData?.runs) return [];
-		const names = new Set<string>();
+		if (!runsData?.runs) return []
+		const names = new Set<string>()
 		for (const run of runsData.runs) {
-			names.add(run.name);
+			names.add(run.name)
 		}
-		return Array.from(names).sort();
-	}, [runsData]);
+		return Array.from(names).sort()
+	}, [runsData])
 
 	// Auto-select first experiment if none selected
-	const activeExperiment = experiment || experimentNames[0] || '';
+	const activeExperiment = experiment || experimentNames[0] || ''
 
 	const {
 		data: trendsData,
 		error,
 		loading,
 	} = useApi<TrendsResponse>(() => {
-		if (!activeExperiment) return Promise.reject(new Error('No experiment selected'));
-		return getTrends(activeExperiment);
-	}, [activeExperiment]);
+		if (!activeExperiment) return Promise.reject(new Error('No experiment selected'))
+		return getTrends(activeExperiment)
+	}, [activeExperiment])
 
 	// All hooks must be called before any conditional returns (Rules of Hooks)
 	const evaluatorNames = useMemo(() => {
-		if (!trendsData?.trends?.length) return [];
-		const names = new Set<string>();
+		if (!trendsData?.trends?.length) return []
+		const names = new Set<string>()
 		for (const point of trendsData.trends) {
 			for (const key of Object.keys(point.scores)) {
-				names.add(key);
+				names.add(key)
 			}
 		}
-		return Array.from(names);
-	}, [trendsData]);
+		return Array.from(names)
+	}, [trendsData])
 
 	const chartData = useMemo(() => {
-		if (!trendsData?.trends?.length) return [];
-		return trendsData.trends.map((point) => ({
+		if (!trendsData?.trends?.length) return []
+		return trendsData.trends.map(point => ({
 			id: point.id,
 			date: new Date(point.timestamp).toLocaleDateString('en-US', {
 				month: 'short',
@@ -90,15 +90,15 @@ export function TrendsPage() {
 			}),
 			timestamp: point.timestamp,
 			...point.scores,
-		}));
-	}, [trendsData]);
+		}))
+	}, [trendsData])
 
 	function handleExperimentChange(name: string) {
-		setSearchParams({ experiment: name });
+		setSearchParams({ experiment: name })
 	}
 
 	if (!runsData && !experiment) {
-		return <LoadingSkeleton />;
+		return <LoadingSkeleton />
 	}
 
 	return (
@@ -110,7 +110,7 @@ export function TrendsPage() {
 							<SelectValue placeholder="Select experiment" />
 						</SelectTrigger>
 						<SelectContent>
-							{experimentNames.map((name) => (
+							{experimentNames.map(name => (
 								<SelectItem key={name} value={name}>
 									{name}
 								</SelectItem>
@@ -198,7 +198,7 @@ export function TrendsPage() {
 										<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">
 											Date
 										</th>
-										{evaluatorNames.map((name) => (
+										{evaluatorNames.map(name => (
 											<th
 												key={name}
 												className="px-4 py-2.5 text-right font-medium text-muted-foreground"
@@ -210,18 +210,18 @@ export function TrendsPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{chartData.map((point) => (
+									{chartData.map(point => (
 										<tr
 											key={point.id}
 											className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
 											onClick={() => navigate(`/runs/${point.id}`)}
-											onKeyDown={(e) => e.key === 'Enter' && navigate(`/runs/${point.id}`)}
+											onKeyDown={e => e.key === 'Enter' && navigate(`/runs/${point.id}`)}
 										>
 											<td className="px-4 py-2.5 text-muted-foreground whitespace-nowrap">
 												{formatRelativeTime(point.timestamp)}
 											</td>
-											{evaluatorNames.map((name) => {
-												const score = point[name] as number | undefined;
+											{evaluatorNames.map(name => {
+												const score = point[name] as number | undefined
 												return (
 													<td key={name} className="px-4 py-2.5 text-right">
 														{score != null ? (
@@ -230,13 +230,13 @@ export function TrendsPage() {
 															<span className="text-muted-foreground">-</span>
 														)}
 													</td>
-												);
+												)
 											})}
 											<td className="px-4 py-2.5">
 												<Link
 													to={`/runs/${point.id}`}
 													className="text-xs text-brand hover:underline"
-													onClick={(e) => e.stopPropagation()}
+													onClick={e => e.stopPropagation()}
 												>
 													View
 												</Link>
@@ -250,7 +250,7 @@ export function TrendsPage() {
 				</>
 			)}
 		</div>
-	);
+	)
 }
 
 function LoadingSkeleton() {
@@ -263,5 +263,5 @@ function LoadingSkeleton() {
 			<Skeleton className="h-80 rounded-xl" />
 			<Skeleton className="h-48 rounded-xl" />
 		</div>
-	);
+	)
 }

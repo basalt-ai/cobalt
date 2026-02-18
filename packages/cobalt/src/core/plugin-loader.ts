@@ -4,12 +4,12 @@
  * Loads custom evaluator plugins from TypeScript/JavaScript files.
  */
 
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { createJiti } from 'jiti';
-import { registry } from './EvaluatorRegistry';
-import type { PluginDefinition } from './plugin';
-import { validatePlugin } from './plugin';
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { createJiti } from 'jiti'
+import { registry } from './EvaluatorRegistry'
+import type { PluginDefinition } from './plugin'
+import { validatePlugin } from './plugin'
 
 /**
  * Load a single plugin from a file path
@@ -24,34 +24,34 @@ export async function loadPlugin(
 	cwd: string = process.cwd(),
 ): Promise<PluginDefinition> {
 	// Resolve path relative to cwd
-	const resolvedPath = resolve(cwd, path);
+	const resolvedPath = resolve(cwd, path)
 
 	if (!existsSync(resolvedPath)) {
-		throw new Error(`Plugin file not found: ${path} (resolved to: ${resolvedPath})`);
+		throw new Error(`Plugin file not found: ${path} (resolved to: ${resolvedPath})`)
 	}
 
 	try {
 		// Use jiti to load TypeScript/JavaScript files
 		const jiti = createJiti(import.meta.url, {
 			interopDefault: true,
-		});
+		})
 
-		const pluginModule = jiti(resolvedPath);
-		const plugin = pluginModule.default || pluginModule;
+		const pluginModule = jiti(resolvedPath)
+		const plugin = pluginModule.default || pluginModule
 
 		// Validate plugin structure
-		validatePlugin(plugin);
+		validatePlugin(plugin)
 
-		console.log(`Loaded plugin "${plugin.name}" v${plugin.version} from ${path}`);
+		console.log(`Loaded plugin "${plugin.name}" v${plugin.version} from ${path}`)
 		console.log(
-			`  Provides ${plugin.evaluators.length} evaluator(s): ${plugin.evaluators.map((e) => e.type).join(', ')}`,
-		);
+			`  Provides ${plugin.evaluators.length} evaluator(s): ${plugin.evaluators.map(e => e.type).join(', ')}`,
+		)
 
-		return plugin;
+		return plugin
 	} catch (error) {
 		throw new Error(
 			`Failed to load plugin from ${path}: ${error instanceof Error ? error.message : String(error)}`,
-		);
+		)
 	}
 }
 
@@ -66,20 +66,20 @@ export async function loadPlugins(
 	paths: string[],
 	cwd: string = process.cwd(),
 ): Promise<PluginDefinition[]> {
-	const plugins: PluginDefinition[] = [];
+	const plugins: PluginDefinition[] = []
 
 	for (const path of paths) {
 		try {
-			const plugin = await loadPlugin(path, cwd);
-			registerPluginEvaluators(plugin);
-			plugins.push(plugin);
+			const plugin = await loadPlugin(path, cwd)
+			registerPluginEvaluators(plugin)
+			plugins.push(plugin)
 		} catch (error) {
-			console.error(`Failed to load plugin from ${path}:`, error);
-			console.warn(`Skipping plugin: ${path}`);
+			console.error(`Failed to load plugin from ${path}:`, error)
+			console.warn(`Skipping plugin: ${path}`)
 		}
 	}
 
-	return plugins;
+	return plugins
 }
 
 /**
@@ -89,6 +89,6 @@ export async function loadPlugins(
  */
 export function registerPluginEvaluators(plugin: PluginDefinition): void {
 	for (const evaluator of plugin.evaluators) {
-		registry.register(evaluator.type, evaluator.evaluate);
+		registry.register(evaluator.type, evaluator.evaluate)
 	}
 }

@@ -4,13 +4,13 @@
  * Central registry for evaluator types, supporting both built-in and plugin evaluators.
  */
 
-import type { EvaluatorHandler } from './plugin';
+import type { EvaluatorHandler } from './plugin'
 
 /**
  * Registry for evaluator type handlers
  */
 export class EvaluatorRegistry {
-	private evaluators: Map<string, EvaluatorHandler> = new Map();
+	private evaluators: Map<string, EvaluatorHandler> = new Map()
 
 	/**
 	 * Register an evaluator type handler
@@ -20,10 +20,10 @@ export class EvaluatorRegistry {
 	 */
 	register(type: string, handler: EvaluatorHandler): void {
 		if (this.evaluators.has(type)) {
-			console.warn(`Evaluator type "${type}" is already registered. Overwriting.`);
+			console.warn(`Evaluator type "${type}" is already registered. Overwriting.`)
 		}
 
-		this.evaluators.set(type, handler);
+		this.evaluators.set(type, handler)
 	}
 
 	/**
@@ -33,7 +33,7 @@ export class EvaluatorRegistry {
 	 * @returns Handler function or undefined if not found
 	 */
 	get(type: string): EvaluatorHandler | undefined {
-		return this.evaluators.get(type);
+		return this.evaluators.get(type)
 	}
 
 	/**
@@ -43,7 +43,7 @@ export class EvaluatorRegistry {
 	 * @returns True if registered, false otherwise
 	 */
 	has(type: string): boolean {
-		return this.evaluators.has(type);
+		return this.evaluators.has(type)
 	}
 
 	/**
@@ -52,7 +52,7 @@ export class EvaluatorRegistry {
 	 * @returns Array of registered type identifiers
 	 */
 	list(): string[] {
-		return Array.from(this.evaluators.keys());
+		return Array.from(this.evaluators.keys())
 	}
 
 	/**
@@ -62,18 +62,18 @@ export class EvaluatorRegistry {
 	 * @returns True if unregistered, false if not found
 	 */
 	unregister(type: string): boolean {
-		return this.evaluators.delete(type);
+		return this.evaluators.delete(type)
 	}
 
 	/**
 	 * Clear all registered evaluators
 	 */
 	clear(): void {
-		this.evaluators.clear();
+		this.evaluators.clear()
 	}
 }
 
 /**
  * Global evaluator registry instance
  */
-export const registry = new EvaluatorRegistry();
+export const registry = new EvaluatorRegistry()

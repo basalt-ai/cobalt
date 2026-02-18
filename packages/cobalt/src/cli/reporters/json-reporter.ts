@@ -1,6 +1,6 @@
-import type { ProgressInfo } from '../../core/runner';
-import type { CIResult, ExperimentReport } from '../../types';
-import { BaseReporter, type ExperimentStartInfo } from './base-reporter';
+import type { ProgressInfo } from '../../core/runner'
+import type { CIResult, ExperimentReport } from '../../types'
+import { BaseReporter, type ExperimentStartInfo } from './base-reporter'
 
 /**
  * JSON reporter for structured output
@@ -13,7 +13,7 @@ export class JSONReporter extends BaseReporter {
 				timestamp: new Date().toISOString(),
 				data: info,
 			}),
-		);
+		)
 	}
 
 	onProgress(info: ProgressInfo): void {
@@ -31,7 +31,7 @@ export class JSONReporter extends BaseReporter {
 					totalRuns: info.totalRuns,
 				},
 			}),
-		);
+		)
 	}
 
 	onCIStatus(ciStatus: CIResult): void {
@@ -41,7 +41,7 @@ export class JSONReporter extends BaseReporter {
 				timestamp: new Date().toISOString(),
 				data: ciStatus,
 			}),
-		);
+		)
 	}
 
 	onComplete(report: ExperimentReport, resultPath: string): void {
@@ -54,7 +54,7 @@ export class JSONReporter extends BaseReporter {
 					resultPath,
 				},
 			}),
-		);
+		)
 	}
 
 	onError(error: Error, context?: string): void {
@@ -68,6 +68,6 @@ export class JSONReporter extends BaseReporter {
 					stack: error.stack,
 				},
 			}),
-		);
+		)
 	}
 }

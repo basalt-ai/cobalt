@@ -1,17 +1,17 @@
-import OpenAI from 'openai';
+import OpenAI from 'openai'
 
 const client = new OpenAI({
 	apiKey: process.env.OPENAI_API_KEY,
-});
+})
 
-export type Sentiment = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+export type Sentiment = 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL'
 
 export interface ClassificationResponse {
-	label: Sentiment;
-	confidence: number;
-	model: string;
-	tokens: number;
-	duration: number;
+	label: Sentiment
+	confidence: number
+	model: string
+	tokens: number
+	duration: number
 }
 
 /**
@@ -21,7 +21,7 @@ export interface ClassificationResponse {
  * @returns Classification with confidence score
  */
 export async function classifySentiment(text: string): Promise<ClassificationResponse> {
-	const startTime = Date.now();
+	const startTime = Date.now()
 
 	const completion = await client.chat.completions.create({
 		model: 'gpt-5-mini',
@@ -44,16 +44,16 @@ Respond with only the classification word, nothing else.`,
 		],
 		temperature: 0.1,
 		max_tokens: 10,
-	});
+	})
 
 	const label = (completion.choices[0].message.content?.trim().toUpperCase() ||
-		'NEUTRAL') as Sentiment;
+		'NEUTRAL') as Sentiment
 
 	// Simple confidence based on prompt (in real system, use logprobs)
-	const confidence = 0.9;
+	const confidence = 0.9
 
-	const tokens = completion.usage?.total_tokens || 0;
-	const duration = Date.now() - startTime;
+	const tokens = completion.usage?.total_tokens || 0
+	const duration = Date.now() - startTime
 
 	return {
 		label,
@@ -61,23 +61,23 @@ Respond with only the classification word, nothing else.`,
 		model: 'gpt-5-mini',
 		tokens,
 		duration,
-	};
+	}
 }
 
 // For testing directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-	const testText = process.argv[2] || 'This product is amazing! Best purchase ever!';
+	const testText = process.argv[2] || 'This product is amazing! Best purchase ever!'
 
-	console.log(`Text: ${testText}`);
+	console.log(`Text: ${testText}`)
 
 	classifySentiment(testText)
-		.then((response) => {
-			console.log(`Label: ${response.label}`);
-			console.log(`Confidence: ${response.confidence}`);
-			console.log(`Tokens: ${response.tokens}`);
+		.then(response => {
+			console.log(`Label: ${response.label}`)
+			console.log(`Confidence: ${response.confidence}`)
+			console.log(`Tokens: ${response.tokens}`)
 		})
-		.catch((error) => {
-			console.error('Error:', error.message);
-			process.exit(1);
-		});
+		.catch(error => {
+			console.error('Error:', error.message)
+			process.exit(1)
+		})
 }

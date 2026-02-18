@@ -9,16 +9,7 @@
 	"linter": {
 		"enabled": true,
 		"rules": {
-			"recommended": true,
-			"complexity": {
-				"noStaticOnlyClass": "off"
-			},
-			"style": {
-				"noNonNullAssertion": "off"
-			},
-			"suspicious": {
-				"noExplicitAny": "off"
-			}
+			"recommended": true
 		}
 	},
 	"formatter": {
@@ -29,7 +20,9 @@
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "single",
-			"trailingCommas": "all"
+			"trailingCommas": "all",
+			"semicolons": "asNeeded",
+			"arrowParentheses": "asNeeded"
 		}
 	}
 }

@@ -1,20 +1,17 @@
-import type { EvalContext, EvalResult, EvaluatorConfig } from '../types';
+import type { EvalContext, EvalResult, EvaluatorConfig } from '../types'
 
-import { registry } from './EvaluatorRegistry';
+import { registry } from './EvaluatorRegistry'
 
 /**
  * Evaluator class for scoring agent outputs
  * Supports multiple evaluation strategies via the registry
  */
 export class Evaluator {
-	private config: EvaluatorConfig;
+	private config: EvaluatorConfig
 
 	constructor(config: EvaluatorConfig | Omit<EvaluatorConfig, 'type'>) {
 		// Default to llm-judge if type not specified
-		this.config = {
-			type: 'llm-judge',
-			...config,
-		} as EvaluatorConfig;
+		this.config = ('type' in config ? config : { ...config, type: 'llm-judge' }) as EvaluatorConfig
 	}
 
 	/**
@@ -27,17 +24,20 @@ export class Evaluator {
 	async evaluate(context: EvalContext, apiKey?: string, model?: string): Promise<EvalResult> {
 		try {
 			if (!registry.has(this.config.type)) {
-				throw new Error(`Unknown evaluator type: ${this.config.type}`);
+				throw new Error(`Unknown evaluator type: ${this.config.type}`)
 			}
 
-			const handler = registry.get(this.config.type)!;
-			return await handler(this.config, context, apiKey, model);
+			const handler = registry.get(this.config.type)
+			if (!handler) {
+				throw new Error(`No handler registered for evaluator type: ${this.config.type}`)
+			}
+			return await handler(this.config, context, apiKey, model)
 		} catch (error) {
-			console.error(`Evaluator "${this.config.name}" failed:`, error);
+			console.error(`Evaluator "${this.config.name}" failed:`, error)
 			return {
 				score: 0,
 				reason: `Evaluation error: ${error instanceof Error ? error.message : String(error)}`,
-			};
+			}
 		}
 	}
 
@@ -45,13 +45,13 @@ export class Evaluator {
 	 * Get evaluator name
 	 */
 	get name(): string {
-		return this.config.name;
+		return this.config.name
 	}
 
 	/**
 	 * Get evaluator type
 	 */
 	get type(): string {
-		return this.config.type || 'llm-judge';
+		return this.config.type || 'llm-judge'
 	}
 }

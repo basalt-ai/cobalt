@@ -1,6 +1,6 @@
-import { readdirSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
-import { loadConfig } from '../../core/config';
+import { readdirSync, statSync } from 'node:fs'
+import { join, relative } from 'node:path'
+import { loadConfig } from '../../core/config'
 
 /**
  * MCP Resource: cobalt://experiments
@@ -11,34 +11,34 @@ export const cobaltExperimentsResource = {
 	name: 'Cobalt Experiments',
 	description: 'List of all experiment files in testDir',
 	mimeType: 'application/json',
-};
+}
 
 /**
  * Recursively find all .cobalt.ts files in a directory
  */
 function findExperimentFiles(dir: string): string[] {
-	const results: string[] = [];
+	const results: string[] = []
 
 	try {
-		const entries = readdirSync(dir, { withFileTypes: true });
+		const entries = readdirSync(dir, { withFileTypes: true })
 
 		for (const entry of entries) {
-			const fullPath = join(dir, entry.name);
+			const fullPath = join(dir, entry.name)
 
 			if (entry.isDirectory()) {
 				// Skip node_modules and hidden directories
 				if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
-					results.push(...findExperimentFiles(fullPath));
+					results.push(...findExperimentFiles(fullPath))
 				}
 			} else if (entry.isFile() && entry.name.endsWith('.cobalt.ts')) {
-				results.push(fullPath);
+				results.push(fullPath)
 			}
 		}
 	} catch (error) {
 		// Ignore errors (e.g., permission denied)
 	}
 
-	return results;
+	return results
 }
 
 /**
@@ -46,17 +46,17 @@ function findExperimentFiles(dir: string): string[] {
  */
 export async function handleCobaltExperiments() {
 	try {
-		const config = await loadConfig();
-		const testDir = join(process.cwd(), config.testDir);
+		const config = await loadConfig()
+		const testDir = join(process.cwd(), config.testDir)
 
 		// Find all experiment files
-		const files = findExperimentFiles(testDir);
+		const files = findExperimentFiles(testDir)
 
 		// Build result with relative paths
-		const experiments = files.map((file) => ({
+		const experiments = files.map(file => ({
 			path: relative(process.cwd(), file),
 			name: file.split('/').pop()?.replace('.cobalt.ts', '') || 'unknown',
-		}));
+		}))
 
 		return {
 			contents: [
@@ -74,7 +74,7 @@ export async function handleCobaltExperiments() {
 					),
 				},
 			],
-		};
+		}
 	} catch (error) {
 		return {
 			contents: [
@@ -90,6 +90,6 @@ export async function handleCobaltExperiments() {
 					),
 				},
 			],
-		};
+		}
 	}
 }

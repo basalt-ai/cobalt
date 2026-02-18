@@ -13,7 +13,7 @@ export const cobaltImproveAgentPrompt = {
 			required: true,
 		},
 	],
-};
+}
 
 /**
  * Get the prompt message for improving an agent based on experiment results
@@ -21,7 +21,7 @@ export const cobaltImproveAgentPrompt = {
 export function getCobaltImproveAgentPrompt(args: { runId?: string }) {
 	const runIdInstruction = args.runId
 		? `Use cobalt_results to load run ID: ${args.runId}`
-		: 'First, use cobalt://latest-results to find the most recent run, then use cobalt_results to load it';
+		: 'First, use cobalt://latest-results to find the most recent run, then use cobalt_results to load it'
 
 	return {
 		messages: [
@@ -54,5 +54,5 @@ Be specific and technical. Focus on code-level improvements, not high-level advi
 				},
 			},
 		],
-	};
+	}
 }

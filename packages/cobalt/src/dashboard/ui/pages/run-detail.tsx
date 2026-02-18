@@ -5,35 +5,35 @@ import {
 	Clock,
 	Warning,
 	XCircle,
-} from '@phosphor-icons/react';
-import { useMemo, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router';
-import { getRunDetail, getRuns } from '../api/runs';
-import type { ItemEvaluation, ItemResult, RunDetailResponse, RunsResponse } from '../api/types';
-import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
-import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
-import { MetricCard } from '../components/data/metric-card';
-import { ScoreBadge } from '../components/data/score-badge';
-import { PageHeader } from '../components/layout/page-header';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
+} from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router'
+import { getRunDetail, getRuns } from '../api/runs'
+import type { ItemEvaluation, ItemResult, RunDetailResponse, RunsResponse } from '../api/types'
+import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options'
+import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar'
+import { MetricCard } from '../components/data/metric-card'
+import { ScoreBadge } from '../components/data/score-badge'
+import { PageHeader } from '../components/layout/page-header'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
 	DialogHeader,
 	DialogTitle,
-} from '../components/ui/dialog';
+} from '../components/ui/dialog'
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from '../components/ui/select';
-import { Skeleton } from '../components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { useApi } from '../hooks/use-api';
+} from '../components/ui/select'
+import { Skeleton } from '../components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
+import { useApi } from '../hooks/use-api'
 import {
 	type ClientStats,
 	cn,
@@ -42,52 +42,49 @@ import {
 	formatDate,
 	formatDuration,
 	formatScore,
-} from '../lib/utils';
+} from '../lib/utils'
 
 /** Extract the actual output value from an ExperimentResult or raw value */
 function getOutputValue(output: unknown): unknown {
 	if (output && typeof output === 'object' && 'output' in output) {
-		return (output as { output: unknown }).output;
+		return (output as { output: unknown }).output
 	}
-	return output;
+	return output
 }
 
 /** Extract metadata from an ExperimentResult */
 function getMetadata(output: unknown): Record<string, unknown> | undefined {
 	if (output && typeof output === 'object' && 'metadata' in output) {
-		return (output as { metadata?: Record<string, unknown> }).metadata ?? undefined;
+		return (output as { metadata?: Record<string, unknown> }).metadata ?? undefined
 	}
-	return undefined;
+	return undefined
 }
 
 /** Get tokens from item metadata */
 function getTokens(output: unknown): number | undefined {
-	const meta = getMetadata(output);
-	if (!meta) return undefined;
-	const tokens = meta.tokens;
-	return typeof tokens === 'number' ? tokens : undefined;
+	const meta = getMetadata(output)
+	if (!meta) return undefined
+	const tokens = meta.tokens
+	return typeof tokens === 'number' ? tokens : undefined
 }
 
 export function RunDetailPage() {
-	const { id } = useParams<{ id: string }>();
-	const { data, error, loading } = useApi<RunDetailResponse>(() => getRunDetail(id!), [id]);
-	const [selectedItem, setSelectedItem] = useState<ItemResult | null>(null);
-	const navigate = useNavigate();
+	const { id } = useParams<{ id: string }>()
+	const { data, error, loading } = useApi<RunDetailResponse>(() => getRunDetail(id ?? ''), [id])
+	const [selectedItem, setSelectedItem] = useState<ItemResult | null>(null)
+	const navigate = useNavigate()
 
 	// Fetch all runs for compare selector
-	const { data: runsData } = useApi<RunsResponse>(() => getRuns());
-	const otherRuns = useMemo(
-		() => (runsData?.runs ?? []).filter((r) => r.id !== id),
-		[runsData, id],
-	);
+	const { data: runsData } = useApi<RunsResponse>(() => getRuns())
+	const otherRuns = useMemo(() => (runsData?.runs ?? []).filter(r => r.id !== id), [runsData, id])
 
-	const evaluatorNames = data?.run ? Object.keys(data.run.summary.scores) : [];
+	const evaluatorNames = data?.run ? Object.keys(data.run.summary.scores) : []
 	const booleanEvals = useMemo(
 		() => (data?.run ? detectBooleanEvaluators(data.run.items, evaluatorNames) : new Set<string>()),
 		[data?.run, evaluatorNames],
-	);
+	)
 
-	if (loading) return <LoadingSkeleton />;
+	if (loading) return <LoadingSkeleton />
 	if (error) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 text-center">
@@ -101,21 +98,21 @@ export function RunDetailPage() {
 					Retry
 				</Button>
 			</div>
-		);
+		)
 	}
 	if (!data?.run) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 text-center">
 				<p className="text-lg font-medium">Run not found</p>
 			</div>
-		);
+		)
 	}
 
-	const { run } = data;
+	const { run } = data
 	const avgTokens =
 		run.summary.totalTokens != null && run.summary.totalItems > 0
 			? Math.round(run.summary.totalTokens / run.summary.totalItems)
-			: undefined;
+			: undefined
 
 	return (
 		<div className="space-y-6">
@@ -132,7 +129,7 @@ export function RunDetailPage() {
 				<div className="flex items-center gap-2">
 					{run.tags.length > 0 && (
 						<div className="flex gap-1.5">
-							{run.tags.map((tag) => (
+							{run.tags.map(tag => (
 								<Badge key={tag} color="sand" size="sm">
 									{tag}
 								</Badge>
@@ -142,12 +139,12 @@ export function RunDetailPage() {
 					{otherRuns.length > 0 && (
 						<div className="flex items-center gap-2">
 							<ArrowsLeftRight className="h-4 w-4 text-muted-foreground" />
-							<Select onValueChange={(runId) => navigate(`/compare?a=${id}&b=${runId}`)}>
+							<Select onValueChange={runId => navigate(`/compare?a=${id}&b=${runId}`)}>
 								<SelectTrigger className="w-48 h-8 text-xs">
 									<SelectValue placeholder="Compare with..." />
 								</SelectTrigger>
 								<SelectContent>
-									{otherRuns.map((r) => (
+									{otherRuns.map(r => (
 										<SelectItem key={r.id} value={r.id}>
 											{r.name}
 										</SelectItem>
@@ -187,7 +184,7 @@ export function RunDetailPage() {
 					</div>
 					{run.ciStatus.violations.length > 0 && (
 						<ul className="mt-2 space-y-1 pl-7">
-							{run.ciStatus.violations.map((v) => (
+							{run.ciStatus.violations.map(v => (
 								<li key={`${v.category}-${v.metric}`} className="text-sm text-muted-foreground">
 									{v.message}
 								</li>
@@ -215,44 +212,44 @@ export function RunDetailPage() {
 				onClose={() => setSelectedItem(null)}
 			/>
 		</div>
-	);
+	)
 }
 
 function MetricsTabs({
 	run,
 	booleanEvals,
 }: {
-	run: RunDetailResponse['run'];
-	evaluatorNames: string[];
-	booleanEvals: Set<string>;
+	run: RunDetailResponse['run']
+	evaluatorNames: string[]
+	booleanEvals: Set<string>
 }) {
 	// Compute pass/total counts for boolean evaluators
 	const booleanCounts = useMemo(() => {
-		const counts: Record<string, { passed: number; total: number }> = {};
+		const counts: Record<string, { passed: number; total: number }> = {}
 		for (const name of booleanEvals) {
-			let passed = 0;
-			let total = 0;
+			let passed = 0
+			let total = 0
 			for (const item of run.items) {
-				const ev = item.evaluations[name];
+				const ev = item.evaluations[name]
 				if (ev != null) {
-					total++;
-					if (ev.score === 1) passed++;
+					total++
+					if (ev.score === 1) passed++
 				}
 			}
-			counts[name] = { passed, total };
+			counts[name] = { passed, total }
 		}
-		return counts;
-	}, [run.items, booleanEvals]);
+		return counts
+	}, [run.items, booleanEvals])
 
 	const latencyStats = useMemo(
-		() => computeClientStats(run.items.map((i) => i.latencyMs)),
+		() => computeClientStats(run.items.map(i => i.latencyMs)),
 		[run.items],
-	);
+	)
 
 	const tokenStats = useMemo(() => {
-		const tokens = run.items.map((i) => getTokens(i.output)).filter((t): t is number => t != null);
-		return tokens.length > 0 ? computeClientStats(tokens) : null;
-	}, [run.items]);
+		const tokens = run.items.map(i => getTokens(i.output)).filter((t): t is number => t != null)
+		return tokens.length > 0 ? computeClientStats(tokens) : null
+	}, [run.items])
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -283,7 +280,7 @@ function MetricsTabs({
 							</thead>
 							<tbody>
 								{Object.entries(run.summary.scores).map(([name, stats]) => {
-									const isBool = booleanEvals.has(name);
+									const isBool = booleanEvals.has(name)
 									return (
 										<tr key={name} className="border-b last:border-0">
 											<td className="px-4 py-2.5 font-medium">{name}</td>
@@ -323,7 +320,7 @@ function MetricsTabs({
 												</>
 											)}
 										</tr>
-									);
+									)
 								})}
 							</tbody>
 						</table>
@@ -339,13 +336,13 @@ function MetricsTabs({
 						<GenericStatsTable
 							label="Tokens"
 							stats={tokenStats}
-							format={(v) => Math.round(v).toLocaleString()}
+							format={v => Math.round(v).toLocaleString()}
 						/>
 					</TabsContent>
 				)}
 			</Tabs>
 		</div>
-	);
+	)
 }
 
 function GenericStatsTable({
@@ -353,9 +350,9 @@ function GenericStatsTable({
 	stats,
 	format,
 }: {
-	label: string;
-	stats: ClientStats;
-	format: (v: number) => string;
+	label: string
+	stats: ClientStats
+	format: (v: number) => string
 }) {
 	return (
 		<div className="overflow-x-auto">
@@ -394,7 +391,7 @@ function GenericStatsTable({
 				</tbody>
 			</table>
 		</div>
-	);
+	)
 }
 
 function ItemsTable({
@@ -403,36 +400,36 @@ function ItemsTable({
 	booleanEvals,
 	onItemClick,
 }: {
-	run: RunDetailResponse['run'];
-	evaluatorNames: string[];
-	booleanEvals: Set<string>;
-	onItemClick: (item: ItemResult) => void;
+	run: RunDetailResponse['run']
+	evaluatorNames: string[]
+	booleanEvals: Set<string>
+	onItemClick: (item: ItemResult) => void
 }) {
-	const [filters, setFilters] = useState<FilterValue[]>([]);
-	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
+	const [filters, setFilters] = useState<FilterValue[]>([])
+	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({})
 
 	// Detect which optional columns have data
 	const hasTokens = useMemo(
-		() => run.items.some((item) => getTokens(item.output) != null),
+		() => run.items.some(item => getTokens(item.output) != null),
 		[run.items],
-	);
+	)
 	const hasMetadata = useMemo(
-		() => run.items.some((item) => getMetadata(item.output) != null),
+		() => run.items.some(item => getMetadata(item.output) != null),
 		[run.items],
-	);
+	)
 
 	const filterDefs: FilterDef[] = useMemo(
 		() => [
 			{ key: 'latencyMs', label: 'Latency (ms)', type: 'number' },
 			{ key: 'hasError', label: 'Has Error', type: 'boolean' },
-			...evaluatorNames.map((n) => ({
+			...evaluatorNames.map(n => ({
 				key: `score_${n}`,
 				label: `${n} Score`,
 				type: 'number' as const,
 			})),
 		],
 		[evaluatorNames],
-	);
+	)
 
 	const displayColumns = useMemo(
 		() => [
@@ -440,55 +437,55 @@ function ItemsTable({
 			{ key: 'output', label: 'Output' },
 			{ key: 'latency', label: 'Latency' },
 			...(hasTokens ? [{ key: 'tokens', label: 'Tokens' }] : []),
-			...evaluatorNames.map((n) => ({ key: `eval_${n}`, label: n })),
+			...evaluatorNames.map(n => ({ key: `eval_${n}`, label: n })),
 			...(hasMetadata ? [{ key: 'metadata', label: 'Metadata' }] : []),
 		],
 		[evaluatorNames, hasTokens, hasMetadata],
-	);
+	)
 
 	// Apply filters to items
 	const filteredItems = useMemo(() => {
-		if (filters.length === 0) return run.items;
-		return run.items.filter((item) =>
-			filters.every((f) => {
+		if (filters.length === 0) return run.items
+		return run.items.filter(item =>
+			filters.every(f => {
 				if (f.key === 'hasError') {
-					const hasErr = !!item.error;
-					return String(hasErr) === f.value;
+					const hasErr = !!item.error
+					return String(hasErr) === f.value
 				}
 				if (f.key === 'latencyMs') {
-					return applyNumericFilter(item.latencyMs, f.operator, Number(f.value));
+					return applyNumericFilter(item.latencyMs, f.operator, Number(f.value))
 				}
 				if (f.key.startsWith('score_')) {
-					const evalName = f.key.slice(6);
-					const score = item.evaluations[evalName]?.score;
-					if (score == null) return false;
-					return applyNumericFilter(score, f.operator, Number(f.value));
+					const evalName = f.key.slice(6)
+					const score = item.evaluations[evalName]?.score
+					if (score == null) return false
+					return applyNumericFilter(score, f.operator, Number(f.value))
 				}
-				return true;
+				return true
 			}),
-		);
-	}, [run.items, filters]);
+		)
+	}, [run.items, filters])
 
 	// Compute AVG scores per evaluator for header
 	const evaluatorAvgs = useMemo(() => {
-		const avgs: Record<string, number> = {};
+		const avgs: Record<string, number> = {}
 		for (const name of evaluatorNames) {
 			const scores = filteredItems
-				.map((item) => item.evaluations[name]?.score)
-				.filter((s): s is number => s != null);
-			avgs[name] = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+				.map(item => item.evaluations[name]?.score)
+				.filter((s): s is number => s != null)
+			avgs[name] = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
 		}
-		return avgs;
-	}, [filteredItems, evaluatorNames]);
+		return avgs
+	}, [filteredItems, evaluatorNames])
 
 	// Compute avg latency for header
 	const avgLatency = useMemo(() => {
-		if (filteredItems.length === 0) return 0;
-		return filteredItems.reduce((sum, i) => sum + i.latencyMs, 0) / filteredItems.length;
-	}, [filteredItems]);
+		if (filteredItems.length === 0) return 0
+		return filteredItems.reduce((sum, i) => sum + i.latencyMs, 0) / filteredItems.length
+	}, [filteredItems])
 
-	const hasErrors = filteredItems.some((item) => item.error);
-	const isVisible = (key: string) => columnVisibility[key] !== false;
+	const hasErrors = filteredItems.some(item => item.error)
+	const isVisible = (key: string) => columnVisibility[key] !== false
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -529,7 +526,7 @@ function ItemsTable({
 								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Tokens</th>
 							)}
 							{evaluatorNames.map(
-								(name) =>
+								name =>
 									isVisible(`eval_${name}`) && (
 										<th
 											key={name}
@@ -556,17 +553,17 @@ function ItemsTable({
 						</tr>
 					</thead>
 					<tbody>
-						{filteredItems.map((item) => {
-							const outputVal = getOutputValue(item.output);
-							const meta = getMetadata(item.output);
-							const tokens = getTokens(item.output);
+						{filteredItems.map(item => {
+							const outputVal = getOutputValue(item.output)
+							const meta = getMetadata(item.output)
+							const tokens = getTokens(item.output)
 
 							return (
 								<tr
 									key={item.index}
 									className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
 									onClick={() => onItemClick(item)}
-									onKeyDown={(e) => e.key === 'Enter' && onItemClick(item)}
+									onKeyDown={e => e.key === 'Enter' && onItemClick(item)}
 								>
 									<td className="px-4 py-2.5 tabular-nums text-muted-foreground">
 										{item.index + 1}
@@ -594,7 +591,7 @@ function ItemsTable({
 										</td>
 									)}
 									{evaluatorNames.map(
-										(name) =>
+										name =>
 											isVisible(`eval_${name}`) && (
 												<td key={name} className="px-4 py-2.5 text-right">
 													{item.evaluations[name] ? (
@@ -627,13 +624,13 @@ function ItemsTable({
 										</td>
 									)}
 								</tr>
-							);
+							)
 						})}
 					</tbody>
 				</table>
 			</div>
 		</div>
-	);
+	)
 }
 
 function ItemDetailDialog({
@@ -641,17 +638,17 @@ function ItemDetailDialog({
 	booleanEvals,
 	onClose,
 }: {
-	item: ItemResult | null;
-	booleanEvals: Set<string>;
-	onClose: () => void;
+	item: ItemResult | null
+	booleanEvals: Set<string>
+	onClose: () => void
 }) {
-	if (!item) return null;
+	if (!item) return null
 
-	const outputVal = getOutputValue(item.output);
-	const meta = getMetadata(item.output);
+	const outputVal = getOutputValue(item.output)
+	const meta = getMetadata(item.output)
 
 	return (
-		<Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
+		<Dialog open={!!item} onOpenChange={open => !open && onClose()}>
 			<DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
 				<DialogHeader>
 					<DialogTitle>Item #{item.index + 1}</DialogTitle>
@@ -707,7 +704,7 @@ function ItemDetailDialog({
 				</div>
 			</DialogContent>
 		</Dialog>
-	);
+	)
 }
 
 function EvaluationCard({
@@ -715,11 +712,11 @@ function EvaluationCard({
 	evaluation: ev,
 	isBoolean,
 }: {
-	name: string;
-	evaluation: ItemEvaluation;
-	isBoolean: boolean;
+	name: string
+	evaluation: ItemEvaluation
+	isBoolean: boolean
 }) {
-	const [showCoT, setShowCoT] = useState(false);
+	const [showCoT, setShowCoT] = useState(false)
 	return (
 		<div className="rounded-lg border p-3">
 			<div className="flex items-center justify-between">
@@ -744,30 +741,30 @@ function EvaluationCard({
 				</div>
 			)}
 		</div>
-	);
+	)
 }
 
 function applyNumericFilter(val: number, op: FilterValue['operator'], target: number): boolean {
 	switch (op) {
 		case 'eq':
-			return val === target;
+			return val === target
 		case 'gt':
-			return val > target;
+			return val > target
 		case 'lt':
-			return val < target;
+			return val < target
 		case 'gte':
-			return val >= target;
+			return val >= target
 		case 'lte':
-			return val <= target;
+			return val <= target
 		default:
-			return true;
+			return true
 	}
 }
 
 function truncateValue(value: unknown): string {
-	if (typeof value === 'string') return value;
-	const str = JSON.stringify(value);
-	return str.length > 120 ? `${str.slice(0, 120)}...` : str;
+	if (typeof value === 'string') return value
+	const str = JSON.stringify(value)
+	return str.length > 120 ? `${str.slice(0, 120)}...` : str
 }
 
 function LoadingSkeleton() {
@@ -784,5 +781,5 @@ function LoadingSkeleton() {
 			<Skeleton className="h-48 rounded-xl" />
 			<Skeleton className="h-64 rounded-xl" />
 		</div>
-	);
+	)
 }

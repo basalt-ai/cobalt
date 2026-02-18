@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react'
 
 interface UseApiState<T> {
-	data: T | null;
-	error: Error | null;
-	loading: boolean;
+	data: T | null
+	error: Error | null
+	loading: boolean
 }
 
 export function useApi<T>(
@@ -14,22 +14,22 @@ export function useApi<T>(
 		data: null,
 		error: null,
 		loading: true,
-	});
+	})
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: fetcher is intentionally controlled by caller-provided deps
 	const execute = useCallback(async () => {
-		setState((prev) => ({ ...prev, loading: true, error: null }));
+		setState(prev => ({ ...prev, loading: true, error: null }))
 		try {
-			const data = await fetcher();
-			setState({ data, error: null, loading: false });
+			const data = await fetcher()
+			setState({ data, error: null, loading: false })
 		} catch (error) {
-			setState({ data: null, error: error as Error, loading: false });
+			setState({ data: null, error: error as Error, loading: false })
 		}
-	}, deps);
+	}, deps)
 
 	useEffect(() => {
-		execute();
-	}, [execute]);
+		execute()
+	}, [execute])
 
-	return { ...state, refetch: execute };
+	return { ...state, refetch: execute }
 }

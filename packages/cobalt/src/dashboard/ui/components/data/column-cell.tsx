@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
-import { cn } from '../../lib/utils';
+import type { ReactNode } from 'react'
+import { cn } from '../../lib/utils'
 
-const RUN_DOT_COLORS = ['bg-[#231F1C] dark:bg-[#faf9f7]', 'bg-blue-600', 'bg-[#CF3897]'] as const;
+const RUN_DOT_COLORS = ['bg-[#231F1C] dark:bg-[#faf9f7]', 'bg-blue-600', 'bg-[#CF3897]'] as const
 
 interface ColumnCellProps {
-	children: (ReactNode | null)[];
-	className?: string;
+	children: (ReactNode | null)[]
+	className?: string
 }
 
 export function ColumnCell({ children, className }: ColumnCellProps) {
@@ -21,5 +21,5 @@ export function ColumnCell({ children, className }: ColumnCellProps) {
 				</div>
 			))}
 		</div>
-	);
+	)
 }

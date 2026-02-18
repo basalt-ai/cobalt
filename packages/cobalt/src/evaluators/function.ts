@@ -1,5 +1,5 @@
-import { registry } from '../core/EvaluatorRegistry';
-import type { EvalContext, EvalResult, FunctionEvaluatorConfig } from '../types';
+import { registry } from '../core/EvaluatorRegistry'
+import type { EvalContext, EvalResult, EvaluatorConfig, FunctionEvaluatorConfig } from '../types'
 
 /**
  * Evaluate using custom function
@@ -8,30 +8,31 @@ import type { EvalContext, EvalResult, FunctionEvaluatorConfig } from '../types'
  * @returns Evaluation result
  */
 export async function evaluateFunction(
-	config: FunctionEvaluatorConfig,
+	_config: EvaluatorConfig,
 	context: EvalContext,
 ): Promise<EvalResult> {
+	const config = _config as FunctionEvaluatorConfig
 	try {
 		// Apply context mapping if provided
-		const evalContext = config.context ? config.context(context) : context;
-		const result = await config.fn(evalContext);
+		const evalContext = config.context ? config.context(context) : context
+		const result = await config.fn(evalContext)
 
 		// Validate result format
 		if (typeof result.score !== 'number' || result.score < 0 || result.score > 1) {
-			throw new Error('Function must return score between 0 and 1');
+			throw new Error('Function must return score between 0 and 1')
 		}
 
 		return {
 			score: Math.max(0, Math.min(1, result.score)), // Clamp to [0, 1]
 			reason: result.reason || 'No reason provided',
-		};
+		}
 	} catch (error) {
-		console.error('Function evaluator error:', error);
+		console.error('Function evaluator error:', error)
 		throw new Error(
 			`Function evaluation failed: ${error instanceof Error ? error.message : String(error)}`,
-		);
+		)
 	}
 }
 
 // Register with global registry
-registry.register('function', evaluateFunction);
+registry.register('function', evaluateFunction)

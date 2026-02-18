@@ -1,45 +1,45 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { GitHubActionsReporter } from '../../../../src/cli/reporters/github-actions-reporter';
-import type { ExperimentReport } from '../../../../src/types';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { GitHubActionsReporter } from '../../../../src/cli/reporters/github-actions-reporter'
+import type { ExperimentReport } from '../../../../src/types'
 
 describe('GitHubActionsReporter', () => {
-	let reporter: GitHubActionsReporter;
-	let consoleLogs: string[];
-	let tempDir: string;
-	let summaryFile: string;
-	let originalEnv: NodeJS.ProcessEnv;
+	let reporter: GitHubActionsReporter
+	let consoleLogs: string[]
+	let tempDir: string
+	let summaryFile: string
+	let originalEnv: NodeJS.ProcessEnv
 
 	beforeEach(() => {
-		originalEnv = { ...process.env };
-		tempDir = mkdtempSync(join(tmpdir(), 'cobalt-test-gh-'));
-		summaryFile = join(tempDir, 'summary.md');
-		process.env.GITHUB_ACTIONS = 'true';
-		process.env.GITHUB_STEP_SUMMARY = summaryFile;
+		originalEnv = { ...process.env }
+		tempDir = mkdtempSync(join(tmpdir(), 'cobalt-test-gh-'))
+		summaryFile = join(tempDir, 'summary.md')
+		process.env.GITHUB_ACTIONS = 'true'
+		process.env.GITHUB_STEP_SUMMARY = summaryFile
 
-		consoleLogs = [];
+		consoleLogs = []
 		vi.spyOn(console, 'log').mockImplementation((...args) => {
-			consoleLogs.push(args.join(' '));
-		});
-	});
+			consoleLogs.push(args.join(' '))
+		})
+	})
 
 	afterEach(() => {
-		vi.restoreAllMocks();
-		process.env = originalEnv;
+		vi.restoreAllMocks()
+		process.env = originalEnv
 		try {
-			rmSync(tempDir, { recursive: true, force: true });
+			rmSync(tempDir, { recursive: true, force: true })
 		} catch {
 			// Ignore cleanup errors
 		}
-	});
+	})
 
 	describe('when GITHUB_ACTIONS is not set', () => {
 		beforeEach(() => {
-			process.env.GITHUB_ACTIONS = 'false';
-			reporter = new GitHubActionsReporter();
-		});
+			process.env.GITHUB_ACTIONS = 'false'
+			reporter = new GitHubActionsReporter()
+		})
 
 		it('should not output anything', () => {
 			reporter.onStart({
@@ -49,16 +49,16 @@ describe('GitHubActionsReporter', () => {
 				concurrency: 5,
 				timeout: 30000,
 				runs: 1,
-			});
+			})
 
-			expect(consoleLogs).toHaveLength(0);
-		});
-	});
+			expect(consoleLogs).toHaveLength(0)
+		})
+	})
 
 	describe('when GITHUB_ACTIONS is set', () => {
 		beforeEach(() => {
-			reporter = new GitHubActionsReporter();
-		});
+			reporter = new GitHubActionsReporter()
+		})
 
 		describe('onStart', () => {
 			it('should output group start and add to summary', () => {
@@ -69,11 +69,11 @@ describe('GitHubActionsReporter', () => {
 					concurrency: 5,
 					timeout: 30000,
 					runs: 1,
-				});
+				})
 
-				expect(consoleLogs.some((log) => log.includes('::group::Cobalt Experiment:'))).toBe(true);
-			});
-		});
+				expect(consoleLogs.some(log => log.includes('::group::Cobalt Experiment:'))).toBe(true)
+			})
+		})
 
 		describe('onProgress', () => {
 			it('should output notice when complete', () => {
@@ -84,12 +84,12 @@ describe('GitHubActionsReporter', () => {
 					totalRuns: 1,
 					completedExecutions: 10,
 					totalExecutions: 10,
-				});
+				})
 
-				expect(consoleLogs.some((log) => log.includes('::notice::Completed 10 executions'))).toBe(
+				expect(consoleLogs.some(log => log.includes('::notice::Completed 10 executions'))).toBe(
 					true,
-				);
-			});
+				)
+			})
 
 			it('should not output notice for partial progress', () => {
 				reporter.onProgress({
@@ -99,11 +99,11 @@ describe('GitHubActionsReporter', () => {
 					totalRuns: 1,
 					completedExecutions: 5,
 					totalExecutions: 10,
-				});
+				})
 
-				expect(consoleLogs).toHaveLength(0);
-			});
-		});
+				expect(consoleLogs).toHaveLength(0)
+			})
+		})
 
 		describe('onCIStatus', () => {
 			it('should output notice for passed CI', () => {
@@ -111,12 +111,12 @@ describe('GitHubActionsReporter', () => {
 					passed: true,
 					summary: 'All thresholds passed',
 					violations: [],
-				});
+				})
 
 				expect(
-					consoleLogs.some((log) => log.includes('::notice title=CI Validation::All thresholds')),
-				).toBe(true);
-			});
+					consoleLogs.some(log => log.includes('::notice title=CI Validation::All thresholds')),
+				).toBe(true)
+			})
 
 			it('should output errors for failed CI with violations', () => {
 				reporter.onCIStatus({
@@ -138,16 +138,16 @@ describe('GitHubActionsReporter', () => {
 							message: 'relevance: p95 0.550 < threshold 0.700',
 						},
 					],
-				});
+				})
 
 				expect(
-					consoleLogs.some((log) => log.includes('::error title=Threshold Violation::accuracy:')),
-				).toBe(true);
+					consoleLogs.some(log => log.includes('::error title=Threshold Violation::accuracy:')),
+				).toBe(true)
 				expect(
-					consoleLogs.some((log) => log.includes('::error title=Threshold Violation::relevance:')),
-				).toBe(true);
-			});
-		});
+					consoleLogs.some(log => log.includes('::error title=Threshold Violation::relevance:')),
+				).toBe(true)
+			})
+		})
 
 		describe('onComplete', () => {
 			it('should close group and write summary', () => {
@@ -159,7 +159,7 @@ describe('GitHubActionsReporter', () => {
 					concurrency: 5,
 					timeout: 30000,
 					runs: 1,
-				});
+				})
 
 				const report: ExperimentReport = {
 					id: 'test-123',
@@ -188,23 +188,23 @@ describe('GitHubActionsReporter', () => {
 						},
 					},
 					items: [],
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-				expect(consoleLogs.some((log) => log.includes('::endgroup::'))).toBe(true);
+				expect(consoleLogs.some(log => log.includes('::endgroup::'))).toBe(true)
 
-				const summary = readFileSync(summaryFile, 'utf-8');
-				expect(summary).toContain('## 🔷 Cobalt Experiment');
-				expect(summary).toContain('**Experiment:** Test Experiment');
-				expect(summary).toContain('### 📊 Results');
-				expect(summary).toContain('5.50s');
-				expect(summary).toContain('550ms');
-				expect(summary).toContain('### Scores');
-				expect(summary).toContain('accuracy');
-				expect(summary).toContain('0.85');
-				expect(summary).toContain('test-123');
-			});
+				const summary = readFileSync(summaryFile, 'utf-8')
+				expect(summary).toContain('## 🔷 Cobalt Experiment')
+				expect(summary).toContain('**Experiment:** Test Experiment')
+				expect(summary).toContain('### 📊 Results')
+				expect(summary).toContain('5.50s')
+				expect(summary).toContain('550ms')
+				expect(summary).toContain('### Scores')
+				expect(summary).toContain('accuracy')
+				expect(summary).toContain('0.85')
+				expect(summary).toContain('test-123')
+			})
 
 			it('should output warning for low average scores', () => {
 				const report: ExperimentReport = {
@@ -234,16 +234,16 @@ describe('GitHubActionsReporter', () => {
 						},
 					},
 					items: [],
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
 				expect(
-					consoleLogs.some((log) =>
+					consoleLogs.some(log =>
 						log.includes('::warning title=Low Score::accuracy average score is 0.35'),
 					),
-				).toBe(true);
-			});
+				).toBe(true)
+			})
 
 			it('should output warning for low score items', () => {
 				const report: ExperimentReport = {
@@ -285,17 +285,17 @@ describe('GitHubActionsReporter', () => {
 							runs: [],
 						},
 					],
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
 				expect(
-					consoleLogs.some((log) => log.includes('::warning title=Low Scores::1 items scored')),
-				).toBe(true);
+					consoleLogs.some(log => log.includes('::warning title=Low Scores::1 items scored')),
+				).toBe(true)
 
-				const summary = readFileSync(summaryFile, 'utf-8');
-				expect(summary).toContain('⚠️ 1 item(s) scored below 0.5');
-			});
+				const summary = readFileSync(summaryFile, 'utf-8')
+				expect(summary).toContain('⚠️ 1 item(s) scored below 0.5')
+			})
 
 			it('should output errors for execution errors', () => {
 				const report: ExperimentReport = {
@@ -335,20 +335,20 @@ describe('GitHubActionsReporter', () => {
 							error: 'Network error',
 						},
 					],
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-				expect(
-					consoleLogs.some((log) => log.includes('::error title=Execution Error::Item 0')),
-				).toBe(true);
-				expect(
-					consoleLogs.some((log) => log.includes('::error title=Execution Error::Item 1')),
-				).toBe(true);
+				expect(consoleLogs.some(log => log.includes('::error title=Execution Error::Item 0'))).toBe(
+					true,
+				)
+				expect(consoleLogs.some(log => log.includes('::error title=Execution Error::Item 1'))).toBe(
+					true,
+				)
 
-				const summary = readFileSync(summaryFile, 'utf-8');
-				expect(summary).toContain('❌ 2 item(s) had errors');
-			});
+				const summary = readFileSync(summaryFile, 'utf-8')
+				expect(summary).toContain('❌ 2 item(s) had errors')
+			})
 
 			it('should limit error output to 5 items', () => {
 				const items = Array.from({ length: 10 }, (_, i) => ({
@@ -359,7 +359,7 @@ describe('GitHubActionsReporter', () => {
 					evaluations: {},
 					runs: [],
 					error: `Error ${i}`,
-				}));
+				}))
 
 				const report: ExperimentReport = {
 					id: 'test-123',
@@ -379,15 +379,15 @@ describe('GitHubActionsReporter', () => {
 						scores: {},
 					},
 					items,
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-				const errorLogs = consoleLogs.filter((log) => log.includes('::error title=Execution'));
-				expect(errorLogs).toHaveLength(5);
+				const errorLogs = consoleLogs.filter(log => log.includes('::error title=Execution'))
+				expect(errorLogs).toHaveLength(5)
 
-				expect(consoleLogs.some((log) => log.includes('::warning::5 more errors'))).toBe(true);
-			});
+				expect(consoleLogs.some(log => log.includes('::warning::5 more errors'))).toBe(true)
+			})
 
 			it('should include cost if available', () => {
 				reporter.onStart({
@@ -397,7 +397,7 @@ describe('GitHubActionsReporter', () => {
 					concurrency: 5,
 					timeout: 30000,
 					runs: 1,
-				});
+				})
 
 				const report: ExperimentReport = {
 					id: 'test-123',
@@ -418,13 +418,13 @@ describe('GitHubActionsReporter', () => {
 						scores: {},
 					},
 					items: [],
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-				const summary = readFileSync(summaryFile, 'utf-8');
-				expect(summary).toContain('**Estimated Cost:**');
-			});
+				const summary = readFileSync(summaryFile, 'utf-8')
+				expect(summary).toContain('**Estimated Cost:**')
+			})
 
 			it('should include token count if available', () => {
 				const report: ExperimentReport = {
@@ -446,36 +446,36 @@ describe('GitHubActionsReporter', () => {
 						scores: {},
 					},
 					items: [],
-				};
+				}
 
-				reporter.onComplete(report, '.cobalt/results/test-123.json');
+				reporter.onComplete(report, '.cobalt/results/test-123.json')
 
-				const summary = readFileSync(summaryFile, 'utf-8');
-				expect(summary).toContain('**Total Tokens:** 15,000');
-			});
-		});
+				const summary = readFileSync(summaryFile, 'utf-8')
+				expect(summary).toContain('**Total Tokens:** 15,000')
+			})
+		})
 
 		describe('onError', () => {
 			it('should output error annotation and write to summary', () => {
-				reporter.onError(new Error('Test error'), 'Loading dataset');
+				reporter.onError(new Error('Test error'), 'Loading dataset')
 
 				expect(
-					consoleLogs.some((log) => log.includes('::error title=Loading dataset::Test error')),
-				).toBe(true);
+					consoleLogs.some(log => log.includes('::error title=Loading dataset::Test error')),
+				).toBe(true)
 
-				const summary = readFileSync(summaryFile, 'utf-8');
-				expect(summary).toContain('### ❌ Error');
-				expect(summary).toContain('**Context:** Loading dataset');
-				expect(summary).toContain('Test error');
-			});
+				const summary = readFileSync(summaryFile, 'utf-8')
+				expect(summary).toContain('### ❌ Error')
+				expect(summary).toContain('**Context:** Loading dataset')
+				expect(summary).toContain('Test error')
+			})
 
 			it('should output error without context', () => {
-				reporter.onError(new Error('Generic error'));
+				reporter.onError(new Error('Generic error'))
 
 				expect(
-					consoleLogs.some((log) => log.includes('::error title=Experiment Error::Generic error')),
-				).toBe(true);
-			});
-		});
-	});
-});
+					consoleLogs.some(log => log.includes('::error title=Experiment Error::Generic error')),
+				).toBe(true)
+			})
+		})
+	})
+})

@@ -4,30 +4,30 @@
  * Allows users to extend Cobalt with custom evaluator types.
  */
 
-import type { EvalContext, EvalResult } from '../types';
+import type { EvalContext, EvalResult, EvaluatorConfig } from '../types'
 
 /**
  * Evaluator handler function signature
  */
 export type EvaluatorHandler = (
-	config: any,
+	config: EvaluatorConfig,
 	context: EvalContext,
 	apiKey?: string,
 	model?: string,
-) => Promise<EvalResult>;
+) => Promise<EvalResult>
 
 /**
  * Single evaluator plugin
  */
 export interface EvaluatorPlugin {
 	/** Unique type identifier for this evaluator (e.g., 'custom-sentiment') */
-	type: string;
+	type: string
 
 	/** Human-readable name */
-	name: string;
+	name: string
 
 	/** Evaluation handler function */
-	evaluate: EvaluatorHandler;
+	evaluate: EvaluatorHandler
 }
 
 /**
@@ -35,13 +35,13 @@ export interface EvaluatorPlugin {
  */
 export interface PluginDefinition {
 	/** Plugin name */
-	name: string;
+	name: string
 
 	/** Plugin version (semver) */
-	version: string;
+	version: string
 
 	/** List of evaluators provided by this plugin */
-	evaluators: EvaluatorPlugin[];
+	evaluators: EvaluatorPlugin[]
 }
 
 /**
@@ -50,38 +50,38 @@ export interface PluginDefinition {
  * @param plugin - Plugin definition to validate
  * @throws Error if plugin is invalid
  */
-export function validatePlugin(plugin: any): asserts plugin is PluginDefinition {
+export function validatePlugin(plugin: unknown): asserts plugin is PluginDefinition {
 	if (!plugin || typeof plugin !== 'object') {
-		throw new Error('Plugin must be an object');
+		throw new Error('Plugin must be an object')
 	}
 
 	if (typeof plugin.name !== 'string' || plugin.name.trim() === '') {
-		throw new Error('Plugin must have a non-empty name');
+		throw new Error('Plugin must have a non-empty name')
 	}
 
 	if (typeof plugin.version !== 'string') {
-		throw new Error('Plugin must have a version string');
+		throw new Error('Plugin must have a version string')
 	}
 
 	if (!Array.isArray(plugin.evaluators)) {
-		throw new Error('Plugin must have an evaluators array');
+		throw new Error('Plugin must have an evaluators array')
 	}
 
 	for (const evaluator of plugin.evaluators) {
 		if (!evaluator || typeof evaluator !== 'object') {
-			throw new Error(`Invalid evaluator in plugin "${plugin.name}"`);
+			throw new Error(`Invalid evaluator in plugin "${plugin.name}"`)
 		}
 
 		if (typeof evaluator.type !== 'string' || evaluator.type.trim() === '') {
-			throw new Error(`Evaluator in plugin "${plugin.name}" must have a non-empty type`);
+			throw new Error(`Evaluator in plugin "${plugin.name}" must have a non-empty type`)
 		}
 
 		if (typeof evaluator.name !== 'string') {
-			throw new Error(`Evaluator "${evaluator.type}" must have a name`);
+			throw new Error(`Evaluator "${evaluator.type}" must have a name`)
 		}
 
 		if (typeof evaluator.evaluate !== 'function') {
-			throw new Error(`Evaluator "${evaluator.type}" must have an evaluate function`);
+			throw new Error(`Evaluator "${evaluator.type}" must have an evaluate function`)
 		}
 	}
 }

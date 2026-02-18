@@ -1,18 +1,18 @@
-import OpenAI from 'openai';
+import OpenAI from 'openai'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export interface Document {
-	id: string;
-	content: string;
-	metadata?: Record<string, any>;
+	id: string
+	content: string
+	metadata?: Record<string, unknown>
 }
 
 export interface RAGResponse {
-	answer: string;
-	retrievedDocs: Document[];
-	model: string;
-	tokens: number;
+	answer: string
+	retrievedDocs: Document[]
+	model: string
+	tokens: number
 }
 
 /**
@@ -23,10 +23,10 @@ export async function answerWithRAG(
 	knowledgeBase: Document[],
 ): Promise<RAGResponse> {
 	// Step 1: Retrieve relevant documents (simple keyword match)
-	const retrievedDocs = retrieve(query, knowledgeBase, 3);
+	const retrievedDocs = retrieve(query, knowledgeBase, 3)
 
 	// Step 2: Generate answer using context
-	const context = retrievedDocs.map((d) => d.content).join('\n\n');
+	const context = retrievedDocs.map(d => d.content).join('\n\n')
 
 	const completion = await client.chat.completions.create({
 		model: 'gpt-5-mini',
@@ -42,34 +42,34 @@ export async function answerWithRAG(
 		],
 		temperature: 0.2,
 		max_tokens: 200,
-	});
+	})
 
-	const answer = completion.choices[0].message.content || '';
+	const answer = completion.choices[0].message.content || ''
 
 	return {
 		answer,
 		retrievedDocs,
 		model: 'gpt-5-mini',
 		tokens: completion.usage?.total_tokens || 0,
-	};
+	}
 }
 
 /**
  * Simple keyword-based retrieval
  */
 function retrieve(query: string, docs: Document[], topK: number): Document[] {
-	const queryTokens = query.toLowerCase().split(/\s+/);
+	const queryTokens = query.toLowerCase().split(/\s+/)
 
 	// Score documents by keyword overlap
-	const scored = docs.map((doc) => {
-		const docTokens = doc.content.toLowerCase().split(/\s+/);
-		const overlap = queryTokens.filter((t) => docTokens.includes(t)).length;
-		return { doc, score: overlap };
-	});
+	const scored = docs.map(doc => {
+		const docTokens = doc.content.toLowerCase().split(/\s+/)
+		const overlap = queryTokens.filter(t => docTokens.includes(t)).length
+		return { doc, score: overlap }
+	})
 
 	// Return top K
 	return scored
 		.sort((a, b) => b.score - a.score)
 		.slice(0, topK)
-		.map((s) => s.doc);
+		.map(s => s.doc)
 }

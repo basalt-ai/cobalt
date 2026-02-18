@@ -2,65 +2,65 @@
  * Core types for Cobalt AI testing framework
  */
 
-import type { Evaluator } from '../core/Evaluator';
+import type { Evaluator } from '../core/Evaluator'
 
 // ============================================================================
 // Dataset Types
 // ============================================================================
 
-export type ExperimentItem = Record<string, any>;
+export type ExperimentItem = Record<string, unknown>
 
 export interface DatasetConfig<T = ExperimentItem> {
-	items: T[];
+	items: T[]
 }
 
 // ============================================================================
 // Evaluator Types
 // ============================================================================
 
-export type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'autoevals';
+export type EvaluatorType = 'llm-judge' | 'function' | 'similarity' | 'autoevals'
 
 export interface EvalContext {
-	item: ExperimentItem;
-	output: string | Record<string, any>;
-	metadata?: Record<string, any>;
+	item: ExperimentItem
+	output: string | Record<string, unknown>
+	metadata?: Record<string, unknown>
 }
 
 export interface EvalResult {
-	score: number; // 0.0 to 1.0
-	reason?: string;
-	chainOfThought?: string; // Full reasoning chain when CoT enabled
+	score: number // 0.0 to 1.0
+	reason?: string
+	chainOfThought?: string // Full reasoning chain when CoT enabled
 }
 
 export interface BaseEvaluatorConfig {
-	name: string;
-	type?: EvaluatorType;
+	name: string
+	type?: EvaluatorType
 }
 
 export interface LLMJudgeEvaluatorConfig extends BaseEvaluatorConfig {
-	type: 'llm-judge';
-	prompt: string;
-	model?: string;
-	scoring?: 'boolean' | 'scale'; // default: 'boolean'
-	chainOfThought?: boolean; // default: true for boolean, false for scale
-	context?: (ctx: EvalContext) => EvalContext; // custom context mapping
+	type: 'llm-judge'
+	prompt: string
+	model?: string
+	scoring?: 'boolean' | 'scale' // default: 'boolean'
+	chainOfThought?: boolean // default: true for boolean, false for scale
+	context?: (ctx: EvalContext) => EvalContext // custom context mapping
 }
 
 export interface FunctionEvaluatorConfig extends BaseEvaluatorConfig {
-	type: 'function';
-	fn: (context: EvalContext) => EvalResult | Promise<EvalResult>;
-	context?: (ctx: EvalContext) => EvalContext; // custom context mapping
+	type: 'function'
+	fn: (context: EvalContext) => EvalResult | Promise<EvalResult>
+	context?: (ctx: EvalContext) => EvalContext // custom context mapping
 }
 
 export interface SimilarityEvaluatorConfig extends BaseEvaluatorConfig {
-	type: 'similarity';
-	field: string;
-	threshold?: number;
-	distance?: 'cosine' | 'dot'; // default: 'cosine'
+	type: 'similarity'
+	field: string
+	threshold?: number
+	distance?: 'cosine' | 'dot' // default: 'cosine'
 }
 
 export interface AutoevalsEvaluatorConfig extends BaseEvaluatorConfig {
-	type: 'autoevals';
+	type: 'autoevals'
 	evaluatorType:
 		| 'Levenshtein'
 		| 'Factuality'
@@ -72,42 +72,42 @@ export interface AutoevalsEvaluatorConfig extends BaseEvaluatorConfig {
 		| 'Humor'
 		| 'Embedding'
 		| 'ClosedQA'
-		| 'Security';
-	options?: Record<string, any>;
-	expectedField?: string;
+		| 'Security'
+	options?: Record<string, unknown>
+	expectedField?: string
 }
 
 export type EvaluatorConfig =
 	| LLMJudgeEvaluatorConfig
 	| FunctionEvaluatorConfig
 	| SimilarityEvaluatorConfig
-	| AutoevalsEvaluatorConfig;
+	| AutoevalsEvaluatorConfig
 
 // ============================================================================
 // Experiment Types
 // ============================================================================
 
 export interface ExperimentResult {
-	output: string | Record<string, any>;
-	metadata?: Record<string, any>;
+	output: string | Record<string, unknown>
+	metadata?: Record<string, unknown>
 }
 
 export interface RunnerContext {
-	item: ExperimentItem;
-	index: number;
-	runIndex: number;
+	item: ExperimentItem
+	index: number
+	runIndex: number
 }
 
-export type RunnerFunction = (context: RunnerContext) => Promise<ExperimentResult>;
+export type RunnerFunction = (context: RunnerContext) => Promise<ExperimentResult>
 
 export interface ExperimentOptions {
-	evaluators: (EvaluatorConfig | Evaluator)[];
-	runs?: number; // default: 1
-	concurrency?: number; // default: 5
-	timeout?: number; // default: 30_000
-	tags?: string[];
-	name?: string; // override experiment name
-	thresholds?: ThresholdConfig; // CI thresholds (validated only with --ci flag)
+	evaluators: (EvaluatorConfig | Evaluator)[]
+	runs?: number // default: 1
+	concurrency?: number // default: 5
+	timeout?: number // default: 30_000
+	tags?: string[]
+	name?: string // override experiment name
+	thresholds?: ThresholdConfig // CI thresholds (validated only with --ci flag)
 }
 
 // ============================================================================
@@ -115,77 +115,77 @@ export interface ExperimentOptions {
 // ============================================================================
 
 export interface ScoreStats {
-	avg: number;
-	min: number;
-	max: number;
-	p50: number;
-	p95: number;
-	p99: number;
+	avg: number
+	min: number
+	max: number
+	p50: number
+	p95: number
+	p99: number
 }
 
 export interface ItemEvaluation {
-	score: number;
-	reason?: string;
-	chainOfThought?: string;
+	score: number
+	reason?: string
+	chainOfThought?: string
 }
 
 export interface RunAggregation {
-	mean: number;
-	stddev: number;
-	min: number;
-	max: number;
-	p50: number;
-	p95: number;
-	p99: number;
-	scores: number[];
+	mean: number
+	stddev: number
+	min: number
+	max: number
+	p50: number
+	p95: number
+	p99: number
+	scores: number[]
 }
 
 export interface SingleRun {
-	output: ExperimentResult;
-	latencyMs: number;
-	evaluations: Record<string, ItemEvaluation>;
-	error?: string;
+	output: ExperimentResult
+	latencyMs: number
+	evaluations: Record<string, ItemEvaluation>
+	error?: string
 }
 
 export interface ItemResult {
-	index: number;
-	input: ExperimentItem;
+	index: number
+	input: ExperimentItem
 	// Flat fields for backward compatibility (when runs=1) and easy access
-	output: ExperimentResult;
-	latencyMs: number;
-	evaluations: Record<string, ItemEvaluation>;
-	error?: string;
+	output: ExperimentResult
+	latencyMs: number
+	evaluations: Record<string, ItemEvaluation>
+	error?: string
 	// Multiple runs support
-	runs: SingleRun[];
+	runs: SingleRun[]
 	aggregated?: {
-		avgLatencyMs: number;
-		evaluations: Record<string, RunAggregation>;
-	};
+		avgLatencyMs: number
+		evaluations: Record<string, RunAggregation>
+	}
 }
 
 export interface ExperimentSummary {
-	totalItems: number;
-	totalDurationMs: number;
-	avgLatencyMs: number;
-	totalTokens?: number;
-	estimatedCost?: number;
-	scores: Record<string, ScoreStats>;
+	totalItems: number
+	totalDurationMs: number
+	avgLatencyMs: number
+	totalTokens?: number
+	estimatedCost?: number
+	scores: Record<string, ScoreStats>
 }
 
 export interface ExperimentReport {
-	id: string;
-	name: string;
-	timestamp: string;
-	tags: string[];
+	id: string
+	name: string
+	timestamp: string
+	tags: string[]
 	config: {
-		runs: number;
-		concurrency: number;
-		timeout: number;
-		evaluators: string[];
-	};
-	summary: ExperimentSummary;
-	items: ItemResult[];
-	ciStatus?: CIResult; // CI mode threshold validation result
+		runs: number
+		concurrency: number
+		timeout: number
+		evaluators: string[]
+	}
+	summary: ExperimentSummary
+	items: ItemResult[]
+	ciStatus?: CIResult // CI mode threshold validation result
 }
 
 // ============================================================================
@@ -193,62 +193,62 @@ export interface ExperimentReport {
 // ============================================================================
 
 export interface JudgeConfig {
-	model: string;
-	provider: 'openai' | 'anthropic';
-	apiKey?: string;
+	model: string
+	provider: 'openai' | 'anthropic'
+	apiKey?: string
 }
 
 export interface DashboardConfig {
-	port: number;
-	open: boolean;
+	port: number
+	open: boolean
 }
 
 export interface CacheConfig {
-	enabled: boolean;
-	ttl: string;
+	enabled: boolean
+	ttl: string
 }
 
-export type ReporterType = 'cli' | 'json' | 'github-actions';
+export type ReporterType = 'cli' | 'json' | 'github-actions'
 
 export interface LangfuseConfig {
-	apiKey?: string;
-	publicKey?: string;
-	secretKey?: string;
-	baseUrl?: string;
+	apiKey?: string
+	publicKey?: string
+	secretKey?: string
+	baseUrl?: string
 }
 
 export interface LangSmithConfig {
-	apiKey?: string;
-	baseUrl?: string;
+	apiKey?: string
+	baseUrl?: string
 }
 
 export interface BraintrustConfig {
-	apiKey?: string;
-	baseUrl?: string;
+	apiKey?: string
+	baseUrl?: string
 }
 
 export interface BasaltConfig {
-	apiKey?: string;
-	baseUrl?: string;
+	apiKey?: string
+	baseUrl?: string
 }
 
 export interface CobaltConfig {
-	testDir: string;
-	testMatch: string[];
-	judge: JudgeConfig;
-	concurrency: number;
-	timeout: number;
-	reporters: ReporterType[];
-	dashboard: DashboardConfig;
-	cache: CacheConfig;
-	env?: Record<string, string>;
-	thresholds?: ThresholdConfig; // Default thresholds (validated only with --ci flag)
-	plugins?: string[]; // Paths to custom evaluator plugins
+	testDir: string
+	testMatch: string[]
+	judge: JudgeConfig
+	concurrency: number
+	timeout: number
+	reporters: ReporterType[]
+	dashboard: DashboardConfig
+	cache: CacheConfig
+	env?: Record<string, string>
+	thresholds?: ThresholdConfig // Default thresholds (validated only with --ci flag)
+	plugins?: string[] // Paths to custom evaluator plugins
 	// Remote dataset platform configurations
-	langfuse?: LangfuseConfig;
-	langsmith?: LangSmithConfig;
-	braintrust?: BraintrustConfig;
-	basalt?: BasaltConfig;
+	langfuse?: LangfuseConfig
+	langsmith?: LangSmithConfig
+	braintrust?: BraintrustConfig
+	basalt?: BasaltConfig
 }
 
 // ============================================================================
@@ -256,20 +256,20 @@ export interface CobaltConfig {
 // ============================================================================
 
 export interface ResultFilter {
-	experiment?: string;
-	tags?: string[];
-	since?: Date;
-	until?: Date;
+	experiment?: string
+	tags?: string[]
+	since?: Date
+	until?: Date
 }
 
 export interface ResultSummary {
-	id: string;
-	name: string;
-	timestamp: string;
-	tags: string[];
-	avgScores: Record<string, number>;
-	totalItems: number;
-	durationMs: number;
+	id: string
+	name: string
+	timestamp: string
+	tags: string[]
+	avgScores: Record<string, number>
+	totalItems: number
+	durationMs: number
 }
 
 // ============================================================================
@@ -277,34 +277,34 @@ export interface ResultSummary {
 // ============================================================================
 
 export interface ThresholdViolation {
-	category: string; // 'score' | 'latency' | 'tokens' | 'cost' | evaluator name
-	metric: string;
-	expected: number;
-	actual: number;
-	message: string;
+	category: string // 'score' | 'latency' | 'tokens' | 'cost' | evaluator name
+	metric: string
+	expected: number
+	actual: number
+	message: string
 }
 
 export interface CIResult {
-	passed: boolean;
-	violations: ThresholdViolation[];
-	summary: string;
+	passed: boolean
+	violations: ThresholdViolation[]
+	summary: string
 }
 
 export interface ThresholdMetric {
-	avg?: number;
-	min?: number;
-	max?: number;
-	p50?: number;
-	p95?: number;
-	p99?: number;
-	passRate?: number; // Percentage of items that must pass (0-1)
-	minScore?: number; // Minimum score required (used with passRate)
+	avg?: number
+	min?: number
+	max?: number
+	p50?: number
+	p95?: number
+	p99?: number
+	passRate?: number // Percentage of items that must pass (0-1)
+	minScore?: number // Minimum score required (used with passRate)
 }
 
 export interface ThresholdConfig {
-	score?: ThresholdMetric; // Global across ALL evaluators
-	latency?: ThresholdMetric; // Latency in ms
-	tokens?: ThresholdMetric; // Token count
-	cost?: ThresholdMetric; // Cost in USD
-	evaluators?: Record<string, ThresholdMetric>; // Per-evaluator overrides
+	score?: ThresholdMetric // Global across ALL evaluators
+	latency?: ThresholdMetric // Latency in ms
+	tokens?: ThresholdMetric // Token count
+	cost?: ThresholdMetric // Cost in USD
+	evaluators?: Record<string, ThresholdMetric> // Per-evaluator overrides
 }

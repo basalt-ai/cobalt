@@ -1,5 +1,10 @@
-import { registry } from '../../core/EvaluatorRegistry';
-import type { AutoevalsEvaluatorConfig, EvalContext, EvalResult } from '../../types';
+import { registry } from '../../core/EvaluatorRegistry'
+import type {
+	AutoevalsEvaluatorConfig,
+	EvalContext,
+	EvalResult,
+	EvaluatorConfig,
+} from '../../types'
 
 /**
  * Evaluate using Braintrust's Autoevals framework
@@ -9,38 +14,39 @@ import type { AutoevalsEvaluatorConfig, EvalContext, EvalResult } from '../../ty
  * @returns Evaluation result
  */
 export async function evaluateAutoevals(
-	config: AutoevalsEvaluatorConfig,
+	_config: EvaluatorConfig,
 	context: EvalContext,
 	_apiKey?: string,
 ): Promise<EvalResult> {
+	const config = _config as AutoevalsEvaluatorConfig
 	try {
 		// Dynamically import autoevals to avoid bundling if not used
-		const Autoevals = await import('autoevals');
+		const Autoevals = await import('autoevals')
 
 		// Get the evaluator by type
-		const evaluatorName = config.evaluatorType;
-		const EvaluatorClass = (Autoevals as any)[evaluatorName];
+		const evaluatorName = config.evaluatorType
+		const EvaluatorClass = (Autoevals as Record<string, unknown>)[evaluatorName]
 
 		if (!EvaluatorClass) {
 			throw new Error(
 				`Unknown Autoevals evaluator: ${evaluatorName}. Available: Levenshtein, Factuality, ContextRecall, ContextPrecision, AnswerRelevancy, Json, Battle, Humor, Embedding, ClosedQA, Security`,
-			);
+			)
 		}
 
 		// Prepare evaluation input
-		const input = context.item.input || context.item;
+		const input = context.item.input || context.item
 		const output =
-			typeof context.output === 'string' ? context.output : JSON.stringify(context.output);
+			typeof context.output === 'string' ? context.output : JSON.stringify(context.output)
 
 		// Get expected output if specified
-		const expectedField = config.expectedField || 'expectedOutput';
-		const expected = context.item[expectedField];
+		const expectedField = config.expectedField || 'expectedOutput'
+		const expected = context.item[expectedField]
 
 		// Build evaluator arguments based on type
-		const evalArgs: any = {
+		const evalArgs: Record<string, unknown> = {
 			output,
 			...(config.options || {}),
-		};
+		}
 
 		// Add expected/ground truth for evaluators that need it
 		if (
@@ -54,7 +60,7 @@ export async function evaluateAutoevals(
 			].includes(evaluatorName)
 		) {
 			if (expected !== undefined) {
-				evalArgs.expected = expected;
+				evalArgs.expected = expected
 			}
 		}
 
@@ -62,37 +68,38 @@ export async function evaluateAutoevals(
 		if (
 			['ContextRecall', 'ContextPrecision', 'AnswerRelevancy', 'ClosedQA'].includes(evaluatorName)
 		) {
-			evalArgs.input = input;
+			evalArgs.input = input
 		}
 
 		// Call the evaluator
-		const result = await EvaluatorClass(evalArgs);
+		const evaluatorFn = EvaluatorClass as (
+			args: Record<string, unknown>,
+		) => Promise<{ score?: number; error?: string; metadata?: Record<string, unknown> }>
+		const result = await evaluatorFn(evalArgs)
 
 		// Normalize score to 0-1 range
-		let score = result.score !== undefined ? result.score : 0;
+		let score = result.score !== undefined ? result.score : 0
 
 		// Some evaluators return scores in different ranges
 		if (score > 1) {
-			score = score / 100; // Convert percentage to 0-1
+			score = score / 100 // Convert percentage to 0-1
 		}
 
 		// Clamp to valid range
-		score = Math.max(0, Math.min(1, score));
+		score = Math.max(0, Math.min(1, score))
 
-		return {
-			score,
-			reason:
-				result.metadata?.rationale ||
-				result.error ||
-				`Autoevals ${evaluatorName} score: ${score.toFixed(3)}`,
-		};
+		const reason =
+			(result.metadata?.rationale as string) ||
+			result.error ||
+			`Autoevals ${evaluatorName} score: ${score.toFixed(3)}`
+		return { score, reason }
 	} catch (error) {
 		return {
 			score: 0,
 			reason: `Autoevals error: ${error instanceof Error ? error.message : String(error)}`,
-		};
+		}
 	}
 }
 
 // Register with global registry
-registry.register('autoevals', evaluateAutoevals);
+registry.register('autoevals', evaluateAutoevals)

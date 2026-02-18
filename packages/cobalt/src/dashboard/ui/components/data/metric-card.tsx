@@ -1,10 +1,10 @@
-import { cn } from '../../lib/utils';
+import { cn } from '../../lib/utils'
 
 interface MetricCardProps {
-	label: string;
-	value: string | number;
-	detail?: string;
-	className?: string;
+	label: string
+	value: string | number
+	detail?: string
+	className?: string
 }
 
 export function MetricCard({ label, value, detail, className }: MetricCardProps) {
@@ -14,5 +14,5 @@ export function MetricCard({ label, value, detail, className }: MetricCardProps)
 			<p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
 			{detail && <p className="mt-0.5 text-xs text-muted-foreground">{detail}</p>}
 		</div>
-	);
+	)
 }
