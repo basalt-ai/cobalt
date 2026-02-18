@@ -20,6 +20,13 @@ import { ScoreBadge, ScoreChange } from '../components/data/score-badge';
 import { PageHeader } from '../components/layout/page-header';
 import { Button } from '../components/ui/button';
 import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogHeader,
+	DialogTitle,
+} from '../components/ui/dialog';
+import {
 	Select,
 	SelectContent,
 	SelectItem,
@@ -461,6 +468,8 @@ function CompareStatsTable({
 	);
 }
 
+type CompareItem = CompareResponse['items'][number];
+
 function CompareItemsTable({
 	data,
 	evaluatorNames,
@@ -472,6 +481,7 @@ function CompareItemsTable({
 }) {
 	const [filters, setFilters] = useState<FilterValue[]>([]);
 	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
+	const [selectedItem, setSelectedItem] = useState<CompareItem | null>(null);
 
 	// Detect which optional columns have data
 	const hasTokens = useMemo(
@@ -633,7 +643,11 @@ function CompareItemsTable({
 						{filteredItems.map((item) => (
 							<tr
 								key={item.index}
-								className="border-b last:border-0 hover:bg-muted/50 transition-colors"
+								className="border-b last:border-0 hover:bg-muted/50 transition-colors cursor-pointer"
+								onClick={() => setSelectedItem(item)}
+								onKeyDown={(e) => {
+									if (e.key === 'Enter' || e.key === ' ') setSelectedItem(item);
+								}}
 							>
 								<td className="px-4 py-2.5 tabular-nums text-muted-foreground align-top">
 									{item.index + 1}
@@ -729,7 +743,157 @@ function CompareItemsTable({
 					</tbody>
 				</table>
 			</div>
+
+			<CompareItemDetailDialog
+				item={selectedItem}
+				runs={data.runs}
+				evaluatorNames={evaluatorNames}
+				booleanEvals={booleanEvals}
+				onClose={() => setSelectedItem(null)}
+			/>
 		</div>
+	);
+}
+
+function CompareItemDetailDialog({
+	item,
+	runs,
+	evaluatorNames,
+	booleanEvals,
+	onClose,
+}: {
+	item: CompareItem | null;
+	runs: CompareResponse['runs'];
+	evaluatorNames: string[];
+	booleanEvals: Set<string>;
+	onClose: () => void;
+}) {
+	if (!item) return null;
+
+	return (
+		<Dialog open={!!item} onOpenChange={(open) => !open && onClose()}>
+			<DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
+				<DialogHeader>
+					<DialogTitle>Item #{item.index + 1}</DialogTitle>
+					<DialogDescription>Comparing across {runs.length} runs</DialogDescription>
+				</DialogHeader>
+
+				<div className="space-y-5">
+					{/* Shared input */}
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-1">Input</h4>
+						<pre className="rounded-lg bg-muted p-3 text-xs overflow-x-auto whitespace-pre-wrap">
+							{JSON.stringify(item.input, null, 2)}
+						</pre>
+					</div>
+
+					{/* Side-by-side outputs */}
+					<div>
+						<h4 className="text-xs font-medium text-muted-foreground mb-2">Outputs</h4>
+						<div className={cn('grid gap-3', runs.length === 2 ? 'grid-cols-2' : 'grid-cols-3')}>
+							{runs.map((run, i) => {
+								const out = item.outputs[i];
+								const outputVal = out ? getOutputValue(out.output) : null;
+								return (
+									<div
+										key={run.id}
+										className={cn('rounded-lg border p-3', RUN_COLORS[i].bg, RUN_COLORS[i].border)}
+									>
+										<div className="flex items-center gap-1.5 mb-2">
+											<span
+												className={cn(
+													'inline-flex h-4 w-4 items-center justify-center rounded text-[10px] font-bold text-white',
+													RUN_COLORS[i].fill,
+												)}
+											>
+												{RUN_COLORS[i].label}
+											</span>
+											<span className="text-xs font-medium">{run.name}</span>
+										</div>
+										{out?.error ? (
+											<pre className="rounded-md bg-tomato-3 p-2 text-xs text-tomato-12 overflow-x-auto">
+												{out.error}
+											</pre>
+										) : (
+											<pre className="rounded-md bg-muted p-2 text-xs overflow-x-auto whitespace-pre-wrap max-h-48">
+												{outputVal
+													? typeof outputVal === 'string'
+														? outputVal
+														: JSON.stringify(outputVal, null, 2)
+													: '-'}
+											</pre>
+										)}
+										{out && (
+											<p className="mt-1.5 text-[10px] text-muted-foreground">
+												{formatDuration(out.latencyMs)}
+											</p>
+										)}
+									</div>
+								);
+							})}
+						</div>
+					</div>
+
+					{/* Side-by-side evaluations */}
+					{evaluatorNames.length > 0 && (
+						<div>
+							<h4 className="text-xs font-medium text-muted-foreground mb-2">Evaluations</h4>
+							<div className="space-y-3">
+								{evaluatorNames.map((evalName) => (
+									<div key={evalName} className="rounded-lg border p-3">
+										<p className="text-sm font-medium mb-2">{evalName}</p>
+										<div
+											className={cn(
+												'grid gap-3',
+												runs.length === 2 ? 'grid-cols-2' : 'grid-cols-3',
+											)}
+										>
+											{runs.map((run, i) => {
+												const ev = item.outputs[i]?.evaluations[evalName];
+												return (
+													<div key={run.id} className={cn('rounded-md p-2', RUN_COLORS[i].bg)}>
+														<div className="flex items-center justify-between mb-1">
+															<span className="text-xs text-muted-foreground">
+																Run {RUN_COLORS[i].label}
+															</span>
+															{ev ? (
+																<ScoreBadge score={ev.score} boolean={booleanEvals.has(evalName)} />
+															) : (
+																<span className="text-xs text-muted-foreground">-</span>
+															)}
+														</div>
+														{ev?.reason && (
+															<p className="text-xs text-muted-foreground mt-1">{ev.reason}</p>
+														)}
+													</div>
+												);
+											})}
+										</div>
+										{/* Delta vs base */}
+										{runs.length > 1 && item.outputs[0]?.evaluations[evalName] && (
+											<div className="mt-2 pt-2 border-t flex gap-4">
+												{runs.slice(1).map((_, i) => {
+													const baseScore = item.outputs[0]?.evaluations[evalName]?.score ?? 0;
+													const compScore = item.outputs[i + 1]?.evaluations[evalName]?.score;
+													if (compScore == null) return null;
+													const diff = compScore - baseScore;
+													return (
+														<span key={RUN_COLORS[i + 1].label} className="text-xs">
+															{RUN_COLORS[i + 1].label} vs A:{' '}
+															<ScoreChange value={baseScore !== 0 ? diff / baseScore : 0} />
+														</span>
+													);
+												})}
+											</div>
+										)}
+									</div>
+								))}
+							</div>
+						</div>
+					)}
+				</div>
+			</DialogContent>
+		</Dialog>
 	);
 }
 
