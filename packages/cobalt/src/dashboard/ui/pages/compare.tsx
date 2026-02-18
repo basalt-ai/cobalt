@@ -1,17 +1,25 @@
-import { ArrowLeft, Clock } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router'
-import { compareRuns } from '../api/compare'
-import type { CompareResponse } from '../api/types'
-import { ColumnCell } from '../components/data/column-cell'
-import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options'
-import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar'
-import { ScoreBadge, ScoreChange } from '../components/data/score-badge'
-import { PageHeader } from '../components/layout/page-header'
-import { Button } from '../components/ui/button'
-import { Skeleton } from '../components/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
-import { useApi } from '../hooks/use-api'
+import { ArrowLeft, Clock } from '@phosphor-icons/react';
+import { useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router';
+import {
+	Bar,
+	BarChart,
+	Cell,
+	Tooltip as RechartsTooltip,
+	ResponsiveContainer,
+	XAxis,
+} from 'recharts';
+import { compareRuns } from '../api/compare';
+import type { CompareResponse } from '../api/types';
+import { ColumnCell } from '../components/data/column-cell';
+import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
+import { FilterBar, type FilterDef, type FilterValue } from '../components/data/filter-bar';
+import { ScoreBadge, ScoreChange } from '../components/data/score-badge';
+import { PageHeader } from '../components/layout/page-header';
+import { Button } from '../components/ui/button';
+import { Skeleton } from '../components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { useApi } from '../hooks/use-api';
 import {
 	type ClientStats,
 	cn,
@@ -19,7 +27,7 @@ import {
 	detectBooleanEvaluators,
 	formatDuration,
 	formatScore,
-} from '../lib/utils'
+} from '../lib/utils';
 
 const RUN_COLORS = [
 	{
@@ -43,35 +51,35 @@ const RUN_COLORS = [
 		bg: 'bg-[#FEF7FB] dark:bg-pink-950',
 		border: 'border-[#F6CEE7] dark:border-pink-800',
 	},
-] as const
+] as const;
 
 export function ComparePage() {
-	const [searchParams] = useSearchParams()
-	const a = searchParams.get('a')
-	const b = searchParams.get('b')
-	const c = searchParams.get('c')
+	const [searchParams] = useSearchParams();
+	const a = searchParams.get('a');
+	const b = searchParams.get('b');
+	const c = searchParams.get('c');
 
 	const runIds = useMemo(() => {
-		const ids = [a, b].filter(Boolean) as string[]
-		if (c) ids.push(c)
-		return ids
-	}, [a, b, c])
+		const ids = [a, b].filter(Boolean) as string[];
+		if (c) ids.push(c);
+		return ids;
+	}, [a, b, c]);
 
 	const { data, error, loading } = useApi<CompareResponse>(() => {
-		if (runIds.length < 2) return Promise.reject(new Error('Missing run IDs'))
-		return compareRuns(runIds)
-	}, [runIds])
+		if (runIds.length < 2) return Promise.reject(new Error('Missing run IDs'));
+		return compareRuns(runIds);
+	}, [runIds]);
 
-	const evaluatorNames = useMemo(() => (data ? Object.keys(data.scoreDiffs) : []), [data])
+	const evaluatorNames = useMemo(() => (data ? Object.keys(data.scoreDiffs) : []), [data]);
 
 	// Detect boolean evaluators from all outputs across all runs
 	const booleanEvals = useMemo(() => {
-		if (!data) return new Set<string>()
-		const allOutputs = data.items.flatMap(item =>
+		if (!data) return new Set<string>();
+		const allOutputs = data.items.flatMap((item) =>
 			item.outputs.filter((o): o is NonNullable<typeof o> => o != null),
-		)
-		return detectBooleanEvaluators(allOutputs, evaluatorNames)
-	}, [data, evaluatorNames])
+		);
+		return detectBooleanEvaluators(allOutputs, evaluatorNames);
+	}, [data, evaluatorNames]);
 
 	if (runIds.length < 2) {
 		return (
@@ -86,10 +94,10 @@ export function ComparePage() {
 					</Button>
 				</Link>
 			</div>
-		)
+		);
 	}
 
-	if (loading) return <LoadingSkeleton />
+	if (loading) return <LoadingSkeleton />;
 	if (error) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 text-center">
@@ -103,9 +111,9 @@ export function ComparePage() {
 					Retry
 				</Button>
 			</div>
-		)
+		);
 	}
-	if (!data) return null
+	if (!data) return null;
 
 	return (
 		<div className="space-y-6">
@@ -136,9 +144,9 @@ export function ComparePage() {
 
 			{/* Score Comparison Cards */}
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-				{evaluatorNames.map(name => {
-					const diff = data.scoreDiffs[name]
-					const isBool = booleanEvals.has(name)
+				{evaluatorNames.map((name) => {
+					const diff = data.scoreDiffs[name];
+					const isBool = booleanEvals.has(name);
 					return (
 						<div key={name} className="rounded-xl border bg-card shadow-sm p-4">
 							<p className="text-xs font-medium text-muted-foreground mb-3">
@@ -147,17 +155,23 @@ export function ComparePage() {
 									<span className="ml-1.5 text-[10px] text-muted-foreground/70">(pass rate)</span>
 								)}
 							</p>
-							<div className="space-y-2">
-								{diff.scores.map((score, i) => (
-									<ScoreRow
-										key={RUN_COLORS[i].label}
-										label={RUN_COLORS[i].label}
-										score={score}
-										color={RUN_COLORS[i]}
-									/>
-								))}
+							<div className="flex items-center gap-3">
+								<div className="flex-1">
+									<ScoreBarChart scores={diff.scores} />
+								</div>
+								<div className="flex flex-col gap-1">
+									{diff.scores.map((score, i) => (
+										<div key={RUN_COLORS[i].label} className="flex items-center gap-1.5">
+											<span
+												className="inline-block h-2 w-2 rounded-sm"
+												style={{ backgroundColor: BAR_FILLS[i] }}
+											/>
+											<ScoreBadge score={score} className="text-xs" />
+										</div>
+									))}
+								</div>
 							</div>
-							{diff.diffs.some(d => d !== 0) && (
+							{diff.diffs.some((d) => d !== 0) && (
 								<div className="mt-3 pt-2 border-t">
 									{diff.diffs.map(
 										(d, i) =>
@@ -176,7 +190,7 @@ export function ComparePage() {
 								</div>
 							)}
 						</div>
-					)
+					);
 				})}
 			</div>
 
@@ -186,7 +200,7 @@ export function ComparePage() {
 			{/* Items Table */}
 			<CompareItemsTable data={data} evaluatorNames={evaluatorNames} booleanEvals={booleanEvals} />
 		</div>
-	)
+	);
 }
 
 function RunLabel({
@@ -194,9 +208,9 @@ function RunLabel({
 	color,
 	label,
 }: {
-	run: { id: string; name: string; timestamp: string }
-	color: (typeof RUN_COLORS)[number]
-	label: string
+	run: { id: string; name: string; timestamp: string };
+	color: (typeof RUN_COLORS)[number];
+	label: string;
 }) {
 	return (
 		<div className={cn('rounded-lg border px-3 py-2', color.bg, color.border)}>
@@ -217,31 +231,39 @@ function RunLabel({
 				</div>
 			</div>
 		</div>
-	)
+	);
 }
 
-function ScoreRow({
-	label,
-	score,
-	color,
-}: {
-	label: string
-	score: number
-	color: (typeof RUN_COLORS)[number]
-}) {
+const BAR_FILLS = ['#231F1C', '#3358D4', '#CF3897'] as const;
+
+function ScoreBarChart({ scores }: { scores: number[] }) {
+	const data = scores.map((score, i) => ({
+		name: RUN_COLORS[i].label,
+		score,
+		fill: BAR_FILLS[i],
+	}));
+
 	return (
-		<div className="flex items-center gap-2">
-			<span className={cn('h-2 w-2 rounded-sm', color.fill)} />
-			<span className="text-xs text-muted-foreground w-3">{label}</span>
-			<div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-				<div
-					className={cn('h-full rounded-full transition-all', color.fill)}
-					style={{ width: `${Math.max(score * 100, 2)}%` }}
+		<ResponsiveContainer width="100%" height={scores.length * 28 + 8}>
+			<BarChart data={data} layout="vertical" margin={{ left: 0, right: 4, top: 4, bottom: 4 }}>
+				<XAxis type="number" domain={[0, 1]} hide />
+				<RechartsTooltip
+					formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'Score']}
+					contentStyle={{
+						fontSize: 12,
+						borderRadius: 8,
+						border: '1px solid var(--border)',
+						background: 'var(--card)',
+					}}
 				/>
-			</div>
-			<ScoreBadge score={score} className="ml-1" />
-		</div>
-	)
+				<Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={14}>
+					{data.map((entry) => (
+						<Cell key={entry.name} fill={entry.fill} />
+					))}
+				</Bar>
+			</BarChart>
+		</ResponsiveContainer>
+	);
 }
 
 function CompareStatsTabs({ data }: { data: CompareResponse }) {
@@ -249,25 +271,25 @@ function CompareStatsTabs({ data }: { data: CompareResponse }) {
 	const latencyStatsPerRun = useMemo(() => {
 		return data.runs.map((_, runIdx) => {
 			const latencies = data.items
-				.map(item => item.outputs[runIdx]?.latencyMs)
-				.filter((v): v is number => v != null)
-			return computeClientStats(latencies)
-		})
-	}, [data.items, data.runs])
+				.map((item) => item.outputs[runIdx]?.latencyMs)
+				.filter((v): v is number => v != null);
+			return computeClientStats(latencies);
+		});
+	}, [data.items, data.runs]);
 
 	// Compute per-run token stats
 	const tokenStatsPerRun = useMemo(() => {
 		const perRun = data.runs.map((_, runIdx) => {
 			const tokens = data.items
-				.map(item => {
-					const out = item.outputs[runIdx]
-					return out ? getTokens(out.output) : undefined
+				.map((item) => {
+					const out = item.outputs[runIdx];
+					return out ? getTokens(out.output) : undefined;
 				})
-				.filter((v): v is number => v != null)
-			return tokens.length > 0 ? computeClientStats(tokens) : null
-		})
-		return perRun.some(s => s != null) ? perRun : null
-	}, [data.items, data.runs])
+				.filter((v): v is number => v != null);
+			return tokens.length > 0 ? computeClientStats(tokens) : null;
+		});
+		return perRun.some((s) => s != null) ? perRun : null;
+	}, [data.items, data.runs]);
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -292,13 +314,13 @@ function CompareStatsTabs({ data }: { data: CompareResponse }) {
 						<CompareStatsTable
 							label="Tokens"
 							statsPerRun={tokenStatsPerRun}
-							format={v => Math.round(v).toLocaleString()}
+							format={(v) => Math.round(v).toLocaleString()}
 						/>
 					</TabsContent>
 				)}
 			</Tabs>
 		</div>
-	)
+	);
 }
 
 function CompareStatsTable({
@@ -306,11 +328,11 @@ function CompareStatsTable({
 	statsPerRun,
 	format,
 }: {
-	label: string
-	statsPerRun: (ClientStats | null)[]
-	format: (v: number) => string
+	label: string;
+	statsPerRun: (ClientStats | null)[];
+	format: (v: number) => string;
 }) {
-	const metrics = ['avg', 'min', 'max', 'p50', 'p95', 'p99'] as const
+	const metrics = ['avg', 'min', 'max', 'p50', 'p95', 'p99'] as const;
 
 	return (
 		<div className="overflow-x-auto">
@@ -318,7 +340,7 @@ function CompareStatsTable({
 				<thead>
 					<tr className="border-b">
 						<th className="px-4 py-2.5 text-left font-medium text-muted-foreground">{label}</th>
-						{metrics.map(m => (
+						{metrics.map((m) => (
 							<th key={m} className="px-4 py-2.5 text-right font-medium text-muted-foreground">
 								{m === 'avg' ? 'Avg' : m.charAt(0).toUpperCase() + m.slice(1)}
 							</th>
@@ -334,7 +356,7 @@ function CompareStatsTable({
 									<span>Run {RUN_COLORS[i].label}</span>
 								</div>
 							</td>
-							{metrics.map(m => (
+							{metrics.map((m) => (
 								<td key={m} className="px-4 py-2.5 text-right tabular-nums text-muted-foreground">
 									{stats ? format(stats[m]) : '-'}
 								</td>
@@ -344,7 +366,7 @@ function CompareStatsTable({
 				</tbody>
 			</table>
 		</div>
-	)
+	);
 }
 
 function CompareItemsTable({
@@ -352,34 +374,36 @@ function CompareItemsTable({
 	evaluatorNames,
 	booleanEvals,
 }: {
-	data: CompareResponse
-	evaluatorNames: string[]
-	booleanEvals: Set<string>
+	data: CompareResponse;
+	evaluatorNames: string[];
+	booleanEvals: Set<string>;
 }) {
-	const [filters, setFilters] = useState<FilterValue[]>([])
-	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({})
+	const [filters, setFilters] = useState<FilterValue[]>([]);
+	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
 
 	// Detect which optional columns have data
 	const hasTokens = useMemo(
-		() => data.items.some(item => item.outputs.some(out => out && getTokens(out.output) != null)),
+		() =>
+			data.items.some((item) => item.outputs.some((out) => out && getTokens(out.output) != null)),
 		[data.items],
-	)
+	);
 	const hasMetadata = useMemo(
-		() => data.items.some(item => item.outputs.some(out => out && getMetadata(out.output) != null)),
+		() =>
+			data.items.some((item) => item.outputs.some((out) => out && getMetadata(out.output) != null)),
 		[data.items],
-	)
+	);
 
 	const filterDefs: FilterDef[] = useMemo(
 		() => [
 			{ key: 'latencyMs', label: 'Latency (ms)', type: 'number' },
-			...evaluatorNames.map(n => ({
+			...evaluatorNames.map((n) => ({
 				key: `score_${n}`,
 				label: `${n} Score`,
 				type: 'number' as const,
 			})),
 		],
 		[evaluatorNames],
-	)
+	);
 
 	const displayColumns = useMemo(
 		() => [
@@ -387,60 +411,60 @@ function CompareItemsTable({
 			{ key: 'output', label: 'Output' },
 			{ key: 'latency', label: 'Latency' },
 			...(hasTokens ? [{ key: 'tokens', label: 'Tokens' }] : []),
-			...evaluatorNames.map(n => ({ key: `eval_${n}`, label: n })),
+			...evaluatorNames.map((n) => ({ key: `eval_${n}`, label: n })),
 			...(hasMetadata ? [{ key: 'metadata', label: 'Metadata' }] : []),
 		],
 		[evaluatorNames, hasTokens, hasMetadata],
-	)
+	);
 
 	// Apply filters
 	const filteredItems = useMemo(() => {
-		if (filters.length === 0) return data.items
-		return data.items.filter(item =>
-			filters.every(f => {
+		if (filters.length === 0) return data.items;
+		return data.items.filter((item) =>
+			filters.every((f) => {
 				if (f.key === 'latencyMs') {
-					const lat = item.outputs[0]?.latencyMs
-					if (lat == null) return false
-					return applyNumericFilter(lat, f.operator, Number(f.value))
+					const lat = item.outputs[0]?.latencyMs;
+					if (lat == null) return false;
+					return applyNumericFilter(lat, f.operator, Number(f.value));
 				}
 				if (f.key.startsWith('score_')) {
-					const evalName = f.key.slice(6)
-					const score = item.outputs[0]?.evaluations[evalName]?.score
-					if (score == null) return false
-					return applyNumericFilter(score, f.operator, Number(f.value))
+					const evalName = f.key.slice(6);
+					const score = item.outputs[0]?.evaluations[evalName]?.score;
+					if (score == null) return false;
+					return applyNumericFilter(score, f.operator, Number(f.value));
 				}
-				return true
+				return true;
 			}),
-		)
-	}, [data.items, filters])
+		);
+	}, [data.items, filters]);
 
 	// Compute average latency per run
 	const avgLatencies = useMemo(() => {
 		return data.runs.map((_, runIdx) => {
 			const latencies = filteredItems
-				.map(item => item.outputs[runIdx]?.latencyMs)
-				.filter((v): v is number => v != null)
-			if (latencies.length === 0) return 0
-			return latencies.reduce((a, b) => a + b, 0) / latencies.length
-		})
-	}, [filteredItems, data.runs])
+				.map((item) => item.outputs[runIdx]?.latencyMs)
+				.filter((v): v is number => v != null);
+			if (latencies.length === 0) return 0;
+			return latencies.reduce((a, b) => a + b, 0) / latencies.length;
+		});
+	}, [filteredItems, data.runs]);
 
 	// Compute average score per evaluator per run
 	const avgScores = useMemo(() => {
-		const result: Record<string, number[]> = {}
+		const result: Record<string, number[]> = {};
 		for (const name of evaluatorNames) {
 			result[name] = data.runs.map((_, runIdx) => {
 				const scores = filteredItems
-					.map(item => item.outputs[runIdx]?.evaluations[name]?.score)
-					.filter((v): v is number => v != null)
-				if (scores.length === 0) return 0
-				return scores.reduce((a, b) => a + b, 0) / scores.length
-			})
+					.map((item) => item.outputs[runIdx]?.evaluations[name]?.score)
+					.filter((v): v is number => v != null);
+				if (scores.length === 0) return 0;
+				return scores.reduce((a, b) => a + b, 0) / scores.length;
+			});
 		}
-		return result
-	}, [filteredItems, data.runs, evaluatorNames])
+		return result;
+	}, [filteredItems, data.runs, evaluatorNames]);
 
-	const isVisible = (key: string) => columnVisibility[key] !== false
+	const isVisible = (key: string) => columnVisibility[key] !== false;
 
 	return (
 		<div className="rounded-xl border bg-card shadow-sm overflow-hidden">
@@ -487,7 +511,7 @@ function CompareItemsTable({
 							{hasTokens && isVisible('tokens') && (
 								<th className="px-4 py-2.5 text-right font-medium text-muted-foreground">Tokens</th>
 							)}
-							{evaluatorNames.map(name =>
+							{evaluatorNames.map((name) =>
 								isVisible(`eval_${name}`) ? (
 									<th
 										key={name}
@@ -514,7 +538,7 @@ function CompareItemsTable({
 						</tr>
 					</thead>
 					<tbody>
-						{filteredItems.map(item => (
+						{filteredItems.map((item) => (
 							<tr
 								key={item.index}
 								className="border-b last:border-0 hover:bg-muted/50 transition-colors"
@@ -557,23 +581,23 @@ function CompareItemsTable({
 									<td className="px-4 py-2.5 text-right align-top">
 										<ColumnCell className="items-end">
 											{item.outputs.map((out, idx) => {
-												const tokens = out ? getTokens(out.output) : undefined
+												const tokens = out ? getTokens(out.output) : undefined;
 												return (
 													// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
 													<span key={idx} className="text-xs tabular-nums text-muted-foreground">
 														{tokens != null ? tokens.toLocaleString() : '-'}
 													</span>
-												)
+												);
 											})}
 										</ColumnCell>
 									</td>
 								)}
-								{evaluatorNames.map(name =>
+								{evaluatorNames.map((name) =>
 									isVisible(`eval_${name}`) ? (
 										<td key={name} className="px-4 py-2.5 text-right align-top">
 											<ColumnCell className="items-end">
 												{item.outputs.map((out, idx) => {
-													const ev = out?.evaluations[name]
+													const ev = out?.evaluations[name];
 													return ev ? (
 														<ScoreBadge
 															// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
@@ -587,7 +611,7 @@ function CompareItemsTable({
 														<span key={idx} className="text-muted-foreground text-xs">
 															-
 														</span>
-													)
+													);
 												})}
 											</ColumnCell>
 										</td>
@@ -597,13 +621,13 @@ function CompareItemsTable({
 									<td className="px-4 py-2.5 max-w-48 align-top">
 										<ColumnCell>
 											{item.outputs.map((out, idx) => {
-												const meta = out ? getMetadata(out.output) : undefined
+												const meta = out ? getMetadata(out.output) : undefined;
 												return (
 													// biome-ignore lint/suspicious/noArrayIndexKey: positional A/B/C
 													<span key={idx} className="line-clamp-2 text-xs text-muted-foreground">
 														{meta ? truncateValue(meta) : '-'}
 													</span>
-												)
+												);
 											})}
 										</ColumnCell>
 									</td>
@@ -614,54 +638,54 @@ function CompareItemsTable({
 				</table>
 			</div>
 		</div>
-	)
+	);
 }
 
 function applyNumericFilter(val: number, op: FilterValue['operator'], target: number): boolean {
 	switch (op) {
 		case 'eq':
-			return val === target
+			return val === target;
 		case 'gt':
-			return val > target
+			return val > target;
 		case 'lt':
-			return val < target
+			return val < target;
 		case 'gte':
-			return val >= target
+			return val >= target;
 		case 'lte':
-			return val <= target
+			return val <= target;
 		default:
-			return true
+			return true;
 	}
 }
 
 /** Extract the actual output value from an ExperimentResult or raw value */
 function getOutputValue(output: unknown): unknown {
 	if (output && typeof output === 'object' && 'output' in output) {
-		return (output as { output: unknown }).output
+		return (output as { output: unknown }).output;
 	}
-	return output
+	return output;
 }
 
 /** Extract metadata from an ExperimentResult */
 function getMetadata(output: unknown): Record<string, unknown> | undefined {
 	if (output && typeof output === 'object' && 'metadata' in output) {
-		return (output as { metadata?: Record<string, unknown> }).metadata ?? undefined
+		return (output as { metadata?: Record<string, unknown> }).metadata ?? undefined;
 	}
-	return undefined
+	return undefined;
 }
 
 /** Get tokens from item metadata */
 function getTokens(output: unknown): number | undefined {
-	const meta = getMetadata(output)
-	if (!meta) return undefined
-	const tokens = meta.tokens
-	return typeof tokens === 'number' ? tokens : undefined
+	const meta = getMetadata(output);
+	if (!meta) return undefined;
+	const tokens = meta.tokens;
+	return typeof tokens === 'number' ? tokens : undefined;
 }
 
 function truncateValue(value: unknown): string {
-	if (typeof value === 'string') return value
-	const str = JSON.stringify(value)
-	return str.length > 120 ? `${str.slice(0, 120)}...` : str
+	if (typeof value === 'string') return value;
+	const str = JSON.stringify(value);
+	return str.length > 120 ? `${str.slice(0, 120)}...` : str;
 }
 
 function LoadingSkeleton() {
@@ -682,5 +706,5 @@ function LoadingSkeleton() {
 			<Skeleton className="h-48 rounded-xl" />
 			<Skeleton className="h-64 rounded-xl" />
 		</div>
-	)
+	);
 }
