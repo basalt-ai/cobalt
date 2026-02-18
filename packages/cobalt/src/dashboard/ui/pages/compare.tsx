@@ -8,6 +8,7 @@ import {
 	Tooltip as RechartsTooltip,
 	ResponsiveContainer,
 	XAxis,
+	YAxis,
 } from 'recharts'
 import { compareRuns } from '../api/compare'
 import { getRuns } from '../api/runs'
@@ -342,7 +343,7 @@ const BAR_FILLS = ['#231F1C', '#3358D4', '#CF3897'] as const
 
 function ScoreBarChart({ scores }: { scores: number[] }) {
 	const data = scores.map((score, i) => ({
-		name: RUN_COLORS[i].label,
+		name: `Run ${RUN_COLORS[i].label}`,
 		score,
 		fill: BAR_FILLS[i],
 	}))
@@ -351,8 +352,10 @@ function ScoreBarChart({ scores }: { scores: number[] }) {
 		<ResponsiveContainer width="100%" height={scores.length * 28 + 8}>
 			<BarChart data={data} layout="vertical" margin={{ left: 0, right: 4, top: 4, bottom: 4 }}>
 				<XAxis type="number" domain={[0, 1]} hide />
+				<YAxis type="category" dataKey="name" hide />
 				<RechartsTooltip
 					formatter={(value: number) => [`${(value * 100).toFixed(1)}%`, 'Score']}
+					labelFormatter={(label: string) => label}
 					contentStyle={{
 						fontSize: 12,
 						borderRadius: 8,
