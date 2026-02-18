@@ -1,6 +1,6 @@
 import { useChat } from '@ai-sdk/react'
 import { PaperPlaneTilt, X } from '@phosphor-icons/react'
-import { useEffect, useRef } from 'react'
+import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { useChatContext } from '../../hooks/use-chat-context'
 import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
@@ -14,14 +14,9 @@ interface ChatPanelProps {
 export function ChatPanel({ open, onClose }: ChatPanelProps) {
 	const chatContext = useChatContext()
 	const scrollRef = useRef<HTMLDivElement>(null)
+	const [input, setInput] = useState('')
 
-	const {
-		messages,
-		input = '',
-		handleInputChange,
-		handleSubmit,
-		isLoading,
-	} = useChat({
+	const { messages, append, isLoading } = useChat({
 		api: '/api/chat',
 		body: { context: chatContext },
 	})
@@ -32,6 +27,14 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight
 		}
 	}, [messages.length])
+
+	const onSubmit = (e: FormEvent) => {
+		e.preventDefault()
+		const text = input.trim()
+		if (!text || isLoading) return
+		setInput('')
+		append({ role: 'user', content: text })
+	}
 
 	if (!open) return null
 
@@ -75,10 +78,10 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 			</div>
 
 			{/* Input */}
-			<form onSubmit={handleSubmit} className="border-t px-4 py-3 flex gap-2">
+			<form onSubmit={onSubmit} className="border-t px-4 py-3 flex gap-2">
 				<input
 					value={input}
-					onChange={handleInputChange}
+					onChange={e => setInput(e.target.value)}
 					placeholder="Ask about your experiments..."
 					className={cn(
 						'flex-1 h-9 rounded-md border bg-background px-3 text-sm',
@@ -91,7 +94,7 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 					type="submit"
 					size="icon"
 					className="h-9 w-9 shrink-0"
-					disabled={isLoading || !input?.trim()}
+					disabled={isLoading || !input.trim()}
 				>
 					<PaperPlaneTilt className="h-4 w-4" />
 				</Button>
