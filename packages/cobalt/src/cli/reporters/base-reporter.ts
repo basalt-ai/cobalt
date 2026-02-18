@@ -1,5 +1,5 @@
-import type { ProgressInfo } from '../../core/runner';
-import type { CIResult, ExperimentReport } from '../../types';
+import type { ProgressInfo } from '../../core/runner'
+import type { CIResult, ExperimentReport } from '../../types'
 
 /**
  * Reporter interface for outputting experiment results
@@ -8,40 +8,40 @@ export interface Reporter {
 	/**
 	 * Called when experiment starts
 	 */
-	onStart(info: ExperimentStartInfo): void;
+	onStart(info: ExperimentStartInfo): void
 
 	/**
 	 * Called during experiment execution to report progress
 	 */
-	onProgress(info: ProgressInfo): void;
+	onProgress(info: ProgressInfo): void
 
 	/**
 	 * Called when CI validation completes
 	 */
-	onCIStatus(ciStatus: CIResult): void;
+	onCIStatus(ciStatus: CIResult): void
 
 	/**
 	 * Called when experiment completes successfully
 	 */
-	onComplete(report: ExperimentReport, resultPath: string): void;
+	onComplete(report: ExperimentReport, resultPath: string): void
 
 	/**
 	 * Called when an error occurs
 	 */
-	onError(error: Error, context?: string): void;
+	onError(error: Error, context?: string): void
 }
 
 /**
  * Information about experiment start
  */
 export interface ExperimentStartInfo {
-	name: string;
-	datasetSize: number;
-	evaluators: string[];
-	concurrency: number;
-	timeout: number;
-	runs: number;
-	tags: string[];
+	name: string
+	datasetSize: number
+	evaluators: string[]
+	concurrency: number
+	timeout: number
+	runs: number
+	tags: string[]
 }
 
 /**

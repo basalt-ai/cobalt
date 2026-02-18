@@ -1,36 +1,36 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { registry as globalRegistry } from '../../../src/core/EvaluatorRegistry';
-import type { EvaluatorPlugin, PluginDefinition } from '../../../src/core/plugin';
-import type { EvaluatorHandler } from '../../../src/core/plugin';
-import { loadPlugin, loadPlugins, registerPluginEvaluators } from '../../../src/core/plugin-loader';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { registry as globalRegistry } from '../../../src/core/EvaluatorRegistry'
+import type { EvaluatorPlugin, PluginDefinition } from '../../../src/core/plugin'
+import type { EvaluatorHandler } from '../../../src/core/plugin'
+import { loadPlugin, loadPlugins, registerPluginEvaluators } from '../../../src/core/plugin-loader'
 
 describe('Plugin Loader', () => {
-	let testDir: string;
-	const originalList = globalRegistry.list();
+	let testDir: string
+	const originalList = globalRegistry.list()
 
 	beforeEach(() => {
 		// Create temporary directory for test plugins
-		testDir = join(tmpdir(), `cobalt-test-${Date.now()}`);
-		mkdirSync(testDir, { recursive: true });
+		testDir = join(tmpdir(), `cobalt-test-${Date.now()}`)
+		mkdirSync(testDir, { recursive: true })
 
 		// Clear global registry
-		globalRegistry.clear();
-	});
+		globalRegistry.clear()
+	})
 
 	afterEach(() => {
 		// Clean up test directory
 		try {
-			rmSync(testDir, { recursive: true, force: true });
+			rmSync(testDir, { recursive: true, force: true })
 		} catch (error) {
 			// Ignore cleanup errors
 		}
 
 		// Restore original registry state
-		globalRegistry.clear();
-	});
+		globalRegistry.clear()
+	})
 
 	describe('loadPlugin()', () => {
 		it('should load a valid plugin from file', async () => {
@@ -46,18 +46,18 @@ describe('Plugin Loader', () => {
             }
           ]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'test-plugin.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'test-plugin.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			const plugin = await loadPlugin(pluginPath);
+			const plugin = await loadPlugin(pluginPath)
 
-			expect(plugin.name).toBe('test-plugin');
-			expect(plugin.version).toBe('1.0.0');
-			expect(plugin.evaluators).toHaveLength(1);
-			expect(plugin.evaluators[0].type).toBe('custom-eval');
-		});
+			expect(plugin.name).toBe('test-plugin')
+			expect(plugin.version).toBe('1.0.0')
+			expect(plugin.evaluators).toHaveLength(1)
+			expect(plugin.evaluators[0].type).toBe('custom-eval')
+		})
 
 		it('should load plugin with multiple evaluators', async () => {
 			const pluginContent = `
@@ -82,16 +82,16 @@ describe('Plugin Loader', () => {
             }
           ]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'multi.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'multi.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			const plugin = await loadPlugin(pluginPath);
+			const plugin = await loadPlugin(pluginPath)
 
-			expect(plugin.evaluators).toHaveLength(3);
-			expect(plugin.evaluators.map((e) => e.type)).toEqual(['eval-1', 'eval-2', 'eval-3']);
-		});
+			expect(plugin.evaluators).toHaveLength(3)
+			expect(plugin.evaluators.map(e => e.type)).toEqual(['eval-1', 'eval-2', 'eval-3'])
+		})
 
 		it('should load plugin from JavaScript file', async () => {
 			const pluginContent = `
@@ -104,22 +104,22 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 0.5, reason: 'js' })
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'js-plugin.js');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'js-plugin.js')
+			writeFileSync(pluginPath, pluginContent)
 
-			const plugin = await loadPlugin(pluginPath);
+			const plugin = await loadPlugin(pluginPath)
 
-			expect(plugin.name).toBe('js-plugin');
-			expect(plugin.evaluators[0].type).toBe('js-eval');
-		});
+			expect(plugin.name).toBe('js-plugin')
+			expect(plugin.evaluators[0].type).toBe('js-eval')
+		})
 
 		it('should throw error for nonexistent file', async () => {
-			const nonexistentPath = join(testDir, 'does-not-exist.ts');
+			const nonexistentPath = join(testDir, 'does-not-exist.ts')
 
-			await expect(loadPlugin(nonexistentPath)).rejects.toThrow('Plugin file not found');
-		});
+			await expect(loadPlugin(nonexistentPath)).rejects.toThrow('Plugin file not found')
+		})
 
 		it('should throw error for invalid plugin structure', async () => {
 			const invalidContent = `
@@ -127,13 +127,13 @@ describe('Plugin Loader', () => {
           name: 'invalid-plugin'
           // Missing version and evaluators
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'invalid.ts');
-			writeFileSync(pluginPath, invalidContent);
+			const pluginPath = join(testDir, 'invalid.ts')
+			writeFileSync(pluginPath, invalidContent)
 
-			await expect(loadPlugin(pluginPath)).rejects.toThrow();
-		});
+			await expect(loadPlugin(pluginPath)).rejects.toThrow()
+		})
 
 		it('should throw error for plugin without name', async () => {
 			const pluginContent = `
@@ -141,13 +141,13 @@ describe('Plugin Loader', () => {
           version: '1.0.0',
           evaluators: []
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'no-name.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'no-name.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have a non-empty name');
-		});
+			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have a non-empty name')
+		})
 
 		it('should throw error for plugin without version', async () => {
 			const pluginContent = `
@@ -155,13 +155,13 @@ describe('Plugin Loader', () => {
           name: 'no-version',
           evaluators: []
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'no-version.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'no-version.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have a version string');
-		});
+			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have a version string')
+		})
 
 		it('should throw error for plugin without evaluators array', async () => {
 			const pluginContent = `
@@ -169,13 +169,13 @@ describe('Plugin Loader', () => {
           name: 'no-evals',
           version: '1.0.0'
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'no-evals.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'no-evals.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have an evaluators array');
-		});
+			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have an evaluators array')
+		})
 
 		it('should throw error for evaluator without type', async () => {
 			const pluginContent = `
@@ -187,13 +187,13 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 1 })
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'bad-eval.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'bad-eval.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have a non-empty type');
-		});
+			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have a non-empty type')
+		})
 
 		it('should throw error for evaluator without evaluate function', async () => {
 			const pluginContent = `
@@ -206,13 +206,13 @@ describe('Plugin Loader', () => {
             // Missing evaluate function
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'no-fn.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'no-fn.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have an evaluate function');
-		});
+			await expect(loadPlugin(pluginPath)).rejects.toThrow('must have an evaluate function')
+		})
 
 		it('should resolve relative paths correctly', async () => {
 			const pluginContent = `
@@ -225,17 +225,17 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 1 })
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'relative.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'relative.ts')
+			writeFileSync(pluginPath, pluginContent)
 
 			// Load with relative path
-			const plugin = await loadPlugin('relative.ts', testDir);
+			const plugin = await loadPlugin('relative.ts', testDir)
 
-			expect(plugin.name).toBe('relative-test');
-		});
-	});
+			expect(plugin.name).toBe('relative-test')
+		})
+	})
 
 	describe('loadPlugins()', () => {
 		it('should load multiple plugins', async () => {
@@ -249,7 +249,7 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 1 })
           }]
         }
-      `;
+      `
 
 			const plugin2 = `
         export default {
@@ -261,20 +261,20 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 0.5 })
           }]
         }
-      `;
+      `
 
-			const path1 = join(testDir, 'plugin1.ts');
-			const path2 = join(testDir, 'plugin2.ts');
+			const path1 = join(testDir, 'plugin1.ts')
+			const path2 = join(testDir, 'plugin2.ts')
 
-			writeFileSync(path1, plugin1);
-			writeFileSync(path2, plugin2);
+			writeFileSync(path1, plugin1)
+			writeFileSync(path2, plugin2)
 
-			const plugins = await loadPlugins([path1, path2]);
+			const plugins = await loadPlugins([path1, path2])
 
-			expect(plugins).toHaveLength(2);
-			expect(plugins[0].name).toBe('plugin-1');
-			expect(plugins[1].name).toBe('plugin-2');
-		});
+			expect(plugins).toHaveLength(2)
+			expect(plugins[0].name).toBe('plugin-1')
+			expect(plugins[1].name).toBe('plugin-2')
+		})
 
 		it('should automatically register evaluators from loaded plugins', async () => {
 			const pluginContent = `
@@ -287,15 +287,15 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 0.9, reason: 'auto' })
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'auto.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'auto.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await loadPlugins([pluginPath]);
+			await loadPlugins([pluginPath])
 
-			expect(globalRegistry.has('auto-eval')).toBe(true);
-		});
+			expect(globalRegistry.has('auto-eval')).toBe(true)
+		})
 
 		it('should continue loading after one plugin fails', async () => {
 			const validPlugin = `
@@ -308,55 +308,55 @@ describe('Plugin Loader', () => {
             evaluate: async () => ({ score: 1 })
           }]
         }
-      `;
+      `
 
 			const invalidPlugin = `
         export default {
           name: 'invalid'
           // Missing required fields
         }
-      `;
+      `
 
-			const validPath = join(testDir, 'valid.ts');
-			const invalidPath = join(testDir, 'invalid.ts');
+			const validPath = join(testDir, 'valid.ts')
+			const invalidPath = join(testDir, 'invalid.ts')
 
-			writeFileSync(validPath, validPlugin);
-			writeFileSync(invalidPath, invalidPlugin);
+			writeFileSync(validPath, validPlugin)
+			writeFileSync(invalidPath, invalidPlugin)
 
-			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-			const plugins = await loadPlugins([invalidPath, validPath]);
+			const plugins = await loadPlugins([invalidPath, validPath])
 
-			expect(plugins).toHaveLength(1);
-			expect(plugins[0].name).toBe('valid');
-			expect(consoleErrorSpy).toHaveBeenCalled();
-			expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Skipping plugin'));
+			expect(plugins).toHaveLength(1)
+			expect(plugins[0].name).toBe('valid')
+			expect(consoleErrorSpy).toHaveBeenCalled()
+			expect(consoleWarnSpy).toHaveBeenCalledWith(expect.stringContaining('Skipping plugin'))
 
-			consoleErrorSpy.mockRestore();
-			consoleWarnSpy.mockRestore();
-		});
+			consoleErrorSpy.mockRestore()
+			consoleWarnSpy.mockRestore()
+		})
 
 		it('should return empty array for empty plugin list', async () => {
-			const plugins = await loadPlugins([]);
-			expect(plugins).toEqual([]);
-		});
+			const plugins = await loadPlugins([])
+			expect(plugins).toEqual([])
+		})
 
 		it('should handle nonexistent files gracefully', async () => {
-			const nonexistentPath = join(testDir, 'ghost.ts');
+			const nonexistentPath = join(testDir, 'ghost.ts')
 
-			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+			const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+			const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-			const plugins = await loadPlugins([nonexistentPath]);
+			const plugins = await loadPlugins([nonexistentPath])
 
-			expect(plugins).toEqual([]);
-			expect(consoleErrorSpy).toHaveBeenCalled();
+			expect(plugins).toEqual([])
+			expect(consoleErrorSpy).toHaveBeenCalled()
 
-			consoleErrorSpy.mockRestore();
-			consoleWarnSpy.mockRestore();
-		});
-	});
+			consoleErrorSpy.mockRestore()
+			consoleWarnSpy.mockRestore()
+		})
+	})
 
 	describe('registerPluginEvaluators()', () => {
 		it('should register all evaluators from plugin', () => {
@@ -375,19 +375,19 @@ describe('Plugin Loader', () => {
 						evaluate: async () => ({ score: 0.5 }),
 					},
 				],
-			};
+			}
 
-			registerPluginEvaluators(plugin);
+			registerPluginEvaluators(plugin)
 
-			expect(globalRegistry.has('reg-eval-1')).toBe(true);
-			expect(globalRegistry.has('reg-eval-2')).toBe(true);
-		});
+			expect(globalRegistry.has('reg-eval-1')).toBe(true)
+			expect(globalRegistry.has('reg-eval-2')).toBe(true)
+		})
 
 		it('should make evaluators callable after registration', async () => {
 			const mockEvaluate: EvaluatorHandler = async (config, context) => ({
 				score: 0.75,
 				reason: `Context: ${context.output}`,
-			});
+			})
 
 			const plugin: PluginDefinition = {
 				name: 'callable-test',
@@ -399,27 +399,28 @@ describe('Plugin Loader', () => {
 						evaluate: mockEvaluate,
 					},
 				],
-			};
+			}
 
-			registerPluginEvaluators(plugin);
+			registerPluginEvaluators(plugin)
 
-			const handler = globalRegistry.get('callable-eval')!;
-			const result = await handler({}, { item: {}, output: 'test output' });
+			const handler = globalRegistry.get('callable-eval')
+			expect(handler).toBeDefined()
+			const result = await handler?.({}, { item: {}, output: 'test output' })
 
-			expect(result.score).toBe(0.75);
-			expect(result.reason).toContain('Context: test output');
-		});
+			expect(result.score).toBe(0.75)
+			expect(result.reason).toContain('Context: test output')
+		})
 
 		it('should handle plugin with no evaluators', () => {
 			const plugin: PluginDefinition = {
 				name: 'empty-plugin',
 				version: '1.0.0',
 				evaluators: [],
-			};
+			}
 
-			expect(() => registerPluginEvaluators(plugin)).not.toThrow();
-		});
-	});
+			expect(() => registerPluginEvaluators(plugin)).not.toThrow()
+		})
+	})
 
 	describe('Integration Tests', () => {
 		it('should support end-to-end plugin workflow', async () => {
@@ -436,25 +437,26 @@ describe('Plugin Loader', () => {
             })
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'e2e.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'e2e.ts')
+			writeFileSync(pluginPath, pluginContent)
 
 			// Load plugin
-			await loadPlugins([pluginPath]);
+			await loadPlugins([pluginPath])
 
 			// Verify registration
-			expect(globalRegistry.has('e2e-eval')).toBe(true);
+			expect(globalRegistry.has('e2e-eval')).toBe(true)
 
 			// Use evaluator
-			const handler = globalRegistry.get('e2e-eval')!;
-			const successResult = await handler({}, { item: {}, output: 'success' });
-			const failResult = await handler({}, { item: {}, output: 'fail' });
+			const handler = globalRegistry.get('e2e-eval')
+			expect(handler).toBeDefined()
+			const successResult = await handler?.({}, { item: {}, output: 'success' })
+			const failResult = await handler?.({}, { item: {}, output: 'fail' })
 
-			expect(successResult.score).toBe(1);
-			expect(failResult.score).toBe(0);
-		});
+			expect(successResult.score).toBe(1)
+			expect(failResult.score).toBe(0)
+		})
 
 		it('should allow plugins to access config and apiKey parameters', async () => {
 			const pluginContent = `
@@ -470,20 +472,21 @@ describe('Plugin Loader', () => {
             })
           }]
         }
-      `;
+      `
 
-			const pluginPath = join(testDir, 'config.ts');
-			writeFileSync(pluginPath, pluginContent);
+			const pluginPath = join(testDir, 'config.ts')
+			writeFileSync(pluginPath, pluginContent)
 
-			await loadPlugins([pluginPath]);
+			await loadPlugins([pluginPath])
 
-			const handler = globalRegistry.get('config-eval')!;
+			const handler = globalRegistry.get('config-eval')
+			expect(handler).toBeDefined()
 
-			const resultWithConfig = await handler({ threshold: 0.9 }, { item: {}, output: '' });
-			expect(resultWithConfig.score).toBe(0.9);
+			const resultWithConfig = await handler?.({ threshold: 0.9 }, { item: {}, output: '' })
+			expect(resultWithConfig?.score).toBe(0.9)
 
-			const resultWithAuth = await handler({}, { item: {}, output: '' }, 'test-api-key');
-			expect(resultWithAuth.reason).toBe('authenticated');
-		});
-	});
-});
+			const resultWithAuth = await handler?.({}, { item: {}, output: '' }, 'test-api-key')
+			expect(resultWithAuth.reason).toBe('authenticated')
+		})
+	})
+})

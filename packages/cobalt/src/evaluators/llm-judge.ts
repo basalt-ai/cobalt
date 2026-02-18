@@ -1,26 +1,27 @@
-import Anthropic from '@anthropic-ai/sdk';
-import OpenAI from 'openai';
-import { registry } from '../core/EvaluatorRegistry';
-import type { EvalContext, EvalResult, LLMJudgeEvaluatorConfig } from '../types';
-import { renderTemplate } from '../utils/template';
+import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
+import { registry } from '../core/EvaluatorRegistry'
+import type { EvalContext, EvalResult, EvaluatorConfig, LLMJudgeEvaluatorConfig } from '../types'
+import { renderTemplate } from '../utils/template'
 
 /**
  * Evaluate using LLM as judge
  * Supports boolean (default) and scale scoring modes with optional chain of thought.
  */
 export async function evaluateLLMJudge(
-	config: LLMJudgeEvaluatorConfig,
+	_config: EvaluatorConfig,
 	context: EvalContext,
 	apiKey?: string,
 	modelOverride?: string,
 ): Promise<EvalResult> {
+	const config = _config as LLMJudgeEvaluatorConfig
 	if (!apiKey) {
-		throw new Error('API key is required for LLM judge evaluator');
+		throw new Error('API key is required for LLM judge evaluator')
 	}
-	const model = modelOverride || config.model || 'gpt-5-mini';
+	const model = modelOverride || config.model || 'gpt-5-mini'
 
 	// Apply context mapping if provided
-	const evalContext = config.context ? config.context(context) : context;
+	const evalContext = config.context ? config.context(context) : context
 
 	// Render prompt template
 	const prompt = renderTemplate(config.prompt, {
@@ -29,23 +30,23 @@ export async function evaluateLLMJudge(
 		expectedOutput: evalContext.item.expectedOutput,
 		metadata: evalContext.metadata,
 		...evalContext.item,
-	});
+	})
 
 	// Determine scoring mode and chain of thought
-	const scoring = config.scoring ?? 'boolean';
-	const chainOfThought = config.chainOfThought ?? scoring === 'boolean';
+	const scoring = config.scoring ?? 'boolean'
+	const chainOfThought = config.chainOfThought ?? scoring === 'boolean'
 
 	// Build system prompt
-	const systemPrompt = buildSystemPrompt(scoring, chainOfThought);
+	const systemPrompt = buildSystemPrompt(scoring, chainOfThought)
 
 	// Determine provider from model name
-	const provider = determineProvider(model);
+	const provider = determineProvider(model)
 
 	// Call appropriate LLM API
 	if (provider === 'openai') {
-		return await callOpenAI(prompt, systemPrompt, model, apiKey, scoring);
+		return await callOpenAI(prompt, systemPrompt, model, apiKey, scoring)
 	}
-	return await callAnthropic(prompt, systemPrompt, model, apiKey, scoring);
+	return await callAnthropic(prompt, systemPrompt, model, apiKey, scoring)
 }
 
 /**
@@ -53,14 +54,14 @@ export async function evaluateLLMJudge(
  */
 export function buildSystemPrompt(scoring: 'boolean' | 'scale', chainOfThought: boolean): string {
 	const baseInstruction =
-		'You are an AI evaluation judge. Your task is to evaluate AI agent outputs based on specific criteria.';
+		'You are an AI evaluation judge. Your task is to evaluate AI agent outputs based on specific criteria.'
 
 	const cotInstruction = chainOfThought
 		? '\n\nThink step by step before making your judgment. Provide your reasoning in the "chainOfThought" field.'
-		: '';
+		: ''
 
 	if (scoring === 'boolean') {
-		const cotField = chainOfThought ? '\n  "chainOfThought": "<your step-by-step reasoning>",' : '';
+		const cotField = chainOfThought ? '\n  "chainOfThought": "<your step-by-step reasoning>",' : ''
 		return `${baseInstruction}${cotInstruction}
 
 IMPORTANT: You must respond with a valid JSON object in this exact format:
@@ -72,11 +73,11 @@ IMPORTANT: You must respond with a valid JSON object in this exact format:
 - "verdict": true if the output meets the criteria, false if it does not
 - "reason": a concise explanation
 ${chainOfThought ? '- "chainOfThought": your detailed step-by-step reasoning' : ''}
-Do not include any text outside the JSON object.`;
+Do not include any text outside the JSON object.`
 	}
 
 	// Scale mode
-	const cotField = chainOfThought ? '\n  "chainOfThought": "<your step-by-step reasoning>",' : '';
+	const cotField = chainOfThought ? '\n  "chainOfThought": "<your step-by-step reasoning>",' : ''
 	return `${baseInstruction}${cotInstruction}
 
 IMPORTANT: You must respond with a valid JSON object in this exact format:
@@ -85,7 +86,7 @@ IMPORTANT: You must respond with a valid JSON object in this exact format:
   "reason": "<brief explanation>"
 }
 
-Do not include any text outside the JSON object.`;
+Do not include any text outside the JSON object.`
 }
 
 /**
@@ -93,9 +94,9 @@ Do not include any text outside the JSON object.`;
  */
 function determineProvider(model: string): 'openai' | 'anthropic' {
 	if (model.startsWith('claude')) {
-		return 'anthropic';
+		return 'anthropic'
 	}
-	return 'openai';
+	return 'openai'
 }
 
 /**
@@ -103,8 +104,8 @@ function determineProvider(model: string): 'openai' | 'anthropic' {
  * Reasoning models and gpt-5 variants only support the default temperature.
  */
 function supportsTemperature(model: string): boolean {
-	const noTempPrefixes = ['o1', 'o3', 'o4', 'gpt-5'];
-	return !noTempPrefixes.some((prefix) => model.startsWith(prefix));
+	const noTempPrefixes = ['o1', 'o3', 'o4', 'gpt-5']
+	return !noTempPrefixes.some(prefix => model.startsWith(prefix))
 }
 
 /**
@@ -117,7 +118,7 @@ async function callOpenAI(
 	apiKey: string,
 	scoring: 'boolean' | 'scale',
 ): Promise<EvalResult> {
-	const client = new OpenAI({ apiKey });
+	const client = new OpenAI({ apiKey })
 
 	try {
 		const response = await client.chat.completions.create({
@@ -128,18 +129,18 @@ async function callOpenAI(
 			],
 			...(supportsTemperature(model) && { temperature: 0.2 }),
 			response_format: { type: 'json_object' },
-		});
+		})
 
-		const content = response.choices[0]?.message?.content;
+		const content = response.choices[0]?.message?.content
 
 		if (!content) {
-			throw new Error('Empty response from OpenAI');
+			throw new Error('Empty response from OpenAI')
 		}
 
-		return parseEvalResult(content, scoring);
+		return parseEvalResult(content, scoring)
 	} catch (error) {
-		console.error('OpenAI evaluation error:', error);
-		throw error;
+		console.error('OpenAI evaluation error:', error)
+		throw error
 	}
 }
 
@@ -153,7 +154,7 @@ async function callAnthropic(
 	apiKey: string,
 	scoring: 'boolean' | 'scale',
 ): Promise<EvalResult> {
-	const client = new Anthropic({ apiKey });
+	const client = new Anthropic({ apiKey })
 
 	try {
 		const response = await client.messages.create({
@@ -162,22 +163,22 @@ async function callAnthropic(
 			temperature: 0.2,
 			system: systemPrompt,
 			messages: [{ role: 'user', content: prompt }],
-		});
+		})
 
-		const content = response.content[0];
+		const content = response.content[0]
 
 		if (!content) {
-			throw new Error('No content in Anthropic response');
+			throw new Error('No content in Anthropic response')
 		}
 
 		if (content.type !== 'text') {
-			throw new Error('Unexpected response type from Anthropic');
+			throw new Error('Unexpected response type from Anthropic')
 		}
 
-		return parseEvalResult(content.text, scoring);
+		return parseEvalResult(content.text, scoring)
 	} catch (error) {
-		console.error('Anthropic evaluation error:', error);
-		throw error;
+		console.error('Anthropic evaluation error:', error)
+		throw error
 	}
 }
 
@@ -188,10 +189,10 @@ async function callAnthropic(
 function parseEvalResult(content: string, scoring: 'boolean' | 'scale'): EvalResult {
 	try {
 		// Try to extract JSON from response (handle cases where LLM adds extra text)
-		const jsonMatch = content.match(/\{[\s\S]*\}/);
-		const jsonStr = jsonMatch ? jsonMatch[0] : content;
+		const jsonMatch = content.match(/\{[\s\S]*\}/)
+		const jsonStr = jsonMatch ? jsonMatch[0] : content
 
-		const parsed = JSON.parse(jsonStr);
+		const parsed = JSON.parse(jsonStr)
 
 		if (scoring === 'boolean') {
 			// Boolean mode: expect { verdict: true/false }
@@ -202,33 +203,33 @@ function parseEvalResult(content: string, scoring: 'boolean' | 'scale'): EvalRes
 						score: parsed.score >= 0.5 ? 1 : 0,
 						reason: parsed.reason || 'No reason provided',
 						chainOfThought: parsed.chainOfThought,
-					};
+					}
 				}
-				throw new Error('Invalid boolean verdict format');
+				throw new Error('Invalid boolean verdict format')
 			}
 
 			return {
 				score: parsed.verdict ? 1 : 0,
 				reason: parsed.reason || 'No reason provided',
 				chainOfThought: parsed.chainOfThought,
-			};
+			}
 		}
 
 		// Scale mode: expect { score: 0.0-1.0 }
 		if (typeof parsed.score !== 'number' || parsed.score < 0 || parsed.score > 1) {
-			throw new Error('Invalid score format');
+			throw new Error('Invalid score format')
 		}
 
 		return {
 			score: Math.max(0, Math.min(1, parsed.score)), // Clamp to [0, 1]
 			reason: parsed.reason || 'No reason provided',
 			chainOfThought: parsed.chainOfThought,
-		};
+		}
 	} catch (error) {
-		console.error('Failed to parse LLM evaluation response:', content);
-		throw new Error('LLM returned invalid JSON format');
+		console.error('Failed to parse LLM evaluation response:', content)
+		throw new Error('LLM returned invalid JSON format')
 	}
 }
 
 // Register with global registry
-registry.register('llm-judge', evaluateLLMJudge);
+registry.register('llm-judge', evaluateLLMJudge)

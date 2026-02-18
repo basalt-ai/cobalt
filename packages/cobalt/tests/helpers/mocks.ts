@@ -1,5 +1,5 @@
-import { vi } from 'vitest';
-import type { EvalResult } from '../../src/types';
+import { vi } from 'vitest'
+import type { EvalResult } from '../../src/types'
 
 /**
  * Mock LLM response for testing evaluators
@@ -7,7 +7,7 @@ import type { EvalResult } from '../../src/types';
 export const mockLLMJudgeResponse = {
 	score: 0.85,
 	reason: 'The response is relevant and accurate.',
-};
+}
 
 /**
  * Mock OpenAI completion response
@@ -27,7 +27,7 @@ export function createMockOpenAIResponse(content: string) {
 			completion_tokens: 50,
 			total_tokens: 150,
 		},
-	};
+	}
 }
 
 /**
@@ -45,7 +45,7 @@ export function createMockAnthropicResponse(content: string) {
 			input_tokens: 100,
 			output_tokens: 50,
 		},
-	};
+	}
 }
 
 /**
@@ -60,7 +60,7 @@ export function createMockOpenAIClient() {
 					.mockResolvedValue(createMockOpenAIResponse(JSON.stringify(mockLLMJudgeResponse))),
 			},
 		},
-	};
+	}
 }
 
 /**
@@ -73,7 +73,7 @@ export function createMockAnthropicClient() {
 				.fn()
 				.mockResolvedValue(createMockAnthropicResponse(JSON.stringify(mockLLMJudgeResponse))),
 		},
-	};
+	}
 }
 
 /**
@@ -82,16 +82,16 @@ export function createMockAnthropicClient() {
 export function mockFileSystem(files: Record<string, string>) {
 	const fs = {
 		readFileSync: vi.fn((path: string) => {
-			const normalizedPath = path.toString();
-			const file = Object.keys(files).find((key) => normalizedPath.includes(key));
+			const normalizedPath = path.toString()
+			const file = Object.keys(files).find(key => normalizedPath.includes(key))
 			if (!file) {
-				throw new Error(`ENOENT: no such file or directory, open '${path}'`);
+				throw new Error(`ENOENT: no such file or directory, open '${path}'`)
 			}
-			return files[file];
+			return files[file]
 		}),
-	};
+	}
 
-	return fs;
+	return fs
 }
 
 /**
@@ -111,14 +111,14 @@ export function createMockEmbeddingResponse(embedding: number[]) {
 			prompt_tokens: 10,
 			total_tokens: 10,
 		},
-	};
+	}
 }
 
 /**
  * Create a temporary test directory path
  */
 export function getTempTestDir() {
-	return `/tmp/cobalt-test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+	return `/tmp/cobalt-test-${Date.now()}-${Math.random().toString(36).substring(7)}`
 }
 
 /**
@@ -131,5 +131,5 @@ export function createMockEvaluator(
 	return {
 		name,
 		evaluate: vi.fn().mockResolvedValue({ score, reason: `Mock evaluation for ${name}` }),
-	};
+	}
 }

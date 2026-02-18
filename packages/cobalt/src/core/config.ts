@@ -1,7 +1,7 @@
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { createJiti } from 'jiti';
-import type { CobaltConfig } from '../types';
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { createJiti } from 'jiti'
+import type { CobaltConfig } from '../types'
 
 /**
  * Default configuration values
@@ -26,7 +26,7 @@ const DEFAULT_CONFIG: CobaltConfig = {
 		ttl: '7d',
 	},
 	plugins: [],
-};
+}
 
 /**
  * Merge user config with defaults.
@@ -40,7 +40,7 @@ function mergeWithDefaults(config: Partial<CobaltConfig>): CobaltConfig {
 		judge: { ...DEFAULT_CONFIG.judge, ...(config.judge ?? {}) },
 		dashboard: { ...DEFAULT_CONFIG.dashboard, ...(config.dashboard ?? {}) },
 		cache: { ...DEFAULT_CONFIG.cache, ...(config.cache ?? {}) },
-	};
+	}
 }
 
 /**
@@ -49,7 +49,7 @@ function mergeWithDefaults(config: Partial<CobaltConfig>): CobaltConfig {
  * @returns Merged configuration with defaults
  */
 export function defineConfig(config: Partial<CobaltConfig>): CobaltConfig {
-	return mergeWithDefaults(config);
+	return mergeWithDefaults(config)
 }
 
 /**
@@ -64,52 +64,52 @@ export async function loadConfig(cwd: string = process.cwd()): Promise<CobaltCon
 		'cobalt.config.js',
 		'cobalt.config.mjs',
 		'cobalt.config.json',
-	];
+	]
 
 	// Search for config file in cwd and parent directories
-	let currentDir = resolve(cwd);
-	let configPath: string | null = null;
+	let currentDir = resolve(cwd)
+	let configPath: string | null = null
 
 	while (true) {
 		for (const file of configFiles) {
-			const path = resolve(currentDir, file);
+			const path = resolve(currentDir, file)
 			if (existsSync(path)) {
-				configPath = path;
-				break;
+				configPath = path
+				break
 			}
 		}
 
-		if (configPath) break;
+		if (configPath) break
 
-		const parentDir = resolve(currentDir, '..');
-		if (parentDir === currentDir) break; // Reached root
-		currentDir = parentDir;
+		const parentDir = resolve(currentDir, '..')
+		if (parentDir === currentDir) break // Reached root
+		currentDir = parentDir
 	}
 
 	// If no config file found, return defaults
 	if (!configPath) {
-		console.warn('No cobalt.config.{ts,js,mjs,json} found, using defaults');
-		return DEFAULT_CONFIG;
+		console.warn('No cobalt.config.{ts,js,mjs,json} found, using defaults')
+		return DEFAULT_CONFIG
 	}
 
 	try {
 		// Use jiti to load TypeScript/JavaScript files
 		if (configPath.endsWith('.json')) {
-			const { readFileSync } = await import('node:fs');
-			const configContent = readFileSync(configPath, 'utf-8');
-			const config = JSON.parse(configContent);
-			return mergeWithDefaults(config);
+			const { readFileSync } = await import('node:fs')
+			const configContent = readFileSync(configPath, 'utf-8')
+			const config = JSON.parse(configContent)
+			return mergeWithDefaults(config)
 		}
 		const jiti = createJiti(import.meta.url, {
 			interopDefault: true,
-		});
-		const configModule = jiti(configPath);
-		const config = configModule.default || configModule;
-		return mergeWithDefaults(config);
+		})
+		const configModule = jiti(configPath)
+		const config = configModule.default || configModule
+		return mergeWithDefaults(config)
 	} catch (error) {
-		console.error(`Failed to load config from ${configPath}:`, error);
-		console.warn('Using default configuration');
-		return DEFAULT_CONFIG;
+		console.error(`Failed to load config from ${configPath}:`, error)
+		console.warn('Using default configuration')
+		return DEFAULT_CONFIG
 	}
 }
 
@@ -123,13 +123,13 @@ export function getApiKey(config: CobaltConfig): string {
 		config.judge.apiKey ||
 		(config.judge.provider === 'openai'
 			? process.env.OPENAI_API_KEY
-			: process.env.ANTHROPIC_API_KEY);
+			: process.env.ANTHROPIC_API_KEY)
 
 	if (!apiKey) {
 		throw new Error(
 			`API key for ${config.judge.provider} not found. Set ${config.judge.provider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY'} environment variable or configure it in cobalt.config.ts`,
-		);
+		)
 	}
 
-	return apiKey;
+	return apiKey
 }

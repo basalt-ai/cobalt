@@ -1,4 +1,4 @@
-import { defineConfig } from '@basalt-ai/cobalt';
+import { defineConfig } from '@basalt-ai/cobalt'
 
 export default defineConfig({
 	// Directory containing experiment files
@@ -19,4 +19,4 @@ export default defineConfig({
 		port: 4000,
 		open: true,
 	},
-});
+})

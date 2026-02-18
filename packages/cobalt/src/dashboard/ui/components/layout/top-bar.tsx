@@ -1,18 +1,18 @@
-import { Moon, Sun } from '@phosphor-icons/react';
-import { Link, useLocation } from 'react-router';
-import logoSrc from '../../assets/logo.png';
-import { useTheme } from '../../hooks/use-theme';
-import { cn } from '../../lib/utils';
-import { Button } from '../ui/button';
+import { Moon, Sun } from '@phosphor-icons/react'
+import { Link, useLocation } from 'react-router'
+import logoSrc from '../../assets/logo.png'
+import { useTheme } from '../../hooks/use-theme'
+import { cn } from '../../lib/utils'
+import { Button } from '../ui/button'
 
 const navLinks = [
 	{ to: '/', label: 'Runs' },
 	{ to: '/trends', label: 'Trends' },
-];
+]
 
 export function TopBar() {
-	const location = useLocation();
-	const { theme, toggleTheme } = useTheme();
+	const location = useLocation()
+	const { theme, toggleTheme } = useTheme()
 
 	return (
 		<header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -22,7 +22,7 @@ export function TopBar() {
 				</Link>
 
 				<nav className="flex items-center gap-1">
-					{navLinks.map((link) => (
+					{navLinks.map(link => (
 						<Link
 							key={link.to}
 							to={link.to}
@@ -45,5 +45,5 @@ export function TopBar() {
 				</div>
 			</div>
 		</header>
-	);
+	)
 }

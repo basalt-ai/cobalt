@@ -1,14 +1,14 @@
-import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { defineCommand } from 'citty';
-import pc from 'picocolors';
+import { existsSync } from 'node:fs'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { defineCommand } from 'citty'
+import pc from 'picocolors'
 import {
 	ensureCobaltGitignore,
 	generateSkillsFile,
 	integrateWithAITools,
 	printAIFilesSuggestion,
-} from '../utils/skills';
+} from '../utils/skills'
 
 export default defineCommand({
 	meta: {
@@ -16,75 +16,75 @@ export default defineCommand({
 		description: 'Initialize a new cobalt project',
 	},
 	async run() {
-		const cwd = process.cwd();
+		const cwd = process.cwd()
 
-		console.log(pc.bold('\n🔷 Cobalt Initialization\n'));
+		console.log(pc.bold('\n🔷 Cobalt Initialization\n'))
 
 		try {
 			// 1. Create cobalt.config.ts
-			const configPath = resolve(cwd, 'cobalt.config.ts');
+			const configPath = resolve(cwd, 'cobalt.config.ts')
 			if (existsSync(configPath)) {
-				console.log(pc.yellow('⚠ cobalt.config.ts already exists, skipping...'));
+				console.log(pc.yellow('⚠ cobalt.config.ts already exists, skipping...'))
 			} else {
-				await writeFile(configPath, CONFIG_TEMPLATE);
-				console.log(pc.green('✓ Created cobalt.config.ts'));
+				await writeFile(configPath, CONFIG_TEMPLATE)
+				console.log(pc.green('✓ Created cobalt.config.ts'))
 			}
 
 			// 2. Create experiments directory
-			const experimentsDir = resolve(cwd, 'experiments');
+			const experimentsDir = resolve(cwd, 'experiments')
 			if (!existsSync(experimentsDir)) {
-				await mkdir(experimentsDir, { recursive: true });
-				console.log(pc.green('✓ Created experiments/ directory'));
+				await mkdir(experimentsDir, { recursive: true })
+				console.log(pc.green('✓ Created experiments/ directory'))
 			} else {
-				console.log(pc.yellow('⚠ experiments/ directory already exists, skipping...'));
+				console.log(pc.yellow('⚠ experiments/ directory already exists, skipping...'))
 			}
 
 			// 3. Create example experiment
-			const examplePath = resolve(experimentsDir, 'example.cobalt.ts');
+			const examplePath = resolve(experimentsDir, 'example.cobalt.ts')
 			if (!existsSync(examplePath)) {
-				await writeFile(examplePath, EXAMPLE_EXPERIMENT_TEMPLATE);
-				console.log(pc.green('✓ Created experiments/example.cobalt.ts'));
+				await writeFile(examplePath, EXAMPLE_EXPERIMENT_TEMPLATE)
+				console.log(pc.green('✓ Created experiments/example.cobalt.ts'))
 			} else {
-				console.log(pc.yellow('⚠ experiments/example.cobalt.ts already exists, skipping...'));
+				console.log(pc.yellow('⚠ experiments/example.cobalt.ts already exists, skipping...'))
 			}
 
 			// 4. Create .cobalt/.gitignore (ignores data/, tracks SKILLS.md)
-			const gitignoreCreated = await ensureCobaltGitignore(cwd);
+			const gitignoreCreated = await ensureCobaltGitignore(cwd)
 			if (gitignoreCreated) {
-				console.log(pc.green('✓ Created .cobalt/.gitignore'));
+				console.log(pc.green('✓ Created .cobalt/.gitignore'))
 			}
 
 			// 5. Generate .cobalt/SKILLS.md
-			const skillsCreated = await generateSkillsFile(cwd);
+			const skillsCreated = await generateSkillsFile(cwd)
 			if (skillsCreated) {
-				console.log(pc.green('✓ Generated .cobalt/SKILLS.md'));
+				console.log(pc.green('✓ Generated .cobalt/SKILLS.md'))
 			}
 
 			// 6. Auto-detect AI instruction files and append reference
-			const updatedFiles = await integrateWithAITools(cwd);
+			const updatedFiles = await integrateWithAITools(cwd)
 			for (const file of updatedFiles) {
-				console.log(pc.green(`✓ Added Cobalt reference to ${file}`));
+				console.log(pc.green(`✓ Added Cobalt reference to ${file}`))
 			}
 
 			// Success message
-			console.log(pc.bold(pc.green('\n✅ Cobalt initialized successfully!\n')));
-			console.log(pc.dim('Next steps:'));
-			console.log(pc.dim('  1. Set your API key: export OPENAI_API_KEY=<your-key>'));
-			console.log(pc.dim('  2. Run the example: npx cobalt run'));
-			console.log(pc.dim('  3. Edit experiments/example.cobalt.ts to test your own agent'));
+			console.log(pc.bold(pc.green('\n✅ Cobalt initialized successfully!\n')))
+			console.log(pc.dim('Next steps:'))
+			console.log(pc.dim('  1. Set your API key: export OPENAI_API_KEY=<your-key>'))
+			console.log(pc.dim('  2. Run the example: npx cobalt run'))
+			console.log(pc.dim('  3. Edit experiments/example.cobalt.ts to test your own agent'))
 
 			// If no AI files were found, suggest creating one
 			if (updatedFiles.length === 0) {
-				printAIFilesSuggestion();
+				printAIFilesSuggestion()
 			}
 
-			console.log('');
+			console.log('')
 		} catch (error) {
-			console.error(pc.red('\n❌ Initialization failed:'), error);
-			process.exit(1);
+			console.error(pc.red('\n❌ Initialization failed:'), error)
+			process.exit(1)
 		}
 	},
-});
+})
 
 // Configuration template
 const CONFIG_TEMPLATE = `import { defineConfig } from '@basalt-ai/cobalt'
@@ -124,7 +124,7 @@ export default defineConfig({
     ttl: '7d'
   }
 })
-`;
+`
 
 // Example experiment template
 const EXAMPLE_EXPERIMENT_TEMPLATE = `import { experiment, Evaluator, Dataset } from '@basalt-ai/cobalt'
@@ -184,4 +184,4 @@ experiment('example-agent', dataset, async ({ item }) => {
   timeout: 10_000,
   tags: ['example', 'v1']
 })
-`;
+`

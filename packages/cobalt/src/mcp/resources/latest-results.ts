@@ -1,4 +1,5 @@
-import { HistoryDB } from '../../storage/db';
+import { HistoryDB } from '../../storage/db'
+import type { ResultSummary } from '../../types'
 
 /**
  * MCP Resource: cobalt://latest-results
@@ -9,7 +10,7 @@ export const cobaltLatestResultsResource = {
 	name: 'Latest Results',
 	description: 'Latest experiment results for each experiment',
 	mimeType: 'application/json',
-};
+}
 
 /**
  * Handle cobalt://latest-results resource request
@@ -17,28 +18,28 @@ export const cobaltLatestResultsResource = {
 export async function handleCobaltLatestResults() {
 	try {
 		// Open database
-		const db = new HistoryDB();
+		const db = new HistoryDB()
 
 		// Get all runs
-		const allRuns = db.getRuns();
+		const allRuns = db.getRuns()
 
 		// Group by experiment name and get latest for each
-		const latestByExperiment = new Map<string, any>();
+		const latestByExperiment = new Map<string, ResultSummary>()
 
 		for (const run of allRuns) {
-			const existing = latestByExperiment.get(run.name);
+			const existing = latestByExperiment.get(run.name)
 
 			// Keep the one with the most recent timestamp
 			if (!existing || new Date(run.timestamp) > new Date(existing.timestamp)) {
-				latestByExperiment.set(run.name, run);
+				latestByExperiment.set(run.name, run)
 			}
 		}
 
 		// Close database
-		db.close();
+		db.close()
 
 		// Convert to array
-		const latestResults = Array.from(latestByExperiment.values());
+		const latestResults = Array.from(latestByExperiment.values())
 
 		return {
 			contents: [
@@ -55,7 +56,7 @@ export async function handleCobaltLatestResults() {
 					),
 				},
 			],
-		};
+		}
 	} catch (error) {
 		return {
 			contents: [
@@ -71,6 +72,6 @@ export async function handleCobaltLatestResults() {
 					),
 				},
 			],
-		};
+		}
 	}
 }

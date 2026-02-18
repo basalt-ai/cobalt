@@ -1,75 +1,75 @@
-import { ArrowRight, MagnifyingGlass } from '@phosphor-icons/react';
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router';
-import { getRuns } from '../api/runs';
-import type { ResultSummary, RunsResponse } from '../api/types';
-import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options';
+import { ArrowRight, MagnifyingGlass } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { getRuns } from '../api/runs'
+import type { ResultSummary, RunsResponse } from '../api/types'
+import { type ColumnVisibility, DisplayOptions } from '../components/data/display-options'
 import {
 	FilterBar,
 	type FilterDef,
 	type FilterValue,
 	applyFilters,
-} from '../components/data/filter-bar';
-import { ScoreBadge } from '../components/data/score-badge';
-import { PageHeader } from '../components/layout/page-header';
-import { Badge } from '../components/ui/badge';
-import { Button } from '../components/ui/button';
-import { Skeleton } from '../components/ui/skeleton';
-import { useApi } from '../hooks/use-api';
-import { cn, formatDuration, formatRelativeTime } from '../lib/utils';
+} from '../components/data/filter-bar'
+import { ScoreBadge } from '../components/data/score-badge'
+import { PageHeader } from '../components/layout/page-header'
+import { Badge } from '../components/ui/badge'
+import { Button } from '../components/ui/button'
+import { Skeleton } from '../components/ui/skeleton'
+import { useApi } from '../hooks/use-api'
+import { cn, formatDuration, formatRelativeTime } from '../lib/utils'
 
-type SortKey = 'name' | 'timestamp' | 'totalItems' | 'durationMs';
-type SortDir = 'asc' | 'desc';
+type SortKey = 'name' | 'timestamp' | 'totalItems' | 'durationMs'
+type SortDir = 'asc' | 'desc'
 
 export function RunsListPage() {
-	const { data, error, loading } = useApi<RunsResponse>(() => getRuns());
-	const [search, setSearch] = useState('');
-	const [selected, setSelected] = useState<Set<string>>(new Set());
-	const [sortKey, setSortKey] = useState<SortKey>('timestamp');
-	const [sortDir, setSortDir] = useState<SortDir>('desc');
-	const [filters, setFilters] = useState<FilterValue[]>([]);
-	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({});
-	const navigate = useNavigate();
+	const { data, error, loading } = useApi<RunsResponse>(() => getRuns())
+	const [search, setSearch] = useState('')
+	const [selected, setSelected] = useState<Set<string>>(new Set())
+	const [sortKey, setSortKey] = useState<SortKey>('timestamp')
+	const [sortDir, setSortDir] = useState<SortDir>('desc')
+	const [filters, setFilters] = useState<FilterValue[]>([])
+	const [columnVisibility, setColumnVisibility] = useState<ColumnVisibility>({})
+	const navigate = useNavigate()
 
 	function handleSort(key: SortKey) {
 		if (sortKey === key) {
-			setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+			setSortDir(d => (d === 'asc' ? 'desc' : 'asc'))
 		} else {
-			setSortKey(key);
-			setSortDir('desc');
+			setSortKey(key)
+			setSortDir('desc')
 		}
 	}
 
 	function toggleSelect(id: string) {
-		setSelected((prev) => {
-			const next = new Set(prev);
+		setSelected(prev => {
+			const next = new Set(prev)
 			if (next.has(id)) {
-				next.delete(id);
+				next.delete(id)
 			} else if (next.size < 3) {
-				next.add(id);
+				next.add(id)
 			}
-			return next;
-		});
+			return next
+		})
 	}
 
 	function handleCompare() {
-		const ids = Array.from(selected);
+		const ids = Array.from(selected)
 		if (ids.length >= 2) {
-			navigate(`/compare?a=${ids[0]}&b=${ids[1]}${ids[2] ? `&c=${ids[2]}` : ''}`);
+			navigate(`/compare?a=${ids[0]}&b=${ids[1]}${ids[2] ? `&c=${ids[2]}` : ''}`)
 		}
 	}
 
-	const runs = data?.runs ?? [];
-	const evaluatorNames = getEvaluatorNames(runs);
+	const runs = data?.runs ?? []
+	const evaluatorNames = getEvaluatorNames(runs)
 
 	// All hooks must be called before any conditional returns
 	const allTags = useMemo(() => {
-		const tags = new Set<string>();
+		const tags = new Set<string>()
 		for (const run of runs) {
-			for (const tag of run.tags) tags.add(tag);
+			for (const tag of run.tags) tags.add(tag)
 		}
-		return Array.from(tags);
-	}, [runs]);
+		return Array.from(tags)
+	}, [runs])
 
 	const filterDefs: FilterDef[] = useMemo(
 		() => [
@@ -81,49 +81,47 @@ export function RunsListPage() {
 			{ key: 'durationMs', label: 'Duration (ms)', type: 'number' },
 		],
 		[allTags],
-	);
+	)
 
 	const displayColumns = useMemo(
 		() => [
 			{ key: 'date', label: 'Date' },
 			{ key: 'items', label: 'Items' },
 			{ key: 'duration', label: 'Duration' },
-			...evaluatorNames.map((n) => ({ key: `score_${n}`, label: n })),
+			...evaluatorNames.map(n => ({ key: `score_${n}`, label: n })),
 			{ key: 'tags', label: 'Tags' },
 		],
 		[evaluatorNames],
-	);
+	)
 
 	const filtered = useMemo(() => {
-		let result = runs.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
+		let result = runs.filter(r => r.name.toLowerCase().includes(search.toLowerCase()))
 
-		const tagFilters = filters.filter((f) => f.key === 'tags');
-		const otherFilters = filters.filter((f) => f.key !== 'tags');
+		const tagFilters = filters.filter(f => f.key === 'tags')
+		const otherFilters = filters.filter(f => f.key !== 'tags')
 
 		if (tagFilters.length > 0) {
-			result = result.filter((r) =>
-				tagFilters.every((f) =>
-					r.tags.some((t) => t.toLowerCase().includes(f.value.toLowerCase())),
-				),
-			);
+			result = result.filter(r =>
+				tagFilters.every(f => r.tags.some(t => t.toLowerCase().includes(f.value.toLowerCase()))),
+			)
 		}
 
-		result = applyFilters(result, otherFilters);
+		result = applyFilters(result, otherFilters)
 
 		result.sort((a, b) => {
-			const dir = sortDir === 'asc' ? 1 : -1;
-			if (sortKey === 'name') return a.name.localeCompare(b.name) * dir;
+			const dir = sortDir === 'asc' ? 1 : -1
+			if (sortKey === 'name') return a.name.localeCompare(b.name) * dir
 			if (sortKey === 'timestamp')
-				return (new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) * dir;
-			if (sortKey === 'totalItems') return (a.totalItems - b.totalItems) * dir;
-			if (sortKey === 'durationMs') return (a.durationMs - b.durationMs) * dir;
-			return 0;
-		});
+				return (new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()) * dir
+			if (sortKey === 'totalItems') return (a.totalItems - b.totalItems) * dir
+			if (sortKey === 'durationMs') return (a.durationMs - b.durationMs) * dir
+			return 0
+		})
 
-		return result;
-	}, [runs, search, filters, sortKey, sortDir]);
+		return result
+	}, [runs, search, filters, sortKey, sortDir])
 
-	if (loading) return <LoadingSkeleton />;
+	if (loading) return <LoadingSkeleton />
 	if (error) {
 		return (
 			<div className="flex flex-col items-center justify-center py-20 text-center">
@@ -137,7 +135,7 @@ export function RunsListPage() {
 					Retry
 				</Button>
 			</div>
-		);
+		)
 	}
 	if (!runs.length) {
 		return (
@@ -148,7 +146,7 @@ export function RunsListPage() {
 					<code className="rounded bg-muted px-1.5 py-0.5 text-xs">cobalt run</code>
 				</p>
 			</div>
-		);
+		)
 	}
 
 	return (
@@ -161,7 +159,7 @@ export function RunsListPage() {
 							type="text"
 							placeholder="Search experiments..."
 							value={search}
-							onChange={(e) => setSearch(e.target.value)}
+							onChange={e => setSearch(e.target.value)}
 							className="h-9 w-56 rounded-md border border-input bg-background pl-8 pr-3 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
 						/>
 					</div>
@@ -220,7 +218,7 @@ export function RunsListPage() {
 										className="text-right"
 									/>
 								)}
-								{evaluatorNames.map((name) =>
+								{evaluatorNames.map(name =>
 									columnVisibility[`score_${name}`] !== false ? (
 										<th
 											key={name}
@@ -237,7 +235,7 @@ export function RunsListPage() {
 							</tr>
 						</thead>
 						<tbody>
-							{filtered.map((run) => (
+							{filtered.map(run => (
 								<tr
 									key={run.id}
 									className={cn(
@@ -245,10 +243,10 @@ export function RunsListPage() {
 										selected.has(run.id) && 'bg-accent/50',
 									)}
 									onClick={() => navigate(`/runs/${run.id}`)}
-									onKeyDown={(e) => e.key === 'Enter' && navigate(`/runs/${run.id}`)}
+									onKeyDown={e => e.key === 'Enter' && navigate(`/runs/${run.id}`)}
 								>
 									{/* biome-ignore lint/a11y/useKeyWithClickEvents: checkbox handles keyboard */}
-									<td className="px-3 py-3" onClick={(e) => e.stopPropagation()}>
+									<td className="px-3 py-3" onClick={e => e.stopPropagation()}>
 										<input
 											type="checkbox"
 											checked={selected.has(run.id)}
@@ -261,7 +259,7 @@ export function RunsListPage() {
 										<Link
 											to={`/runs/${run.id}`}
 											className="text-foreground hover:text-brand transition-colors"
-											onClick={(e) => e.stopPropagation()}
+											onClick={e => e.stopPropagation()}
 										>
 											{run.name}
 										</Link>
@@ -279,7 +277,7 @@ export function RunsListPage() {
 											{formatDuration(run.durationMs)}
 										</td>
 									)}
-									{evaluatorNames.map((name) =>
+									{evaluatorNames.map(name =>
 										columnVisibility[`score_${name}`] !== false ? (
 											<td key={name} className="px-3 py-3 text-right">
 												{run.avgScores[name] != null ? (
@@ -293,7 +291,7 @@ export function RunsListPage() {
 									{columnVisibility.tags !== false && (
 										<td className="px-3 py-3">
 											<div className="flex gap-1 flex-wrap">
-												{run.tags.map((tag) => (
+												{run.tags.map(tag => (
 													<Badge key={tag} color="sand" size="xs">
 														{tag}
 													</Badge>
@@ -325,7 +323,7 @@ export function RunsListPage() {
 				</div>
 			)}
 		</div>
-	);
+	)
 }
 
 function SortableHeader({
@@ -336,14 +334,14 @@ function SortableHeader({
 	onSort,
 	className,
 }: {
-	label: string;
-	sortKey: SortKey;
-	currentKey: SortKey;
-	dir: SortDir;
-	onSort: (key: SortKey) => void;
-	className?: string;
+	label: string
+	sortKey: SortKey
+	currentKey: SortKey
+	dir: SortDir
+	onSort: (key: SortKey) => void
+	className?: string
 }) {
-	const active = currentKey === sortKey;
+	const active = currentKey === sortKey
 	return (
 		<th
 			className={cn(
@@ -351,24 +349,24 @@ function SortableHeader({
 				className,
 			)}
 			onClick={() => onSort(sortKey)}
-			onKeyDown={(e) => e.key === 'Enter' && onSort(sortKey)}
+			onKeyDown={e => e.key === 'Enter' && onSort(sortKey)}
 		>
 			<span className="inline-flex items-center gap-1">
 				{label}
 				{active && <span className="text-[10px]">{dir === 'asc' ? '\u25B2' : '\u25BC'}</span>}
 			</span>
 		</th>
-	);
+	)
 }
 
 function getEvaluatorNames(runs: ResultSummary[]): string[] {
-	const names = new Set<string>();
+	const names = new Set<string>()
 	for (const run of runs) {
 		for (const key of Object.keys(run.avgScores)) {
-			names.add(key);
+			names.add(key)
 		}
 	}
-	return Array.from(names);
+	return Array.from(names)
 }
 
 function LoadingSkeleton() {
@@ -392,5 +390,5 @@ function LoadingSkeleton() {
 				))}
 			</div>
 		</div>
-	);
+	)
 }

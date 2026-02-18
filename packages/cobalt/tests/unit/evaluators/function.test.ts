@@ -1,7 +1,7 @@
-import { describe, expect, it } from 'vitest';
-import { evaluateFunction } from '../../../src/evaluators/function';
-import type { FunctionEvaluatorConfig } from '../../../src/types';
-import { sampleEvalContext } from '../../helpers/fixtures';
+import { describe, expect, it } from 'vitest'
+import { evaluateFunction } from '../../../src/evaluators/function'
+import type { FunctionEvaluatorConfig } from '../../../src/types'
+import { sampleEvalContext } from '../../helpers/fixtures'
 
 describe('evaluateFunction', () => {
 	it('should execute custom function and return result', async () => {
@@ -12,51 +12,51 @@ describe('evaluateFunction', () => {
 				score: output === item.expectedOutput ? 1 : 0,
 				reason: 'Exact match check',
 			}),
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result.score).toBe(1);
-		expect(result.reason).toBe('Exact match check');
-	});
+		expect(result.score).toBe(1)
+		expect(result.reason).toBe('Exact match check')
+	})
 
 	it('should pass correct context to function', async () => {
-		let receivedContext: any;
+		let receivedContext: EvalContext | undefined
 
 		const config: FunctionEvaluatorConfig = {
 			name: 'test',
 			type: 'function',
-			fn: (context) => {
-				receivedContext = context;
-				return { score: 1, reason: 'ok' };
+			fn: context => {
+				receivedContext = context
+				return { score: 1, reason: 'ok' }
 			},
-		};
+		}
 
-		await evaluateFunction(config, sampleEvalContext);
+		await evaluateFunction(config, sampleEvalContext)
 
-		expect(receivedContext.item).toEqual(sampleEvalContext.item);
-		expect(receivedContext.output).toBe(sampleEvalContext.output);
-		expect(receivedContext.metadata).toEqual(sampleEvalContext.metadata);
-	});
+		expect(receivedContext.item).toEqual(sampleEvalContext.item)
+		expect(receivedContext.output).toBe(sampleEvalContext.output)
+		expect(receivedContext.metadata).toEqual(sampleEvalContext.metadata)
+	})
 
 	it('should support async functions', async () => {
 		const config: FunctionEvaluatorConfig = {
 			name: 'async-test',
 			type: 'function',
 			fn: async ({ output }) => {
-				await new Promise((resolve) => setTimeout(resolve, 10));
+				await new Promise(resolve => setTimeout(resolve, 10))
 				return {
 					score: output.length > 0 ? 1 : 0,
 					reason: 'Async check',
-				};
+				}
 			},
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result.score).toBe(1);
-		expect(result.reason).toBe('Async check');
-	});
+		expect(result.score).toBe(1)
+		expect(result.reason).toBe('Async check')
+	})
 
 	it('should throw error for score outside 0-1 range', async () => {
 		const config: FunctionEvaluatorConfig = {
@@ -66,12 +66,12 @@ describe('evaluateFunction', () => {
 				score: 1.5,
 				reason: 'Invalid score',
 			}),
-		};
+		}
 
 		await expect(evaluateFunction(config, sampleEvalContext)).rejects.toThrow(
 			/score between 0 and 1/,
-		);
-	});
+		)
+	})
 
 	it('should provide default reason when none given', async () => {
 		const config: FunctionEvaluatorConfig = {
@@ -80,34 +80,34 @@ describe('evaluateFunction', () => {
 			fn: () => ({
 				score: 0.75,
 			}),
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result.score).toBe(0.75);
-		expect(result.reason).toBe('No reason provided');
-	});
+		expect(result.score).toBe(0.75)
+		expect(result.reason).toBe('No reason provided')
+	})
 
 	it('should handle complex evaluation logic', async () => {
 		const config: FunctionEvaluatorConfig = {
 			name: 'complex',
 			type: 'function',
 			fn: ({ item, output }) => {
-				const expected = String(item.expectedOutput).toLowerCase();
-				const actual = String(output).toLowerCase();
+				const expected = String(item.expectedOutput).toLowerCase()
+				const actual = String(output).toLowerCase()
 
-				const score = expected === actual ? 1 : 0.5;
-				const reason = score === 1 ? 'Exact match' : 'Partial match';
+				const score = expected === actual ? 1 : 0.5
+				const reason = score === 1 ? 'Exact match' : 'Partial match'
 
-				return { score, reason };
+				return { score, reason }
 			},
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result.score).toBeGreaterThan(0);
-		expect(result.reason).toBeDefined();
-	});
+		expect(result.score).toBeGreaterThan(0)
+		expect(result.reason).toBeDefined()
+	})
 
 	it('should allow access to metadata in function', async () => {
 		const config: FunctionEvaluatorConfig = {
@@ -117,105 +117,105 @@ describe('evaluateFunction', () => {
 				score: metadata?.model === 'gpt-4o' ? 1 : 0,
 				reason: `Model: ${metadata?.model}`,
 			}),
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result.score).toBe(1);
-		expect(result.reason).toContain('gpt-4o');
-	});
+		expect(result.score).toBe(1)
+		expect(result.reason).toContain('gpt-4o')
+	})
 
 	it('should handle errors in custom function gracefully', async () => {
 		const config: FunctionEvaluatorConfig = {
 			name: 'error-test',
 			type: 'function',
 			fn: () => {
-				throw new Error('Custom function error');
+				throw new Error('Custom function error')
 			},
-		};
+		}
 
 		await expect(evaluateFunction(config, sampleEvalContext)).rejects.toThrow(
 			'Custom function error',
-		);
-	});
+		)
+	})
 
 	it('should support string output matching', async () => {
 		const config: FunctionEvaluatorConfig = {
 			name: 'string-match',
 			type: 'function',
 			fn: ({ item, output }) => {
-				const contains = String(output).includes(String(item.expectedOutput));
+				const contains = String(output).includes(String(item.expectedOutput))
 				return {
 					score: contains ? 1 : 0,
 					reason: contains ? 'Contains expected output' : 'Missing expected output',
-				};
+				}
 			},
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result).toHaveProperty('score');
-		expect(result).toHaveProperty('reason');
-	});
+		expect(result).toHaveProperty('score')
+		expect(result).toHaveProperty('reason')
+	})
 
 	it('should apply context mapping before calling fn', async () => {
-		let receivedContext: any;
+		let receivedContext: EvalContext | undefined
 
 		const config: FunctionEvaluatorConfig = {
 			name: 'context-test',
 			type: 'function',
-			fn: (context) => {
-				receivedContext = context;
-				return { score: 1, reason: 'ok' };
+			fn: context => {
+				receivedContext = context
+				return { score: 1, reason: 'ok' }
 			},
-			context: (ctx) => ({
+			context: ctx => ({
 				...ctx,
 				item: { ...ctx.item, customField: 'injected' },
 			}),
-		};
+		}
 
-		await evaluateFunction(config, sampleEvalContext);
+		await evaluateFunction(config, sampleEvalContext)
 
-		expect(receivedContext.item.customField).toBe('injected');
+		expect(receivedContext.item.customField).toBe('injected')
 		// Original fields should still be present
-		expect(receivedContext.item.input).toEqual(sampleEvalContext.item.input);
-	});
+		expect(receivedContext.item.input).toEqual(sampleEvalContext.item.input)
+	})
 
 	it('should work without context mapping', async () => {
-		let receivedContext: any;
+		let receivedContext: EvalContext | undefined
 
 		const config: FunctionEvaluatorConfig = {
 			name: 'no-context-mapping',
 			type: 'function',
-			fn: (context) => {
-				receivedContext = context;
-				return { score: 1, reason: 'ok' };
+			fn: context => {
+				receivedContext = context
+				return { score: 1, reason: 'ok' }
 			},
-		};
+		}
 
-		await evaluateFunction(config, sampleEvalContext);
+		await evaluateFunction(config, sampleEvalContext)
 
-		expect(receivedContext).toEqual(sampleEvalContext);
-	});
+		expect(receivedContext).toEqual(sampleEvalContext)
+	})
 
 	it('should support numeric scoring with reasoning', async () => {
 		const config: FunctionEvaluatorConfig = {
 			name: 'length-check',
 			type: 'function',
 			fn: ({ output }) => {
-				const length = String(output).length;
-				const score = Math.min(length / 100, 1);
+				const length = String(output).length
+				const score = Math.min(length / 100, 1)
 				return {
 					score,
 					reason: `Output length: ${length} characters`,
-				};
+				}
 			},
-		};
+		}
 
-		const result = await evaluateFunction(config, sampleEvalContext);
+		const result = await evaluateFunction(config, sampleEvalContext)
 
-		expect(result.score).toBeGreaterThanOrEqual(0);
-		expect(result.score).toBeLessThanOrEqual(1);
-		expect(result.reason).toContain('Output length');
-	});
-});
+		expect(result.score).toBeGreaterThanOrEqual(0)
+		expect(result.score).toBeLessThanOrEqual(1)
+		expect(result.reason).toContain('Output length')
+	})
+})

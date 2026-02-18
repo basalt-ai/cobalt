@@ -1,11 +1,11 @@
-import type { ReactNode } from 'react';
-import { cn } from '../../lib/utils';
+import type { ReactNode } from 'react'
+import { cn } from '../../lib/utils'
 
 interface PageHeaderProps {
-	title: string;
-	description?: string;
-	children?: ReactNode;
-	className?: string;
+	title: string
+	description?: string
+	children?: ReactNode
+	className?: string
 }
 
 export function PageHeader({ title, description, children, className }: PageHeaderProps) {
@@ -17,5 +17,5 @@ export function PageHeader({ title, description, children, className }: PageHead
 			</div>
 			{children && <div className="flex items-center gap-2">{children}</div>}
 		</div>
-	);
+	)
 }

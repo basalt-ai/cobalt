@@ -2,14 +2,14 @@
  * Resolve a dot-notation path (e.g. "metadata.model", "tags[0]") on an object.
  * Returns undefined if the path doesn't resolve.
  */
-function resolveNestedPath(obj: Record<string, any>, path: string): unknown {
-	const segments = path.replace(/\[(\d+)\]/g, '.$1').split('.');
-	let current: unknown = obj;
+function resolveNestedPath(obj: Record<string, unknown>, path: string): unknown {
+	const segments = path.replace(/\[(\d+)\]/g, '.$1').split('.')
+	let current: unknown = obj
 	for (const segment of segments) {
-		if (current === null || current === undefined) return undefined;
-		current = (current as Record<string, any>)[segment];
+		if (current === null || current === undefined) return undefined
+		current = (current as Record<string, unknown>)[segment]
 	}
-	return current;
+	return current
 }
 
 /**
@@ -19,15 +19,15 @@ function resolveNestedPath(obj: Record<string, any>, path: string): unknown {
  * @param context - Object with variable values
  * @returns Rendered string
  */
-export function renderTemplate(template: string, context: Record<string, any>): string {
+export function renderTemplate(template: string, context: Record<string, unknown>): string {
 	return template.replace(/\{\{([\w.[\]]+)\}\}/g, (match, path: string) => {
-		const value = resolveNestedPath(context, path);
+		const value = resolveNestedPath(context, path)
 		if (value === undefined || value === null) {
-			return match; // Keep placeholder if value not found
+			return match // Keep placeholder if value not found
 		}
 		if (typeof value === 'object') {
-			return JSON.stringify(value, null, 2);
+			return JSON.stringify(value, null, 2)
 		}
-		return String(value);
-	});
+		return String(value)
+	})
 }

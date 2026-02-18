@@ -1,5 +1,5 @@
-import { defineCommand } from 'citty';
-import { startMCPServer } from '../../mcp/server';
+import { defineCommand } from 'citty'
+import { startMCPServer } from '../../mcp/server'
 
 export default defineCommand({
 	meta: {
@@ -8,12 +8,12 @@ export default defineCommand({
 	},
 	async run() {
 		try {
-			await startMCPServer();
+			await startMCPServer()
 			// Keep process alive
-			await new Promise(() => {});
+			await new Promise(() => {})
 		} catch (error) {
-			console.error('Failed to start MCP server:', error);
-			process.exit(1);
+			console.error('Failed to start MCP server:', error)
+			process.exit(1)
 		}
 	},
-});
+})

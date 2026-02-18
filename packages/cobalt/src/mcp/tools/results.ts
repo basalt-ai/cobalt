@@ -1,5 +1,6 @@
-import { HistoryDB } from '../../storage/db';
-import { loadResult } from '../../storage/results';
+import { HistoryDB } from '../../storage/db'
+import { loadResult } from '../../storage/results'
+import type { ResultFilter } from '../../types'
 
 /**
  * MCP Tool: cobalt_results
@@ -25,13 +26,19 @@ export const cobaltResultsTool = {
 			},
 		},
 	},
-};
+}
 
-export async function handleCobaltResults(args: any) {
+interface CobaltResultsArgs {
+	runId?: string
+	limit?: number
+	experiment?: string
+}
+
+export async function handleCobaltResults(args: CobaltResultsArgs) {
 	try {
 		if (args.runId) {
 			// Get specific run details
-			const report = await loadResult(args.runId);
+			const report = await loadResult(args.runId)
 
 			return {
 				content: [
@@ -40,20 +47,20 @@ export async function handleCobaltResults(args: any) {
 						text: JSON.stringify(report, null, 2),
 					},
 				],
-			};
+			}
 		}
 		// List recent runs
-		const db = new HistoryDB();
+		const db = new HistoryDB()
 
-		const filter: any = {};
-		if (args.experiment) filter.experiment = args.experiment;
+		const filter: ResultFilter = {}
+		if (args.experiment) filter.experiment = args.experiment
 
-		let runs = db.getRuns(filter);
-		db.close();
+		let runs = db.getRuns(filter)
+		db.close()
 
 		// Apply limit
-		const limit = args.limit || 10;
-		runs = runs.slice(0, limit);
+		const limit = args.limit || 10
+		runs = runs.slice(0, limit)
 
 		return {
 			content: [
@@ -69,7 +76,7 @@ export async function handleCobaltResults(args: any) {
 					),
 				},
 			],
-		};
+		}
 	} catch (error) {
 		return {
 			content: [
@@ -85,6 +92,6 @@ export async function handleCobaltResults(args: any) {
 				},
 			],
 			isError: true,
-		};
+		}
 	}
 }

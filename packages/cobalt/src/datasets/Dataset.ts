@@ -1,21 +1,21 @@
-import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import type { DatasetConfig, ExperimentItem } from '../types';
-import { fetchBasaltDataset } from './loaders/basalt';
-import { fetchBraintrustDataset } from './loaders/braintrust';
-import { fetchLangfuseDataset } from './loaders/langfuse';
-import { fetchLangSmithDataset } from './loaders/langsmith';
-import { fetchRemoteDataset } from './loaders/remote';
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import type { DatasetConfig, ExperimentItem } from '../types'
+import { fetchBasaltDataset } from './loaders/basalt'
+import { fetchBraintrustDataset } from './loaders/braintrust'
+import { fetchLangfuseDataset } from './loaders/langfuse'
+import { fetchLangSmithDataset } from './loaders/langsmith'
+import { fetchRemoteDataset } from './loaders/remote'
 
 /**
  * Dataset class for managing experiment data
  * Supports inline items, file loading (JSON, CSV, JSONL), and transformations
  */
 export class Dataset<T = ExperimentItem> {
-	private items: T[];
+	private items: T[]
 
 	constructor(config: DatasetConfig<T>) {
-		this.items = config.items;
+		this.items = config.items
 	}
 
 	/**
@@ -24,19 +24,19 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns Dataset instance
 	 */
 	static fromFile<T = ExperimentItem>(path: string): Dataset<T> {
-		const resolvedPath = resolve(process.cwd(), path);
+		const resolvedPath = resolve(process.cwd(), path)
 
 		if (path.endsWith('.json')) {
-			return Dataset.fromJSON<T>(resolvedPath);
+			return Dataset.fromJSON<T>(resolvedPath)
 		}
 		if (path.endsWith('.jsonl')) {
-			return Dataset.fromJSONL<T>(resolvedPath);
+			return Dataset.fromJSONL<T>(resolvedPath)
 		}
 		if (path.endsWith('.csv')) {
-			return Dataset.fromCSV<T>(resolvedPath);
+			return Dataset.fromCSV<T>(resolvedPath)
 		}
 		// Try JSON by default
-		return Dataset.fromJSON<T>(resolvedPath);
+		return Dataset.fromJSON<T>(resolvedPath)
 	}
 
 	/**
@@ -46,15 +46,15 @@ export class Dataset<T = ExperimentItem> {
 	 */
 	static fromJSON<T = ExperimentItem>(path: string): Dataset<T> {
 		try {
-			const content = readFileSync(path, 'utf-8');
-			const data = JSON.parse(content);
+			const content = readFileSync(path, 'utf-8')
+			const data = JSON.parse(content)
 
 			// Support both array and object with items property
-			const items = Array.isArray(data) ? data : data.items || [];
+			const items = Array.isArray(data) ? data : data.items || []
 
-			return new Dataset<T>({ items });
+			return new Dataset<T>({ items })
 		} catch (error) {
-			throw new Error(`Failed to load JSON dataset from ${path}: ${error}`);
+			throw new Error(`Failed to load JSON dataset from ${path}: ${error}`)
 		}
 	}
 
@@ -65,13 +65,13 @@ export class Dataset<T = ExperimentItem> {
 	 */
 	static fromJSONL<T = ExperimentItem>(path: string): Dataset<T> {
 		try {
-			const content = readFileSync(path, 'utf-8');
-			const lines = content.split('\n').filter((line) => line.trim());
-			const items = lines.map((line) => JSON.parse(line));
+			const content = readFileSync(path, 'utf-8')
+			const lines = content.split('\n').filter(line => line.trim())
+			const items = lines.map(line => JSON.parse(line))
 
-			return new Dataset<T>({ items });
+			return new Dataset<T>({ items })
 		} catch (error) {
-			throw new Error(`Failed to load JSONL dataset from ${path}: ${error}`);
+			throw new Error(`Failed to load JSONL dataset from ${path}: ${error}`)
 		}
 	}
 
@@ -83,36 +83,36 @@ export class Dataset<T = ExperimentItem> {
 	 */
 	static fromCSV<T = ExperimentItem>(path: string): Dataset<T> {
 		try {
-			const content = readFileSync(path, 'utf-8');
-			const lines = content.split('\n').filter((line) => line.trim());
+			const content = readFileSync(path, 'utf-8')
+			const lines = content.split('\n').filter(line => line.trim())
 
 			if (lines.length === 0) {
-				return new Dataset<T>({ items: [] });
+				return new Dataset<T>({ items: [] })
 			}
 
 			// Parse header
-			const headerLine = lines[0];
+			const headerLine = lines[0]
 			if (!headerLine) {
-				return new Dataset<T>({ items: [] });
+				return new Dataset<T>({ items: [] })
 			}
-			const headers = parseCSVLine(headerLine);
+			const headers = parseCSVLine(headerLine)
 
 			// Parse rows
-			const items = lines.slice(1).map((line) => {
-				const values = parseCSVLine(line);
-				const item: Record<string, string> = {};
+			const items = lines.slice(1).map(line => {
+				const values = parseCSVLine(line)
+				const item: Record<string, string> = {}
 
 				headers.forEach((header, index) => {
-					const value = values[index];
-					item[header] = value !== undefined ? value : '';
-				});
+					const value = values[index]
+					item[header] = value !== undefined ? value : ''
+				})
 
-				return item as T;
-			});
+				return item as T
+			})
 
-			return new Dataset<T>({ items });
+			return new Dataset<T>({ items })
 		} catch (error) {
-			throw new Error(`Failed to load CSV dataset from ${path}: ${error}`);
+			throw new Error(`Failed to load CSV dataset from ${path}: ${error}`)
 		}
 	}
 
@@ -127,8 +127,8 @@ export class Dataset<T = ExperimentItem> {
 	 * ```
 	 */
 	static async fromRemote<T = ExperimentItem>(url: string): Promise<Dataset<T>> {
-		const items = await fetchRemoteDataset(url);
-		return new Dataset<T>({ items: items as T[] });
+		const items = await fetchRemoteDataset(url)
+		return new Dataset<T>({ items: items as T[] })
 	}
 
 	/**
@@ -146,14 +146,14 @@ export class Dataset<T = ExperimentItem> {
 	static async fromLangfuse<T = ExperimentItem>(
 		datasetName: string,
 		options?: {
-			apiKey?: string;
-			publicKey?: string;
-			secretKey?: string;
-			baseUrl?: string;
+			apiKey?: string
+			publicKey?: string
+			secretKey?: string
+			baseUrl?: string
 		},
 	): Promise<Dataset<T>> {
-		const items = await fetchLangfuseDataset(datasetName, options);
-		return new Dataset<T>({ items: items as T[] });
+		const items = await fetchLangfuseDataset(datasetName, options)
+		return new Dataset<T>({ items: items as T[] })
 	}
 
 	/**
@@ -171,12 +171,12 @@ export class Dataset<T = ExperimentItem> {
 	static async fromLangsmith<T = ExperimentItem>(
 		datasetName: string,
 		options?: {
-			apiKey?: string;
-			baseUrl?: string;
+			apiKey?: string
+			baseUrl?: string
 		},
 	): Promise<Dataset<T>> {
-		const items = await fetchLangSmithDataset(datasetName, options);
-		return new Dataset<T>({ items: items as T[] });
+		const items = await fetchLangSmithDataset(datasetName, options)
+		return new Dataset<T>({ items: items as T[] })
 	}
 
 	/**
@@ -196,12 +196,12 @@ export class Dataset<T = ExperimentItem> {
 		projectName: string,
 		datasetName: string,
 		options?: {
-			apiKey?: string;
-			baseUrl?: string;
+			apiKey?: string
+			baseUrl?: string
 		},
 	): Promise<Dataset<T>> {
-		const items = await fetchBraintrustDataset(projectName, datasetName, options);
-		return new Dataset<T>({ items: items as T[] });
+		const items = await fetchBraintrustDataset(projectName, datasetName, options)
+		return new Dataset<T>({ items: items as T[] })
 	}
 
 	/**
@@ -219,12 +219,12 @@ export class Dataset<T = ExperimentItem> {
 	static async fromBasalt<T = ExperimentItem>(
 		datasetId: string,
 		options?: {
-			apiKey?: string;
-			baseUrl?: string;
+			apiKey?: string
+			baseUrl?: string
 		},
 	): Promise<Dataset<T>> {
-		const items = await fetchBasaltDataset(datasetId, options);
-		return new Dataset<T>({ items: items as T[] });
+		const items = await fetchBasaltDataset(datasetId, options)
+		return new Dataset<T>({ items: items as T[] })
 	}
 
 	/**
@@ -233,8 +233,8 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns New dataset with transformed items
 	 */
 	map<U>(fn: (item: T, index: number) => U): Dataset<U> {
-		const transformedItems = this.items.map(fn);
-		return new Dataset<U>({ items: transformedItems });
+		const transformedItems = this.items.map(fn)
+		return new Dataset<U>({ items: transformedItems })
 	}
 
 	/**
@@ -243,9 +243,9 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns New dataset with sampled items
 	 */
 	sample(n: number): Dataset<T> {
-		const shuffled = [...this.items].sort(() => Math.random() - 0.5);
-		const sampled = shuffled.slice(0, Math.min(n, this.items.length));
-		return new Dataset<T>({ items: sampled });
+		const shuffled = [...this.items].sort(() => Math.random() - 0.5)
+		const sampled = shuffled.slice(0, Math.min(n, this.items.length))
+		return new Dataset<T>({ items: sampled })
 	}
 
 	/**
@@ -255,8 +255,8 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns New dataset with sliced items
 	 */
 	slice(start: number, end?: number): Dataset<T> {
-		const sliced = this.items.slice(start, end);
-		return new Dataset<T>({ items: sliced });
+		const sliced = this.items.slice(start, end)
+		return new Dataset<T>({ items: sliced })
 	}
 
 	/**
@@ -265,8 +265,8 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns New dataset with filtered items
 	 */
 	filter(predicate: (item: T, index: number) => boolean): Dataset<T> {
-		const filtered = this.items.filter(predicate);
-		return new Dataset<T>({ items: filtered });
+		const filtered = this.items.filter(predicate)
+		return new Dataset<T>({ items: filtered })
 	}
 
 	/**
@@ -274,7 +274,7 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns Array of items
 	 */
 	getItems(): T[] {
-		return [...this.items];
+		return [...this.items]
 	}
 
 	/**
@@ -282,7 +282,7 @@ export class Dataset<T = ExperimentItem> {
 	 * @returns Number of items
 	 */
 	get length(): number {
-		return this.items.length;
+		return this.items.length
 	}
 }
 
@@ -292,23 +292,23 @@ export class Dataset<T = ExperimentItem> {
  * @returns Array of values
  */
 function parseCSVLine(line: string): string[] {
-	const result: string[] = [];
-	let current = '';
-	let inQuotes = false;
+	const result: string[] = []
+	let current = ''
+	let inQuotes = false
 
 	for (let i = 0; i < line.length; i++) {
-		const char = line[i];
+		const char = line[i]
 
 		if (char === '"') {
-			inQuotes = !inQuotes;
+			inQuotes = !inQuotes
 		} else if (char === ',' && !inQuotes) {
-			result.push(current.trim());
-			current = '';
+			result.push(current.trim())
+			current = ''
 		} else {
-			current += char;
+			current += char
 		}
 	}
 
-	result.push(current.trim());
-	return result;
+	result.push(current.trim())
+	return result
 }

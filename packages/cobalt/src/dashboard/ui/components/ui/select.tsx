@@ -1,11 +1,11 @@
-import { CaretDown, CaretUp, Check } from '@phosphor-icons/react';
-import * as SelectPrimitive from '@radix-ui/react-select';
-import { forwardRef } from 'react';
-import { cn } from '../../lib/utils';
+import { CaretDown, CaretUp, Check } from '@phosphor-icons/react'
+import * as SelectPrimitive from '@radix-ui/react-select'
+import { forwardRef } from 'react'
+import { cn } from '../../lib/utils'
 
-const Select = SelectPrimitive.Root;
-const SelectGroup = SelectPrimitive.Group;
-const SelectValue = SelectPrimitive.Value;
+const Select = SelectPrimitive.Root
+const SelectGroup = SelectPrimitive.Group
+const SelectValue = SelectPrimitive.Value
 
 const SelectTrigger = forwardRef<
 	React.ComponentRef<typeof SelectPrimitive.Trigger>,
@@ -24,8 +24,8 @@ const SelectTrigger = forwardRef<
 			<CaretDown className="h-4 w-4 opacity-50" />
 		</SelectPrimitive.Icon>
 	</SelectPrimitive.Trigger>
-));
-SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 
 const SelectContent = forwardRef<
 	React.ComponentRef<typeof SelectPrimitive.Content>,
@@ -59,8 +59,8 @@ const SelectContent = forwardRef<
 			</SelectPrimitive.ScrollDownButton>
 		</SelectPrimitive.Content>
 	</SelectPrimitive.Portal>
-));
-SelectContent.displayName = SelectPrimitive.Content.displayName;
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectItem = forwardRef<
 	React.ComponentRef<typeof SelectPrimitive.Item>,
@@ -81,7 +81,7 @@ const SelectItem = forwardRef<
 		</span>
 		<SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
 	</SelectPrimitive.Item>
-));
-SelectItem.displayName = SelectPrimitive.Item.displayName;
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
 
-export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem };
+export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem }

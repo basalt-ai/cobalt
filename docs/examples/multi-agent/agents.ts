@@ -1,12 +1,12 @@
-import OpenAI from 'openai';
+import OpenAI from 'openai'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 export interface WorkflowResult {
-	research: string;
-	article: string;
-	reviewed: string;
-	tokens: number;
+	research: string
+	article: string
+	reviewed: string
+	tokens: number
 }
 
 /**
@@ -28,9 +28,9 @@ async function researchAgent(topic: string): Promise<string> {
 		],
 		temperature: 0.7,
 		max_tokens: 300,
-	});
+	})
 
-	return completion.choices[0].message.content || '';
+	return completion.choices[0].message.content || ''
 }
 
 /**
@@ -52,9 +52,9 @@ async function writerAgent(topic: string, research: string): Promise<string> {
 		],
 		temperature: 0.7,
 		max_tokens: 400,
-	});
+	})
 
-	return completion.choices[0].message.content || '';
+	return completion.choices[0].message.content || ''
 }
 
 /**
@@ -76,9 +76,9 @@ async function reviewerAgent(article: string): Promise<string> {
 		],
 		temperature: 0.3,
 		max_tokens: 400,
-	});
+	})
 
-	return completion.choices[0].message.content || '';
+	return completion.choices[0].message.content || ''
 }
 
 /**
@@ -86,39 +86,39 @@ async function reviewerAgent(article: string): Promise<string> {
  */
 export async function runWorkflow(topic: string): Promise<WorkflowResult> {
 	// Agent 1: Research
-	const research = await researchAgent(topic);
+	const research = await researchAgent(topic)
 
 	// Agent 2: Write (uses research)
-	const article = await writerAgent(topic, research);
+	const article = await writerAgent(topic, research)
 
 	// Agent 3: Review (uses article)
-	const reviewed = await reviewerAgent(article);
+	const reviewed = await reviewerAgent(article)
 
 	return {
 		research,
 		article,
 		reviewed,
 		tokens: 1000, // Approximate
-	};
+	}
 }
 
 // For testing
 if (import.meta.url === `file://${process.argv[1]}`) {
-	const topic = process.argv[2] || 'Artificial Intelligence';
+	const topic = process.argv[2] || 'Artificial Intelligence'
 
-	console.log(`Running workflow for: ${topic}`);
+	console.log(`Running workflow for: ${topic}`)
 
 	runWorkflow(topic)
-		.then((result) => {
-			console.log('\n=== RESEARCH ===');
-			console.log(result.research);
-			console.log('\n=== ARTICLE ===');
-			console.log(result.article);
-			console.log('\n=== REVIEWED ===');
-			console.log(result.reviewed);
+		.then(result => {
+			console.log('\n=== RESEARCH ===')
+			console.log(result.research)
+			console.log('\n=== ARTICLE ===')
+			console.log(result.article)
+			console.log('\n=== REVIEWED ===')
+			console.log(result.reviewed)
 		})
-		.catch((error) => {
-			console.error('Error:', error.message);
-			process.exit(1);
-		});
+		.catch(error => {
+			console.error('Error:', error.message)
+			process.exit(1)
+		})
 }

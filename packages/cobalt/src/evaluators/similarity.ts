@@ -1,6 +1,6 @@
-import OpenAI from 'openai';
-import { registry } from '../core/EvaluatorRegistry';
-import type { EvalContext, EvalResult, SimilarityEvaluatorConfig } from '../types';
+import OpenAI from 'openai'
+import { registry } from '../core/EvaluatorRegistry'
+import type { EvalContext, EvalResult, EvaluatorConfig, SimilarityEvaluatorConfig } from '../types'
 
 /**
  * Evaluate using semantic similarity (embeddings + cosine similarity)
@@ -10,88 +10,89 @@ import type { EvalContext, EvalResult, SimilarityEvaluatorConfig } from '../type
  * @returns Evaluation result
  */
 export async function evaluateSimilarity(
-	config: SimilarityEvaluatorConfig,
+	_config: EvaluatorConfig,
 	context: EvalContext,
 	apiKey?: string,
 ): Promise<EvalResult> {
+	const config = _config as SimilarityEvaluatorConfig
 	if (!apiKey) {
-		throw new Error('OpenAI API key is required for similarity evaluator');
+		throw new Error('OpenAI API key is required for similarity evaluator')
 	}
 
 	// Extract output and expected value
-	const output = String(context.output);
-	const expectedValue = context.item[config.field];
+	const output = String(context.output)
+	const expectedValue = context.item[config.field]
 
 	if (expectedValue === undefined) {
-		throw new Error(`Field "${config.field}" not found in dataset item`);
+		throw new Error(`Field "${config.field}" not found in dataset item`)
 	}
 
-	const expected = String(expectedValue);
+	const expected = String(expectedValue)
 
 	// Handle empty text cases
 	if (!output.trim() || !expected.trim()) {
 		return {
 			score: 0,
 			reason: 'Cannot calculate similarity for empty text',
-		};
+		}
 	}
 
 	// Get embeddings for both texts
-	const model = 'text-embedding-3-small'; // Cost-effective default
+	const model = 'text-embedding-3-small' // Cost-effective default
 	const [outputEmbedding, expectedEmbedding] = await Promise.all([
 		getEmbedding(output, apiKey, model),
 		getEmbedding(expected, apiKey, model),
-	]);
+	])
 
 	// Calculate similarity using configured distance metric
-	const distanceMetric = config.distance ?? 'cosine';
+	const distanceMetric = config.distance ?? 'cosine'
 	const similarity =
 		distanceMetric === 'dot'
 			? dotProductSimilarity(outputEmbedding, expectedEmbedding)
-			: cosineSimilarity(outputEmbedding, expectedEmbedding);
+			: cosineSimilarity(outputEmbedding, expectedEmbedding)
 
-	const metricName = distanceMetric === 'dot' ? 'Dot product' : 'Cosine';
+	const metricName = distanceMetric === 'dot' ? 'Dot product' : 'Cosine'
 
 	// Apply threshold logic if specified
 	if (config.threshold !== undefined) {
-		const passes = similarity >= config.threshold;
+		const passes = similarity >= config.threshold
 		return {
 			score: passes ? 1 : 0,
 			reason: passes
 				? `${metricName} similarity ${similarity.toFixed(3)} meets threshold ${config.threshold}`
 				: `${metricName} similarity ${similarity.toFixed(3)} below threshold ${config.threshold}`,
-		};
+		}
 	}
 
 	// Return raw similarity score
 	return {
 		score: similarity,
 		reason: `${metricName} similarity: ${similarity.toFixed(3)}`,
-	};
+	}
 }
 
 /**
  * Get embedding vector for text using OpenAI API
  */
 async function getEmbedding(text: string, apiKey: string, model: string): Promise<number[]> {
-	const client = new OpenAI({ apiKey });
+	const client = new OpenAI({ apiKey })
 
 	try {
 		const response = await client.embeddings.create({
 			model,
 			input: text,
 			encoding_format: 'float',
-		});
+		})
 
-		const embedding = response.data[0]?.embedding;
+		const embedding = response.data[0]?.embedding
 		if (!embedding) {
-			throw new Error('No embedding returned from OpenAI API');
+			throw new Error('No embedding returned from OpenAI API')
 		}
 
-		return embedding;
+		return embedding
 	} catch (error) {
-		console.error('OpenAI embedding error:', error);
-		throw error;
+		console.error('OpenAI embedding error:', error)
+		throw error
 	}
 }
 
@@ -101,37 +102,37 @@ async function getEmbedding(text: string, apiKey: string, model: string): Promis
  */
 function cosineSimilarity(vecA: number[], vecB: number[]): number {
 	if (vecA.length !== vecB.length) {
-		throw new Error('Vectors must have the same length');
+		throw new Error('Vectors must have the same length')
 	}
 
 	// Calculate dot product
-	let dotProduct = 0;
+	let dotProduct = 0
 	for (let i = 0; i < vecA.length; i++) {
-		dotProduct += vecA[i]! * vecB[i]!;
+		dotProduct += (vecA[i] as number) * (vecB[i] as number)
 	}
 
 	// Calculate magnitudes
-	let magnitudeA = 0;
-	let magnitudeB = 0;
+	let magnitudeA = 0
+	let magnitudeB = 0
 	for (let i = 0; i < vecA.length; i++) {
-		magnitudeA += vecA[i]! * vecA[i]!;
-		magnitudeB += vecB[i]! * vecB[i]!;
+		magnitudeA += (vecA[i] as number) * (vecA[i] as number)
+		magnitudeB += (vecB[i] as number) * (vecB[i] as number)
 	}
-	magnitudeA = Math.sqrt(magnitudeA);
-	magnitudeB = Math.sqrt(magnitudeB);
+	magnitudeA = Math.sqrt(magnitudeA)
+	magnitudeB = Math.sqrt(magnitudeB)
 
 	// Handle zero magnitude case
 	if (magnitudeA === 0 || magnitudeB === 0) {
-		return 0;
+		return 0
 	}
 
 	// Calculate cosine similarity
-	const cosineSim = dotProduct / (magnitudeA * magnitudeB);
+	const cosineSim = dotProduct / (magnitudeA * magnitudeB)
 
 	// Normalize from [-1, 1] to [0, 1]
 	// Cosine similarity is typically in [-1, 1], but for text embeddings
 	// it's usually positive, so we clamp to [0, 1]
-	return Math.max(0, Math.min(1, cosineSim));
+	return Math.max(0, Math.min(1, cosineSim))
 }
 
 /**
@@ -140,17 +141,17 @@ function cosineSimilarity(vecA: number[], vecB: number[]): number {
  */
 function dotProductSimilarity(vecA: number[], vecB: number[]): number {
 	if (vecA.length !== vecB.length) {
-		throw new Error('Vectors must have the same length');
+		throw new Error('Vectors must have the same length')
 	}
 
-	let dotProduct = 0;
+	let dotProduct = 0
 	for (let i = 0; i < vecA.length; i++) {
-		dotProduct += vecA[i]! * vecB[i]!;
+		dotProduct += (vecA[i] as number) * (vecB[i] as number)
 	}
 
 	// Clamp to [0, 1] for score compatibility
-	return Math.max(0, Math.min(1, dotProduct));
+	return Math.max(0, Math.min(1, dotProduct))
 }
 
 // Register with global registry
-registry.register('similarity', evaluateSimilarity);
+registry.register('similarity', evaluateSimilarity)

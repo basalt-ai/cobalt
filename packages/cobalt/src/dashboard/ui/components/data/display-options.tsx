@@ -1,16 +1,16 @@
-import { FadersHorizontal } from '@phosphor-icons/react';
-import { Button } from '../ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import { Switch } from '../ui/switch';
+import { FadersHorizontal } from '@phosphor-icons/react'
+import { Button } from '../ui/button'
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'
+import { Switch } from '../ui/switch'
 
 export interface ColumnVisibility {
-	[key: string]: boolean;
+	[key: string]: boolean
 }
 
 interface DisplayOptionsProps {
-	columns: { key: string; label: string }[];
-	visibility: ColumnVisibility;
-	onVisibilityChange: (visibility: ColumnVisibility) => void;
+	columns: { key: string; label: string }[]
+	visibility: ColumnVisibility
+	onVisibilityChange: (visibility: ColumnVisibility) => void
 }
 
 export function DisplayOptions({ columns, visibility, onVisibilityChange }: DisplayOptionsProps) {
@@ -25,7 +25,7 @@ export function DisplayOptions({ columns, visibility, onVisibilityChange }: Disp
 			<PopoverContent align="end" className="w-56">
 				<div className="space-y-1">
 					<p className="text-xs font-medium text-muted-foreground mb-2">Toggle columns</p>
-					{columns.map((col) => (
+					{columns.map(col => (
 						<div key={col.key} className="flex items-center justify-between py-1.5">
 							<label htmlFor={`col-${col.key}`} className="text-sm cursor-pointer">
 								{col.label}
@@ -33,7 +33,7 @@ export function DisplayOptions({ columns, visibility, onVisibilityChange }: Disp
 							<Switch
 								id={`col-${col.key}`}
 								checked={visibility[col.key] !== false}
-								onCheckedChange={(checked) =>
+								onCheckedChange={checked =>
 									onVisibilityChange({ ...visibility, [col.key]: checked })
 								}
 							/>
@@ -42,5 +42,5 @@ export function DisplayOptions({ columns, visibility, onVisibilityChange }: Disp
 				</div>
 			</PopoverContent>
 		</Popover>
-	);
+	)
 }

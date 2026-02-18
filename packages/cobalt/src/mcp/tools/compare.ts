@@ -1,4 +1,4 @@
-import { loadResult } from '../../storage/results';
+import { loadResult } from '../../storage/results'
 
 /**
  * MCP Tool: cobalt_compare
@@ -22,75 +22,80 @@ export const cobaltCompareTool = {
 		},
 		required: ['runA', 'runB'],
 	},
-};
+}
 
-export async function handleCobaltCompare(args: any) {
+interface CobaltCompareArgs {
+	runA: string
+	runB: string
+}
+
+export async function handleCobaltCompare(args: CobaltCompareArgs) {
 	try {
 		// Load both runs
-		const runA = await loadResult(args.runA);
-		const runB = await loadResult(args.runB);
+		const runA = await loadResult(args.runA)
+		const runB = await loadResult(args.runB)
 
 		// Calculate score differences
 		const scoreDiffs: Record<
 			string,
 			{
-				baseline: number;
-				candidate: number;
-				diff: number;
-				percentChange: number;
+				baseline: number
+				candidate: number
+				diff: number
+				percentChange: number
 			}
-		> = {};
+		> = {}
 
 		for (const evaluator in runA.summary.scores) {
-			const baselineScore = runA.summary.scores[evaluator].avg;
-			const candidateScore = runB.summary.scores[evaluator]?.avg || 0;
+			const baselineScore = runA.summary.scores[evaluator].avg
+			const candidateScore = runB.summary.scores[evaluator]?.avg || 0
 
-			const diff = candidateScore - baselineScore;
-			const percentChange = baselineScore !== 0 ? (diff / baselineScore) * 100 : 0;
+			const diff = candidateScore - baselineScore
+			const percentChange = baselineScore !== 0 ? (diff / baselineScore) * 100 : 0
 
 			scoreDiffs[evaluator] = {
 				baseline: baselineScore,
 				candidate: candidateScore,
 				diff,
 				percentChange,
-			};
+			}
 		}
 
 		// Find regressions and improvements
 		const regressions = Object.entries(scoreDiffs)
 			.filter(([_, stats]) => stats.diff < -0.05) // Threshold: 5% drop
-			.map(([name, stats]) => ({ evaluator: name, ...stats }));
+			.map(([name, stats]) => ({ evaluator: name, ...stats }))
 
 		const improvements = Object.entries(scoreDiffs)
 			.filter(([_, stats]) => stats.diff > 0.05) // Threshold: 5% gain
-			.map(([name, stats]) => ({ evaluator: name, ...stats }));
+			.map(([name, stats]) => ({ evaluator: name, ...stats }))
 
 		// Find items with biggest changes
 		const itemChanges = runA.items
 			.map((itemA, index) => {
-				const itemB = runB.items[index];
-				if (!itemB) return null;
+				const itemB = runB.items[index]
+				if (!itemB) return null
 
-				const changes: Record<string, number> = {};
+				const changes: Record<string, number> = {}
 				for (const evaluator in itemA.evaluations) {
-					const scoreA = itemA.evaluations[evaluator].score;
-					const scoreB = itemB.evaluations[evaluator]?.score || 0;
-					changes[evaluator] = scoreB - scoreA;
+					const scoreA = itemA.evaluations[evaluator].score
+					const scoreB = itemB.evaluations[evaluator]?.score || 0
+					changes[evaluator] = scoreB - scoreA
 				}
 
-				const maxChange = Math.max(...Object.values(changes).map(Math.abs));
+				const maxChange = Math.max(...Object.values(changes).map(Math.abs))
 
 				return {
 					index,
 					input: itemA.input,
 					changes,
 					maxChange,
-				};
+				}
 			})
-			.filter(Boolean);
+			.filter(Boolean)
 
 		// Sort by biggest change
-		itemChanges.sort((a: any, b: any) => b.maxChange - a.maxChange);
+		itemChanges.sort((a, b) => (b?.maxChange ?? 0) - (a?.maxChange ?? 0))
 
 		const comparison = {
 			runA: {
@@ -107,7 +112,7 @@ export async function handleCobaltCompare(args: any) {
 			regressions,
 			improvements,
 			topChanges: itemChanges.slice(0, 10),
-		};
+		}
 
 		return {
 			content: [
@@ -116,7 +121,7 @@ export async function handleCobaltCompare(args: any) {
 					text: JSON.stringify(comparison, null, 2),
 				},
 			],
-		};
+		}
 	} catch (error) {
 		return {
 			content: [
@@ -132,6 +137,6 @@ export async function handleCobaltCompare(args: any) {
 				},
 			],
 			isError: true,
-		};
+		}
 	}
 }

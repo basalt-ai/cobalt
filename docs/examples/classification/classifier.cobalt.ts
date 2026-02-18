@@ -1,8 +1,8 @@
-import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
-import { classifySentiment } from './classifier.js';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt'
+import { classifySentiment } from './classifier.js'
 
 // Load dataset from CSV file
-const dataset = Dataset.fromCSV('./data.csv');
+const dataset = Dataset.fromCSV('./data.csv')
 
 // Define evaluators
 const evaluators = [
@@ -11,16 +11,16 @@ const evaluators = [
 		name: 'accuracy',
 		type: 'function',
 		fn: ({ item, output }) => {
-			const predicted = String(output).trim().toUpperCase();
-			const expected = String(item.expected_label).trim().toUpperCase();
-			const correct = predicted === expected;
+			const predicted = String(output).trim().toUpperCase()
+			const expected = String(item.expected_label).trim().toUpperCase()
+			const correct = predicted === expected
 
 			return {
 				score: correct ? 1 : 0,
 				reason: correct
 					? `Correct: ${predicted} == ${expected}`
 					: `Incorrect: ${predicted} != ${expected}`,
-			};
+			}
 		},
 	}),
 
@@ -29,16 +29,16 @@ const evaluators = [
 		name: 'confidence-check',
 		type: 'function',
 		fn: ({ metadata }) => {
-			const confidence = metadata?.confidence || 0;
-			const threshold = 0.7;
+			const confidence = metadata?.confidence || 0
+			const threshold = 0.7
 
 			return {
 				score: confidence >= threshold ? 1 : 0,
 				reason: `Confidence: ${confidence.toFixed(2)} (threshold: ${threshold})`,
-			};
+			}
 		},
 	}),
-];
+]
 
 // Run the experiment
 experiment(
@@ -46,7 +46,7 @@ experiment(
 	dataset,
 	async ({ item }) => {
 		// Classify the text
-		const response = await classifySentiment(item.text);
+		const response = await classifySentiment(item.text)
 
 		// Return classification label and metadata
 		return {
@@ -57,7 +57,7 @@ experiment(
 				tokens: response.tokens,
 				duration: response.duration,
 			},
-		};
+		}
 	},
 	{
 		evaluators,
@@ -65,4 +65,4 @@ experiment(
 		timeout: 15000,
 		tags: ['classification', 'sentiment', 'example'],
 	},
-);
+)

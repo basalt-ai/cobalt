@@ -1,9 +1,9 @@
-import { existsSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { createJiti } from 'jiti';
-import { loadConfig } from '../../core/config';
-import { drainPendingExperiments } from '../../core/experiment';
-import type { ExperimentReport } from '../../types';
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { createJiti } from 'jiti'
+import { loadConfig } from '../../core/config'
+import { drainPendingExperiments } from '../../core/experiment'
+import type { ExperimentReport } from '../../types'
 
 /**
  * MCP Tool: cobalt_run
@@ -31,53 +31,59 @@ export const cobaltRunTool = {
 			},
 		},
 	},
-};
+}
 
-export async function handleCobaltRun(args: any) {
+interface CobaltRunArgs {
+	file?: string
+	filter?: string
+	concurrency?: number
+}
+
+export async function handleCobaltRun(args: CobaltRunArgs) {
 	// Set up result capture via global callback
-	const capturedReports: ExperimentReport[] = [];
-	(global as any).__cobaltMCPResultCallback = (report: ExperimentReport) => {
-		capturedReports.push(report);
-	};
+	const capturedReports: ExperimentReport[] = []
+	globalThis.__cobaltMCPResultCallback = (report: ExperimentReport) => {
+		capturedReports.push(report)
+	}
 
 	try {
-		const config = await loadConfig();
+		const config = await loadConfig()
 
 		// Determine which files to run
-		let files: string[] = [];
+		let files: string[] = []
 
 		if (args.file) {
-			const filepath = resolve(process.cwd(), args.file);
+			const filepath = resolve(process.cwd(), args.file)
 			if (!existsSync(filepath)) {
-				throw new Error(`File not found: ${args.file}`);
+				throw new Error(`File not found: ${args.file}`)
 			}
-			files = [filepath];
+			files = [filepath]
 		} else {
 			// For now, just return error - file discovery would be complex
-			throw new Error('File parameter required for MCP tool. Specify the experiment file to run.');
+			throw new Error('File parameter required for MCP tool. Specify the experiment file to run.')
 		}
 
 		// Execute experiment file
 		const jiti = createJiti(import.meta.url, {
 			interopDefault: true,
-		});
+		})
 
 		for (const file of files) {
 			// Import and execute - the experiment() call will run automatically
 			// Results will be captured via the global callback
-			await jiti.import(file, { default: true });
+			await jiti.import(file, { default: true })
 
 			// Wait for all experiment() calls that started during import
-			await drainPendingExperiments();
+			await drainPendingExperiments()
 		}
 
 		// Verify we captured results
 		if (capturedReports.length === 0) {
-			throw new Error('No experiment reports captured - did the file call experiment()?');
+			throw new Error('No experiment reports captured - did the file call experiment()?')
 		}
 
 		// Return full experiment results
-		const result = capturedReports.length === 1 ? capturedReports[0] : capturedReports;
+		const result = capturedReports.length === 1 ? capturedReports[0] : capturedReports
 
 		return {
 			content: [
@@ -86,7 +92,7 @@ export async function handleCobaltRun(args: any) {
 					text: JSON.stringify(result, null, 2),
 				},
 			],
-		};
+		}
 	} catch (error) {
 		return {
 			content: [
@@ -103,10 +109,10 @@ export async function handleCobaltRun(args: any) {
 				},
 			],
 			isError: true,
-		};
+		}
 	} finally {
 		// Clean up global callback
-		(global as any).__cobaltMCPResultCallback = undefined;
-		(globalThis as any).__cobaltPendingExperiments = undefined;
+		globalThis.__cobaltMCPResultCallback = undefined
+		globalThis.__cobaltPendingExperiments = undefined
 	}
 }

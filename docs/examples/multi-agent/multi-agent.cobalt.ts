@@ -1,8 +1,8 @@
-import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt';
-import { runWorkflow } from './agents.js';
+import { Dataset, Evaluator, experiment } from '@basalt-ai/cobalt'
+import { runWorkflow } from './agents.js'
 
 // Load topics to research
-const dataset = Dataset.fromJSON('./topics.json');
+const dataset = Dataset.fromJSON('./topics.json')
 
 const evaluators = [
 	// Evaluator 1: Completeness
@@ -82,14 +82,14 @@ Respond with JSON: {"score": <number>, "reason": "<explanation>"}`,
 		model: 'gpt-5-mini',
 		provider: 'openai',
 	}),
-];
+]
 
 experiment(
 	'multi-agent-test',
 	dataset,
 	async ({ item }) => {
 		// Run the complete workflow
-		const result = await runWorkflow(item.topic);
+		const result = await runWorkflow(item.topic)
 
 		// Return final output with intermediate results in metadata
 		return {
@@ -99,7 +99,7 @@ experiment(
 				article: result.article,
 				tokens: result.tokens,
 			},
-		};
+		}
 	},
 	{
 		evaluators,
@@ -107,4 +107,4 @@ experiment(
 		timeout: 60000, // 60 second timeout (3 agents)
 		tags: ['multi-agent', 'workflow', 'example'],
 	},
-);
+)

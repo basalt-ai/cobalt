@@ -1,30 +1,30 @@
-import { randomBytes } from 'node:crypto';
-import { createReporters } from '../cli/reporters';
-import type { Dataset } from '../datasets/Dataset';
-import { HistoryDB } from '../storage/db';
-import { saveResult } from '../storage/results';
+import { randomBytes } from 'node:crypto'
+import { createReporters } from '../cli/reporters'
+import type { Dataset } from '../datasets/Dataset'
+import { HistoryDB } from '../storage/db'
+import { saveResult } from '../storage/results'
 import type {
 	CIResult,
 	ExperimentOptions,
 	ExperimentReport,
 	ItemResult,
 	RunnerFunction,
-} from '../types';
-import { calculateStats } from '../utils/stats';
-import { Evaluator } from './Evaluator';
-import { validateThresholds } from './ci';
-import { getApiKey, loadConfig } from './config';
-import { loadPlugins } from './plugin-loader';
-import { runExperiment } from './runner';
+} from '../types'
+import { calculateStats } from '../utils/stats'
+import { Evaluator } from './Evaluator'
+import { validateThresholds } from './ci'
+import { getApiKey, loadConfig } from './config'
+import { loadPlugins } from './plugin-loader'
+import { runExperiment } from './runner'
 
 // Access the shared global array for tracking in-flight experiment promises.
 // Uses globalThis so CLI and SDK bundles share the same array even when
 // tsup produces separate bundles with their own module-level state.
 function getPendingExperiments(): Promise<ExperimentReport>[] {
-	if (!(globalThis as any).__cobaltPendingExperiments) {
-		(globalThis as any).__cobaltPendingExperiments = [];
+	if (!globalThis.__cobaltPendingExperiments) {
+		globalThis.__cobaltPendingExperiments = []
 	}
-	return (globalThis as any).__cobaltPendingExperiments;
+	return globalThis.__cobaltPendingExperiments
 }
 
 /**
@@ -33,10 +33,10 @@ function getPendingExperiments(): Promise<ExperimentReport>[] {
  * called without `await` to finish.
  */
 export function drainPendingExperiments(): Promise<ExperimentReport[]> {
-	const pending = getPendingExperiments();
-	const promises = [...pending];
-	pending.length = 0;
-	return Promise.all(promises);
+	const pending = getPendingExperiments()
+	const promises = [...pending]
+	pending.length = 0
+	return Promise.all(promises)
 }
 
 /**
@@ -55,9 +55,9 @@ export function experiment(
 	runner: RunnerFunction,
 	options: ExperimentOptions,
 ): Promise<ExperimentReport> {
-	const promise = _experimentImpl(name, dataset, runner, options);
-	getPendingExperiments().push(promise);
-	return promise;
+	const promise = _experimentImpl(name, dataset, runner, options)
+	getPendingExperiments().push(promise)
+	return promise
 }
 
 async function _experimentImpl(
@@ -67,30 +67,30 @@ async function _experimentImpl(
 	options: ExperimentOptions,
 ): Promise<ExperimentReport> {
 	// Load configuration
-	const config = await loadConfig();
+	const config = await loadConfig()
 
 	// Load custom evaluator plugins if configured
 	if (config.plugins && config.plugins.length > 0) {
-		await loadPlugins(config.plugins);
+		await loadPlugins(config.plugins)
 	}
 
 	// Merge options with config defaults
-	const runs = options.runs || 1;
+	const runs = options.runs || 1
 	const concurrency =
-		(global as any).__cobaltConcurrencyOverride || options.concurrency || config.concurrency;
-	const timeout = options.timeout || config.timeout;
-	const tags = options.tags || [];
-	const experimentName = options.name || name;
+		globalThis.__cobaltConcurrencyOverride || options.concurrency || config.concurrency
+	const timeout = options.timeout || config.timeout
+	const tags = options.tags || []
+	const experimentName = options.name || name
 
 	// Tag/name-level filtering: skip experiment if --filter is set and doesn't match
-	const filterValue = (global as any).__cobaltFilter as string | undefined;
+	const filterValue = globalThis.__cobaltFilter
 	if (filterValue) {
-		const nameMatches = experimentName.toLowerCase().includes(filterValue.toLowerCase());
-		const tagMatches = tags.some((t) => t.toLowerCase().includes(filterValue.toLowerCase()));
+		const nameMatches = experimentName.toLowerCase().includes(filterValue.toLowerCase())
+		const tagMatches = tags.some(t => t.toLowerCase().includes(filterValue.toLowerCase()))
 		if (!nameMatches && !tagMatches) {
 			console.log(
 				`Skipping experiment "${experimentName}" (does not match filter "${filterValue}")`,
-			);
+			)
 			const skippedReport: ExperimentReport = {
 				id: generateRunId(),
 				name: experimentName,
@@ -104,55 +104,55 @@ async function _experimentImpl(
 					scores: {},
 				},
 				items: [],
-			};
-			return skippedReport;
+			}
+			return skippedReport
 		}
 	}
 
 	// Create evaluator instances (handle both Evaluator instances and configs)
-	const evaluators = options.evaluators.map((evalConfig) =>
+	const evaluators = options.evaluators.map(evalConfig =>
 		evalConfig instanceof Evaluator ? evalConfig : new Evaluator(evalConfig),
-	);
+	)
 
 	// Get API key only if needed (for LLM judge or similarity evaluators)
-	const needsApiKey = evaluators.some((e) => e.type === 'llm-judge' || e.type === 'similarity');
-	const apiKey = needsApiKey ? getApiKey(config) : undefined;
+	const needsApiKey = evaluators.some(e => e.type === 'llm-judge' || e.type === 'similarity')
+	const apiKey = needsApiKey ? getApiKey(config) : undefined
 
 	// Generate unique run ID
-	const runId = generateRunId();
+	const runId = generateRunId()
 
 	// Get dataset items
-	const items = dataset.getItems();
+	const items = dataset.getItems()
 
 	if (items.length === 0) {
-		throw new Error('Dataset is empty');
+		throw new Error('Dataset is empty')
 	}
 
 	// Create reporters from config
-	const reporters = createReporters(config.reporters);
+	const reporters = createReporters(config.reporters)
 
 	// Notify reporters of experiment start
 	const startInfo = {
 		name: experimentName,
 		datasetSize: items.length,
-		evaluators: evaluators.map((e) => e.name),
+		evaluators: evaluators.map(e => e.name),
 		concurrency,
 		timeout,
 		runs,
 		tags,
-	};
+	}
 	for (const reporter of reporters) {
-		reporter.onStart(startInfo);
+		reporter.onStart(startInfo)
 	}
 
-	const startTime = Date.now();
+	const startTime = Date.now()
 
 	// Progress callback
 	const onProgress = (info: import('./runner.js').ProgressInfo) => {
 		for (const reporter of reporters) {
-			reporter.onProgress(info);
+			reporter.onProgress(info)
 		}
-	};
+	}
 
 	// Run experiment
 	const results = await runExperiment(items, runner, {
@@ -163,12 +163,12 @@ async function _experimentImpl(
 		model: config.judge.model,
 		runs,
 		onProgress,
-	});
+	})
 
-	const totalDurationMs = Date.now() - startTime;
+	const totalDurationMs = Date.now() - startTime
 
 	// Calculate summary statistics
-	const summary = await calculateSummary(results, totalDurationMs, config.judge.model, runs);
+	const summary = await calculateSummary(results, totalDurationMs, config.judge.model, runs)
 
 	// Build report
 	const report: ExperimentReport = {
@@ -180,55 +180,51 @@ async function _experimentImpl(
 			runs,
 			concurrency,
 			timeout,
-			evaluators: evaluators.map((e) => e.name),
+			evaluators: evaluators.map(e => e.name),
 		},
 		summary,
 		items: results,
-	};
+	}
 
 	// CI Mode: Validate thresholds if configured
 	// Use experiment-level thresholds, or fall back to config-level thresholds when --ci is active
-	let ciStatus: CIResult | undefined;
-	const thresholds =
-		options.thresholds ||
-		((global as any).__cobaltCIThresholds as
-			| import('../types/index.js').ThresholdConfig
-			| undefined);
+	let ciStatus: CIResult | undefined
+	const thresholds = options.thresholds || globalThis.__cobaltCIThresholds
 	if (thresholds) {
-		ciStatus = validateThresholds(report, thresholds);
-		report.ciStatus = ciStatus;
+		ciStatus = validateThresholds(report, thresholds)
+		report.ciStatus = ciStatus
 
 		for (const reporter of reporters) {
-			reporter.onCIStatus(ciStatus);
+			reporter.onCIStatus(ciStatus)
 		}
 	}
 
 	// Save results to JSON file
-	const resultPath = await saveResult(report);
+	const resultPath = await saveResult(report)
 
 	// Notify reporters of completion
 	for (const reporter of reporters) {
-		reporter.onComplete(report, resultPath);
+		reporter.onComplete(report, resultPath)
 	}
 
 	// Save to history database
 	try {
-		const db = new HistoryDB();
-		db.insertRun(report);
-		db.close();
+		const db = new HistoryDB()
+		db.insertRun(report)
+		db.close()
 	} catch (error) {
 		// Silently fail for history database errors (not critical)
 	}
 
 	// CLI/MCP integration - allow result capture via global callback
-	if (typeof (global as any).__cobaltCLIResultCallback === 'function') {
-		(global as any).__cobaltCLIResultCallback(report);
+	if (typeof globalThis.__cobaltCLIResultCallback === 'function') {
+		globalThis.__cobaltCLIResultCallback(report)
 	}
-	if (typeof (global as any).__cobaltMCPResultCallback === 'function') {
-		(global as any).__cobaltMCPResultCallback(report);
+	if (typeof globalThis.__cobaltMCPResultCallback === 'function') {
+		globalThis.__cobaltMCPResultCallback(report)
 	}
 
-	return report;
+	return report
 }
 
 /**
@@ -240,75 +236,77 @@ async function calculateSummary(
 	model: string,
 	runs = 1,
 ) {
-	const totalItems = results.length;
-	const avgLatencyMs = results.reduce((sum, r) => sum + r.latencyMs, 0) / totalItems;
+	const totalItems = results.length
+	const avgLatencyMs = results.reduce((sum, r) => sum + r.latencyMs, 0) / totalItems
 
 	// Calculate scores per evaluator
-	const scoresByEvaluator: Record<string, number[]> = {};
+	const scoresByEvaluator: Record<string, number[]> = {}
 
 	for (const result of results) {
 		if (runs === 1) {
 			// Single run: use flat evaluations field (backward compatible)
 			for (const [evaluatorName, evaluation] of Object.entries(result.evaluations)) {
 				if (!scoresByEvaluator[evaluatorName]) {
-					scoresByEvaluator[evaluatorName] = [];
+					scoresByEvaluator[evaluatorName] = []
 				}
-				scoresByEvaluator[evaluatorName].push(evaluation.score);
+				scoresByEvaluator[evaluatorName].push(evaluation.score)
 			}
 		} else {
 			// Multiple runs: collect from all runs
 			for (const run of result.runs) {
 				for (const [evaluatorName, evaluation] of Object.entries(run.evaluations)) {
 					if (!scoresByEvaluator[evaluatorName]) {
-						scoresByEvaluator[evaluatorName] = [];
+						scoresByEvaluator[evaluatorName] = []
 					}
-					scoresByEvaluator[evaluatorName].push(evaluation.score);
+					scoresByEvaluator[evaluatorName].push(evaluation.score)
 				}
 			}
 		}
 	}
 
-	const scores: Record<string, ReturnType<typeof calculateStats>> = {};
+	const scores: Record<string, ReturnType<typeof calculateStats>> = {}
 	for (const [evaluator, scoreList] of Object.entries(scoresByEvaluator)) {
-		scores[evaluator] = calculateStats(scoreList);
+		scores[evaluator] = calculateStats(scoreList)
 	}
 
 	// Calculate token usage and cost (if available in metadata)
-	let totalInputTokens = 0;
-	let totalOutputTokens = 0;
-	let totalTokens = 0;
+	let totalInputTokens = 0
+	let totalOutputTokens = 0
+	let totalTokens = 0
 
 	const addTokens = (tokens: number | { input: number; output: number }) => {
 		if (typeof tokens === 'number') {
-			totalTokens += tokens;
+			totalTokens += tokens
 		} else if (tokens.input && tokens.output) {
-			totalInputTokens += tokens.input;
-			totalOutputTokens += tokens.output;
-			totalTokens += tokens.input + tokens.output;
+			totalInputTokens += tokens.input
+			totalOutputTokens += tokens.output
+			totalTokens += tokens.input + tokens.output
 		}
-	};
+	}
 
 	for (const result of results) {
 		if (runs === 1) {
 			// Single run: use top-level output metadata
-			if (result.output.metadata?.tokens) {
-				addTokens(result.output.metadata.tokens);
+			const tokens = result.output.metadata?.tokens
+			if (tokens) {
+				addTokens(tokens as number | { input: number; output: number })
 			}
 		} else {
 			// Multiple runs: sum tokens from all individual runs
 			for (const run of result.runs) {
-				if (run.output.metadata?.tokens) {
-					addTokens(run.output.metadata.tokens);
+				const tokens = run.output.metadata?.tokens
+				if (tokens) {
+					addTokens(tokens as number | { input: number; output: number })
 				}
 			}
 		}
 	}
 
 	// Calculate estimated cost
-	let estimatedCost: number | undefined;
+	let estimatedCost: number | undefined
 	if (totalInputTokens > 0 || totalOutputTokens > 0) {
-		const { estimateCost } = await import('../utils/cost.js');
-		estimatedCost = estimateCost({ input: totalInputTokens, output: totalOutputTokens }, model);
+		const { estimateCost } = await import('../utils/cost.js')
+		estimatedCost = estimateCost({ input: totalInputTokens, output: totalOutputTokens }, model)
 	}
 
 	return {
@@ -318,12 +316,12 @@ async function calculateSummary(
 		totalTokens: totalTokens || undefined,
 		estimatedCost,
 		scores,
-	};
+	}
 }
 
 /**
  * Generate unique run ID
  */
 function generateRunId(): string {
-	return randomBytes(6).toString('hex');
+	return randomBytes(6).toString('hex')
 }

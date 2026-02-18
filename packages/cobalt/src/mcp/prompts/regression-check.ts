@@ -18,14 +18,14 @@ export const cobaltRegressionCheckPrompt = {
 			required: true,
 		},
 	],
-};
+}
 
 /**
  * Get the prompt message for regression checking
  */
 export function getCobaltRegressionCheckPrompt(args: {
-	baselineRunId?: string;
-	currentRunId?: string;
+	baselineRunId?: string
+	currentRunId?: string
 }) {
 	return {
 		messages: [
@@ -66,5 +66,5 @@ Be precise with numbers. Use percentages and absolute differences.`,
 				},
 			},
 		],
-	};
+	}
 }
