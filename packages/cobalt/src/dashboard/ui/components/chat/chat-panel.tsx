@@ -1,33 +1,33 @@
-import { useChat } from '@ai-sdk/react';
-import { PaperPlaneTilt, X } from '@phosphor-icons/react';
-import { useEffect, useRef } from 'react';
-import { useChatContext } from '../../hooks/use-chat-context';
-import { cn } from '../../lib/utils';
-import { Button } from '../ui/button';
-import { ChatMessage } from './chat-message';
+import { useChat } from '@ai-sdk/react'
+import { PaperPlaneTilt, X } from '@phosphor-icons/react'
+import { useEffect, useRef } from 'react'
+import { useChatContext } from '../../hooks/use-chat-context'
+import { cn } from '../../lib/utils'
+import { Button } from '../ui/button'
+import { ChatMessage } from './chat-message'
 
 interface ChatPanelProps {
-	open: boolean;
-	onClose: () => void;
+	open: boolean
+	onClose: () => void
 }
 
 export function ChatPanel({ open, onClose }: ChatPanelProps) {
-	const chatContext = useChatContext();
-	const scrollRef = useRef<HTMLDivElement>(null);
+	const chatContext = useChatContext()
+	const scrollRef = useRef<HTMLDivElement>(null)
 
 	const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
 		api: '/api/chat',
 		body: { context: chatContext },
-	});
+	})
 
 	// Auto-scroll to bottom on new messages
 	useEffect(() => {
 		if (messages.length > 0 && scrollRef.current) {
-			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+			scrollRef.current.scrollTop = scrollRef.current.scrollHeight
 		}
-	}, [messages.length]);
+	}, [messages.length])
 
-	if (!open) return null;
+	if (!open) return null
 
 	return (
 		<aside className="fixed right-0 top-14 bottom-0 w-96 border-l bg-card flex flex-col z-30">
@@ -56,7 +56,7 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 						</p>
 					</div>
 				)}
-				{messages.map((m) => (
+				{messages.map(m => (
 					<ChatMessage key={m.id} role={m.role as 'user' | 'assistant'} content={m.content} />
 				))}
 				{isLoading && messages.length > 0 && messages[messages.length - 1].role === 'user' && (
@@ -91,5 +91,5 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 				</Button>
 			</form>
 		</aside>
-	);
+	)
 }

@@ -1,13 +1,13 @@
-import { Robot, User } from '@phosphor-icons/react';
-import { cn } from '../../lib/utils';
+import { Robot, User } from '@phosphor-icons/react'
+import { cn } from '../../lib/utils'
 
 interface ChatMessageProps {
-	role: 'user' | 'assistant' | 'system';
-	content: string;
+	role: 'user' | 'assistant' | 'system'
+	content: string
 }
 
 export function ChatMessage({ role, content }: ChatMessageProps) {
-	const isUser = role === 'user';
+	const isUser = role === 'user'
 
 	return (
 		<div className={cn('flex gap-2.5', isUser && 'flex-row-reverse')}>
@@ -28,5 +28,5 @@ export function ChatMessage({ role, content }: ChatMessageProps) {
 				<p className="whitespace-pre-wrap">{content}</p>
 			</div>
 		</div>
-	);
+	)
 }

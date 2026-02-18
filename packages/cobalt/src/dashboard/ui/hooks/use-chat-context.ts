@@ -1,16 +1,16 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext } from 'react'
 
 export interface ChatContextValue {
-	page: 'runs' | 'run-detail' | 'compare' | 'trends';
-	runId?: string;
-	compareIds?: string[];
-	experiment?: string;
+	page: 'runs' | 'run-detail' | 'compare' | 'trends'
+	runId?: string
+	compareIds?: string[]
+	experiment?: string
 }
 
-const ChatContext = createContext<ChatContextValue>({ page: 'runs' });
+const ChatContext = createContext<ChatContextValue>({ page: 'runs' })
 
 export function useChatContext() {
-	return useContext(ChatContext);
+	return useContext(ChatContext)
 }
 
-export { ChatContext };
+export { ChatContext }
