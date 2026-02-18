@@ -85,7 +85,7 @@ export function ChatPanel({ open, onClose }: ChatPanelProps) {
 					type="submit"
 					size="icon"
 					className="h-9 w-9 shrink-0"
-					disabled={isLoading || !input.trim()}
+					disabled={isLoading || !input?.trim()}
 				>
 					<PaperPlaneTilt className="h-4 w-4" />
 				</Button>

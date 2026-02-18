@@ -62,7 +62,21 @@ export function InsightCard({ runId, compareIds, chatEnabled }: InsightCardProps
 	}
 
 	if (loading) {
-		return <Skeleton className="h-20 rounded-xl" />
+		return (
+			<div className="rounded-xl border bg-card p-4 shadow-sm">
+				<div className="flex items-center gap-2">
+					<Sparkle className="h-4 w-4 text-brand animate-pulse" weight="fill" />
+					<span className="text-xs font-medium text-muted-foreground animate-pulse">
+						Analyzing results...
+					</span>
+				</div>
+				<div className="mt-3 space-y-2">
+					<Skeleton className="h-3 w-full rounded" />
+					<Skeleton className="h-3 w-4/5 rounded" />
+					<Skeleton className="h-3 w-3/5 rounded" />
+				</div>
+			</div>
+		)
 	}
 
 	if (error || !analysis) return null
