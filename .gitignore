@@ -11,6 +11,7 @@ coverage/
 out/
 build/
 dist/
+!packages/github-action/dist/
 
 # Production
 *.log
