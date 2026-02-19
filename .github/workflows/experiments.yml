@@ -40,7 +40,6 @@ jobs:
       - name: Run Cobalt Experiments
         uses: ./
         with:
-          experiment_files: 'experiments/chat-quality.cobalt.ts,experiments/analysis-quality.cobalt.ts'
           working_directory: packages/cobalt
           ci: 'true'
           api_key: ${{ secrets.OPENAI_API_KEY }}

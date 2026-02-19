@@ -54,13 +54,16 @@ export default defineCommand({
 			let files: string[] = []
 
 			if (args.file) {
-				// Run specific file
-				const filepath = resolve(process.cwd(), args.file)
-				if (!existsSync(filepath)) {
-					console.error(pc.red(`\n❌ File not found: ${args.file}\n`))
-					process.exit(1)
+				// Run specific file(s) — args.file can be a string or array when --file is passed multiple times
+				const fileArgs = Array.isArray(args.file) ? args.file : [args.file]
+				for (const f of fileArgs) {
+					const filepath = resolve(process.cwd(), f)
+					if (!existsSync(filepath)) {
+						console.error(pc.red(`\n❌ File not found: ${f}\n`))
+						process.exit(1)
+					}
+					files.push(filepath)
 				}
-				files = [filepath]
 			} else {
 				// Find all experiment files
 				// Search in testDir if it exists, otherwise fall back to cwd
