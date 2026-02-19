@@ -4,7 +4,7 @@ import * as github from '@actions/github'
 import { generateAISummaries } from './ai-summary'
 import { downloadPreviousResults, uploadResults } from './artifacts'
 import { installDependencies, runCobalt } from './cobalt'
-import { upsertComment } from './comment'
+import { deleteComment, upsertComment } from './comment'
 import { buildComparisons } from './compare'
 import { parseInputs, resolvePackageManager } from './inputs'
 import { generateCommentBody } from './markdown'
@@ -12,8 +12,8 @@ import { generateCommentBody } from './markdown'
 export async function run(): Promise<void> {
 	try {
 		const inputs = parseInputs()
-		const packageManager = resolvePackageManager(inputs)
 		const cwd = resolve(process.cwd(), inputs.workingDirectory)
+		const packageManager = resolvePackageManager(inputs, cwd)
 
 		core.info(`Working directory: ${cwd}`)
 		core.info(`Package manager: ${packageManager}`)
@@ -48,11 +48,7 @@ export async function run(): Promise<void> {
 		if (reports.length === 0) {
 			core.warning('No experiment reports were produced')
 			if (inputs.commentOnPr) {
-				await upsertComment(
-					'## Cobalt Experiment Results\n\n:warning: No experiments found.',
-					inputs.githubToken,
-					inputs.stepKey,
-				)
+				await deleteComment(inputs.githubToken, inputs.stepKey)
 			}
 			return
 		}

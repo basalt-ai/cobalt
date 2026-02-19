@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { dirname, resolve } from 'node:path'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import { z } from 'zod'
@@ -37,14 +37,23 @@ export function parseInputs(): ActionInputs {
 }
 
 export function detectPackageManager(cwd: string): PackageManager {
-	if (existsSync(resolve(cwd, 'pnpm-lock.yaml'))) return 'pnpm'
-	if (existsSync(resolve(cwd, 'yarn.lock'))) return 'yarn'
+	// Walk up from cwd to find a lockfile (handles monorepos where lockfile is at root)
+	let dir = resolve(cwd)
+	const root = dirname(dir) === dir ? dir : undefined
+	while (dir) {
+		if (existsSync(resolve(dir, 'pnpm-lock.yaml'))) return 'pnpm'
+		if (existsSync(resolve(dir, 'yarn.lock'))) return 'yarn'
+		if (existsSync(resolve(dir, 'package-lock.json'))) return 'npm'
+		const parent = dirname(dir)
+		if (parent === dir || parent === root) break
+		dir = parent
+	}
 	return 'npm'
 }
 
-export function resolvePackageManager(inputs: ActionInputs): PackageManager {
+export function resolvePackageManager(inputs: ActionInputs, cwd: string): PackageManager {
 	if (inputs.packageManager === 'auto') {
-		return detectPackageManager(inputs.workingDirectory)
+		return detectPackageManager(cwd)
 	}
 	return inputs.packageManager
 }
