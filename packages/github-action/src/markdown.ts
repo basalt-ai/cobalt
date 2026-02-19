@@ -57,21 +57,17 @@ function generateExperimentSection(
 
 	parts.push(`### ${current.name}`)
 
-	// 1. AI Analysis at top level (not collapsible)
+	// 1. AI Analysis at top level (not collapsible, plain text)
 	const aiSummary = options.aiSummaries?.get(current.name)
 	if (aiSummary) {
-		const quoted = aiSummary
-			.split('\n')
-			.map(line => `> ${line}`)
-			.join('\n')
-		parts.push(`\n🤖 **AI Analysis**\n${quoted}`)
+		parts.push(`\n🤖 **AI Analysis**\n\n${aiSummary}\n`)
 	}
 
 	// 2. Score table
 	if (hasCIChecks && ciStatus) {
-		parts.push(generateCIScoreTable(current, ciStatus, diffs, hasComparison))
+		parts.push(`\n${generateCIScoreTable(current, ciStatus, diffs, hasComparison)}`)
 	} else {
-		parts.push(generateScoreTable(current, diffs, hasComparison))
+		parts.push(`\n${generateScoreTable(current, diffs, hasComparison)}`)
 	}
 
 	// 3. Performance table
@@ -95,8 +91,8 @@ function generateCIScoreTable(
 	hasComparison: boolean,
 ): string {
 	const headers = hasComparison
-		? ['', 'Evaluator', 'Metric', 'Score', 'Threshold', 'vs Previous']
-		: ['', 'Evaluator', 'Metric', 'Score', 'Threshold']
+		? ['', 'Evaluator', 'Metric', 'Score', 'Threshold', 'Message', 'vs Previous']
+		: ['', 'Evaluator', 'Metric', 'Score', 'Threshold', 'Message']
 
 	const lines: string[] = []
 	lines.push(`| ${headers.join(' | ')} |`)
@@ -116,12 +112,15 @@ function generateCIScoreTable(
 		for (let i = 0; i < metrics.length; i++) {
 			const metric = metrics[i]
 			const check = checkMap.get(`${evaluator}:${metric}`)
+			const failed = check != null && !check.passed
 			const statusEmoji = check ? (check.passed ? '🟢' : '🔴') : ''
 			const evaluatorLabel = i === 0 ? `**${evaluator}**` : ''
-			const scoreValue = stats[metric].toFixed(2)
+			const scoreValue = failed ? `**${stats[metric].toFixed(2)}**` : stats[metric].toFixed(2)
+			const metricLabel = `**${metric}**`
 			const thresholdStr = check ? `${getThresholdOp(metric)} ${check.expected.toFixed(2)}` : '—'
+			const message = failed ? check.message : ''
 
-			const row = [statusEmoji, evaluatorLabel, metric, scoreValue, thresholdStr]
+			const row = [statusEmoji, evaluatorLabel, metricLabel, scoreValue, thresholdStr, message]
 
 			if (hasComparison) {
 				row.push(i === 0 && diff ? formatDiff(diff) : '')
@@ -133,13 +132,18 @@ function generateCIScoreTable(
 		// Show passRate check if it exists for this evaluator
 		const passRateCheck = checkMap.get(`${evaluator}:passRate`)
 		if (passRateCheck) {
+			const failed = !passRateCheck.passed
 			const statusEmoji = passRateCheck.passed ? '🟢' : '🔴'
+			const scoreValue = failed
+				? `**${(passRateCheck.actual * 100).toFixed(1)}%**`
+				: `${(passRateCheck.actual * 100).toFixed(1)}%`
 			const row = [
 				statusEmoji,
 				'',
-				'passRate',
-				`${(passRateCheck.actual * 100).toFixed(1)}%`,
+				'**passRate**',
+				scoreValue,
 				`≥ ${(passRateCheck.expected * 100).toFixed(1)}%`,
+				failed ? passRateCheck.message : '',
 			]
 			if (hasComparison) row.push('')
 			lines.push(`| ${row.join(' | ')} |`)
@@ -154,12 +158,22 @@ function generateCIScoreTable(
 
 		for (let i = 0; i < categoryChecks.length; i++) {
 			const check = categoryChecks[i]
+			const failed = !check.passed
 			const statusEmoji = check.passed ? '🟢' : '🔴'
 			const evaluatorLabel = i === 0 ? `**${category}**` : ''
-			const scoreStr = formatCheckValue(check.actual, category)
+			const scoreStr = failed
+				? `**${formatCheckValue(check.actual, category)}**`
+				: formatCheckValue(check.actual, category)
 			const thresholdStr = `${getThresholdOp(check.metric)} ${formatCheckValue(check.expected, category)}`
 
-			const row = [statusEmoji, evaluatorLabel, check.metric, scoreStr, thresholdStr]
+			const row = [
+				statusEmoji,
+				evaluatorLabel,
+				`**${check.metric}**`,
+				scoreStr,
+				thresholdStr,
+				failed ? check.message : '',
+			]
 			if (hasComparison) row.push('')
 			lines.push(`| ${row.join(' | ')} |`)
 		}
@@ -193,7 +207,7 @@ function generateScoreTable(
 		for (let i = 0; i < metrics.length; i++) {
 			const metric = metrics[i]
 			const evaluatorLabel = i === 0 ? `**${evaluator}**` : ''
-			const row = [evaluatorLabel, metric, stats[metric].toFixed(2)]
+			const row = [evaluatorLabel, `**${metric}**`, stats[metric].toFixed(2)]
 
 			if (hasComparison) {
 				row.push(i === 0 && diff ? formatDiff(diff) : '')
@@ -232,13 +246,15 @@ function generatePerformanceTable(report: ExperimentReport): string {
 		parts.push(`| Latency | ${fmtMs(ms)} | — | — | — | — |`)
 	}
 
-	// Tokens row
-	if (report.summary.totalTokens !== undefined) {
+	// Tokens row (always shown)
+	if (report.summary.totalTokens !== undefined && report.summary.totalTokens > 0) {
 		const total = report.summary.totalTokens
 		const avgTokens = Math.round(total / report.summary.totalItems)
 		parts.push(
 			`| Tokens | ${avgTokens.toLocaleString()} /item | — | — | — | ${total.toLocaleString()} total |`,
 		)
+	} else {
+		parts.push('| Tokens | — | — | — | — | — |')
 	}
 
 	return parts.join('\n')

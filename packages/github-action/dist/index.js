@@ -144184,22 +144184,25 @@ function generateExperimentSection(comparison, options) {
   parts.push(`### ${current.name}`);
   const aiSummary = options.aiSummaries?.get(current.name);
   if (aiSummary) {
-    const quoted = aiSummary.split("\n").map((line) => `> ${line}`).join("\n");
     parts.push(`
 \u{1F916} **AI Analysis**
-${quoted}`);
+
+${aiSummary}
+`);
   }
   if (hasCIChecks && ciStatus) {
-    parts.push(generateCIScoreTable(current, ciStatus, diffs, hasComparison));
+    parts.push(`
+${generateCIScoreTable(current, ciStatus, diffs, hasComparison)}`);
   } else {
-    parts.push(generateScoreTable(current, diffs, hasComparison));
+    parts.push(`
+${generateScoreTable(current, diffs, hasComparison)}`);
   }
   parts.push(generatePerformanceTable(current));
   parts.push(generateSummaryLine(current, comparison, hasComparison));
   return parts.join("\n");
 }
 function generateCIScoreTable(report, ciStatus, diffs, hasComparison) {
-  const headers = hasComparison ? ["", "Evaluator", "Metric", "Score", "Threshold", "vs Previous"] : ["", "Evaluator", "Metric", "Score", "Threshold"];
+  const headers = hasComparison ? ["", "Evaluator", "Metric", "Score", "Threshold", "Message", "vs Previous"] : ["", "Evaluator", "Metric", "Score", "Threshold", "Message"];
   const lines = [];
   lines.push(`| ${headers.join(" | ")} |`);
   lines.push(`| ${headers.map(() => "---").join(" | ")} |`);
@@ -144213,11 +144216,14 @@ function generateCIScoreTable(report, ciStatus, diffs, hasComparison) {
     for (let i = 0; i < metrics.length; i++) {
       const metric = metrics[i];
       const check2 = checkMap.get(`${evaluator}:${metric}`);
+      const failed = check2 != null && !check2.passed;
       const statusEmoji = check2 ? check2.passed ? "\u{1F7E2}" : "\u{1F534}" : "";
       const evaluatorLabel = i === 0 ? `**${evaluator}**` : "";
-      const scoreValue = stats[metric].toFixed(2);
+      const scoreValue = failed ? `**${stats[metric].toFixed(2)}**` : stats[metric].toFixed(2);
+      const metricLabel = `**${metric}**`;
       const thresholdStr = check2 ? `${getThresholdOp(metric)} ${check2.expected.toFixed(2)}` : "\u2014";
-      const row = [statusEmoji, evaluatorLabel, metric, scoreValue, thresholdStr];
+      const message = failed ? check2.message : "";
+      const row = [statusEmoji, evaluatorLabel, metricLabel, scoreValue, thresholdStr, message];
       if (hasComparison) {
         row.push(i === 0 && diff ? formatDiff(diff) : "");
       }
@@ -144225,13 +144231,16 @@ function generateCIScoreTable(report, ciStatus, diffs, hasComparison) {
     }
     const passRateCheck = checkMap.get(`${evaluator}:passRate`);
     if (passRateCheck) {
+      const failed = !passRateCheck.passed;
       const statusEmoji = passRateCheck.passed ? "\u{1F7E2}" : "\u{1F534}";
+      const scoreValue = failed ? `**${(passRateCheck.actual * 100).toFixed(1)}%**` : `${(passRateCheck.actual * 100).toFixed(1)}%`;
       const row = [
         statusEmoji,
         "",
-        "passRate",
-        `${(passRateCheck.actual * 100).toFixed(1)}%`,
-        `\u2265 ${(passRateCheck.expected * 100).toFixed(1)}%`
+        "**passRate**",
+        scoreValue,
+        `\u2265 ${(passRateCheck.expected * 100).toFixed(1)}%`,
+        failed ? passRateCheck.message : ""
       ];
       if (hasComparison) row.push("");
       lines.push(`| ${row.join(" | ")} |`);
@@ -144243,11 +144252,19 @@ function generateCIScoreTable(report, ciStatus, diffs, hasComparison) {
     if (categoryChecks.length === 0) continue;
     for (let i = 0; i < categoryChecks.length; i++) {
       const check2 = categoryChecks[i];
+      const failed = !check2.passed;
       const statusEmoji = check2.passed ? "\u{1F7E2}" : "\u{1F534}";
       const evaluatorLabel = i === 0 ? `**${category}**` : "";
-      const scoreStr = formatCheckValue(check2.actual, category);
+      const scoreStr = failed ? `**${formatCheckValue(check2.actual, category)}**` : formatCheckValue(check2.actual, category);
       const thresholdStr = `${getThresholdOp(check2.metric)} ${formatCheckValue(check2.expected, category)}`;
-      const row = [statusEmoji, evaluatorLabel, check2.metric, scoreStr, thresholdStr];
+      const row = [
+        statusEmoji,
+        evaluatorLabel,
+        `**${check2.metric}**`,
+        scoreStr,
+        thresholdStr,
+        failed ? check2.message : ""
+      ];
       if (hasComparison) row.push("");
       lines.push(`| ${row.join(" | ")} |`);
     }
@@ -144265,7 +144282,7 @@ function generateScoreTable(report, diffs, hasComparison) {
     for (let i = 0; i < metrics.length; i++) {
       const metric = metrics[i];
       const evaluatorLabel = i === 0 ? `**${evaluator}**` : "";
-      const row = [evaluatorLabel, metric, stats[metric].toFixed(2)];
+      const row = [evaluatorLabel, `**${metric}**`, stats[metric].toFixed(2)];
       if (hasComparison) {
         row.push(i === 0 && diff ? formatDiff(diff) : "");
       }
@@ -144295,12 +144312,14 @@ function generatePerformanceTable(report) {
     const ms = report.summary.avgLatencyMs;
     parts.push(`| Latency | ${fmtMs(ms)} | \u2014 | \u2014 | \u2014 | \u2014 |`);
   }
-  if (report.summary.totalTokens !== void 0) {
+  if (report.summary.totalTokens !== void 0 && report.summary.totalTokens > 0) {
     const total = report.summary.totalTokens;
     const avgTokens = Math.round(total / report.summary.totalItems);
     parts.push(
       `| Tokens | ${avgTokens.toLocaleString()} /item | \u2014 | \u2014 | \u2014 | ${total.toLocaleString()} total |`
     );
+  } else {
+    parts.push("| Tokens | \u2014 | \u2014 | \u2014 | \u2014 | \u2014 |");
   }
   return parts.join("\n");
 }

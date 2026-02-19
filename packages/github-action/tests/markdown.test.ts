@@ -77,12 +77,12 @@ describe('generateCommentBody', () => {
 
 		const body = generateCommentBody(comparisons, { showCIStatus: false })
 
-		// All 5 metrics should appear as rows
-		expect(body).toContain('| **accuracy** | avg |')
-		expect(body).toContain('|  | p50 |')
-		expect(body).toContain('|  | p95 |')
-		expect(body).toContain('|  | min |')
-		expect(body).toContain('|  | max |')
+		// All 5 metrics should appear as rows with bold metric names
+		expect(body).toContain('| **accuracy** | **avg** |')
+		expect(body).toContain('|  | **p50** |')
+		expect(body).toContain('|  | **p95** |')
+		expect(body).toContain('|  | **min** |')
+		expect(body).toContain('|  | **max** |')
 	})
 
 	it('should include comparison column when previous exists', () => {
@@ -223,6 +223,7 @@ describe('generateCommentBody', () => {
 		expect(body).toContain('## 🟢 Cobalt Experiment Results')
 		expect(body).toContain('🟢')
 		expect(body).toContain('Threshold')
+		expect(body).toContain('Message')
 	})
 
 	it('should show red header emoji and violation rows when CI fails', () => {
@@ -274,6 +275,9 @@ describe('generateCommentBody', () => {
 		expect(body).toContain('## 🔴 Cobalt Experiment Results')
 		expect(body).toContain('🔴')
 		expect(body).toContain('≥ 0.70')
+		// Failed row should have message and bold score
+		expect(body).toContain('**0.45**')
+		expect(body).toContain('accuracy: avg 0.450 < threshold 0.700')
 	})
 
 	it('should show merged CI table with threshold checks per metric', () => {
@@ -322,16 +326,16 @@ describe('generateCommentBody', () => {
 
 		const body = generateCommentBody(comparisons, { showCIStatus: true })
 
-		// avg row should have threshold
-		expect(body).toContain('| 🟢 | **accuracy** | avg | 0.85 | ≥ 0.80 |')
+		// avg row should have threshold (bold metric, Message column empty for pass)
+		expect(body).toContain('| 🟢 | **accuracy** | **avg** | 0.85 | ≥ 0.80 |  |')
 		// p50 has no threshold
-		expect(body).toContain('|  |  | p50 | 0.85 | — |')
+		expect(body).toContain('|  |  | **p50** | 0.85 | — |  |')
 		// p95 has threshold
-		expect(body).toContain('| 🟢 |  | p95 | 0.92 | ≥ 0.85 |')
+		expect(body).toContain('| 🟢 |  | **p95** | 0.92 | ≥ 0.85 |  |')
 		// min has no threshold
-		expect(body).toContain('|  |  | min | 0.70 | — |')
+		expect(body).toContain('|  |  | **min** | 0.70 | — |  |')
 		// max has no threshold
-		expect(body).toContain('|  |  | max | 0.95 | — |')
+		expect(body).toContain('|  |  | **max** | 0.95 | — |  |')
 	})
 
 	it('should show AI summary prominently, not in collapsible', () => {
@@ -362,8 +366,9 @@ describe('generateCommentBody', () => {
 		})
 
 		expect(body).toContain('🤖 **AI Analysis**')
-		expect(body).toContain('> This experiment shows strong results.')
+		expect(body).toContain('This experiment shows strong results.')
 		expect(body).not.toContain('<details>')
+		expect(body).not.toContain('> This experiment')
 	})
 
 	it('should handle multiple experiments', () => {
@@ -553,6 +558,31 @@ describe('generateCommentBody', () => {
 
 		expect(body).toContain('🟢')
 		expect(body).toContain('**latency**')
+	})
+
+	it('should always show tokens row in performance table', () => {
+		const comparisons: ExperimentComparison[] = [
+			{
+				experimentName: 'test',
+				current: makeReport({
+					name: 'test',
+					summary: {
+						totalItems: 10,
+						totalDurationMs: 5000,
+						avgLatencyMs: 500,
+						scores: {},
+					},
+				}),
+				diffs: [],
+				improvements: 0,
+				regressions: 0,
+			},
+		]
+
+		const body = generateCommentBody(comparisons, { showCIStatus: false })
+
+		// Tokens row should appear even without token data
+		expect(body).toContain('| Tokens |')
 	})
 
 	it('should fall back to classic table when CI has no checks', () => {
