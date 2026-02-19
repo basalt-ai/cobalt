@@ -31,6 +31,27 @@ export async function upsertComment(
 	await Promise.all(prs.map(pr => createOrUpdateComment(octokit, pr, body, commentKey)))
 }
 
+/**
+ * Delete an existing cobalt comment from the associated PR(s).
+ */
+export async function deleteComment(githubToken: string, stepKey: string): Promise<void> {
+	const octokit = github.getOctokit(githubToken)
+	const prs = await inferPullRequests(octokit)
+	const commentKey = `<!-- cobalt_eval_comment ${stepKey} -->`
+
+	for (const pr of prs) {
+		const existing = await findComment(octokit, pr, commentKey)
+		if (existing) {
+			await octokit.rest.issues.deleteComment({
+				owner: pr.owner,
+				repo: pr.repo,
+				comment_id: existing.id,
+			})
+			core.info('Deleted PR comment (no experiments found)')
+		}
+	}
+}
+
 async function createOrUpdateComment(
 	octokit: Octokit,
 	pr: PullRequest,

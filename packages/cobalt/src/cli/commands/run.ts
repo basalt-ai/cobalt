@@ -4,6 +4,7 @@ import { basename, join, relative, resolve } from 'node:path'
 import { defineCommand } from 'citty'
 import { createJiti } from 'jiti'
 import pc from 'picocolors'
+import type { ReporterType } from '../../cli/reporters'
 import { loadConfig } from '../../core/config'
 import { drainPendingExperiments } from '../../core/experiment'
 import type { ExperimentReport } from '../../types'
@@ -34,6 +35,11 @@ export default defineCommand({
 			description: 'Enable CI mode with threshold validation and exit codes',
 			default: false,
 		},
+		reporter: {
+			type: 'string',
+			description: 'Reporter type (cli, json, github-actions)',
+			alias: 'r',
+		},
 	},
 	async run({ args }) {
 		// Auto-load .env file if present
@@ -54,13 +60,16 @@ export default defineCommand({
 			let files: string[] = []
 
 			if (args.file) {
-				// Run specific file
-				const filepath = resolve(process.cwd(), args.file)
-				if (!existsSync(filepath)) {
-					console.error(pc.red(`\n❌ File not found: ${args.file}\n`))
-					process.exit(1)
+				// Run specific file(s) — args.file can be a string or array when --file is passed multiple times
+				const fileArgs = Array.isArray(args.file) ? args.file : [args.file]
+				for (const f of fileArgs) {
+					const filepath = resolve(process.cwd(), f)
+					if (!existsSync(filepath)) {
+						console.error(pc.red(`\n❌ File not found: ${f}\n`))
+						process.exit(1)
+					}
+					files.push(filepath)
 				}
-				files = [filepath]
 			} else {
 				// Find all experiment files
 				// Search in testDir if it exists, otherwise fall back to cwd
@@ -118,6 +127,9 @@ export default defineCommand({
 			if (args.filter) {
 				globalThis.__cobaltFilter = args.filter
 			}
+			if (args.reporter) {
+				globalThis.__cobaltReportersOverride = [args.reporter as ReporterType]
+			}
 
 			try {
 				for (const file of files) {
@@ -148,6 +160,7 @@ export default defineCommand({
 				globalThis.__cobaltCIThresholds = undefined
 				globalThis.__cobaltConcurrencyOverride = undefined
 				globalThis.__cobaltFilter = undefined
+				globalThis.__cobaltReportersOverride = undefined
 				globalThis.__cobaltPendingExperiments = undefined
 			}
 
