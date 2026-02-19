@@ -144326,10 +144326,20 @@ async function run() {
       core6.setFailed(`${failedExperiments.length} experiment(s) failed CI threshold checks`);
     }
   } catch (error41) {
-    if (error41 instanceof Error) {
-      core6.setFailed(error41.message);
-    } else {
-      core6.setFailed(`Unexpected error: ${error41}`);
+    const message = error41 instanceof Error ? error41.message : `Unexpected error: ${error41}`;
+    core6.setFailed(message);
+    try {
+      const inputs = parseInputs();
+      if (inputs.commentOnPr) {
+        await upsertComment(
+          `## Cobalt Experiment Results
+
+:x: **Failed:** ${message}`,
+          inputs.githubToken,
+          inputs.stepKey
+        );
+      }
+    } catch {
     }
   }
 }

@@ -111,10 +111,21 @@ export async function run(): Promise<void> {
 			core.setFailed(`${failedExperiments.length} experiment(s) failed CI threshold checks`)
 		}
 	} catch (error) {
-		if (error instanceof Error) {
-			core.setFailed(error.message)
-		} else {
-			core.setFailed(`Unexpected error: ${error}`)
+		const message = error instanceof Error ? error.message : `Unexpected error: ${error}`
+		core.setFailed(message)
+
+		// Clean up the "in progress" comment — replace it with the error
+		try {
+			const inputs = parseInputs()
+			if (inputs.commentOnPr) {
+				await upsertComment(
+					`## Cobalt Experiment Results\n\n:x: **Failed:** ${message}`,
+					inputs.githubToken,
+					inputs.stepKey,
+				)
+			}
+		} catch {
+			// Best-effort — don't mask the original error
 		}
 	}
 }
