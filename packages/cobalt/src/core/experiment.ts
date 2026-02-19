@@ -128,8 +128,8 @@ async function _experimentImpl(
 		throw new Error('Dataset is empty')
 	}
 
-	// Create reporters from config
-	const reporters = createReporters(config.reporters)
+	// Create reporters from config (CLI --reporter flag overrides config)
+	const reporters = createReporters(globalThis.__cobaltReportersOverride || config.reporters)
 
 	// Notify reporters of experiment start
 	const startInfo = {

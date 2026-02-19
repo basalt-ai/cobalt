@@ -1,3 +1,4 @@
+import type { ReporterType } from '../cli/reporters'
 import type { ExperimentReport, ThresholdConfig } from './index'
 
 /**
@@ -11,4 +12,5 @@ declare global {
 	var __cobaltCIThresholds: ThresholdConfig | undefined
 	var __cobaltConcurrencyOverride: number | undefined
 	var __cobaltFilter: string | undefined
+	var __cobaltReportersOverride: ReporterType[] | undefined
 }

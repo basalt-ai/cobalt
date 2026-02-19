@@ -4,6 +4,7 @@ import { basename, join, relative, resolve } from 'node:path'
 import { defineCommand } from 'citty'
 import { createJiti } from 'jiti'
 import pc from 'picocolors'
+import type { ReporterType } from '../../cli/reporters'
 import { loadConfig } from '../../core/config'
 import { drainPendingExperiments } from '../../core/experiment'
 import type { ExperimentReport } from '../../types'
@@ -33,6 +34,11 @@ export default defineCommand({
 			type: 'boolean',
 			description: 'Enable CI mode with threshold validation and exit codes',
 			default: false,
+		},
+		reporter: {
+			type: 'string',
+			description: 'Reporter type (cli, json, github-actions)',
+			alias: 'r',
 		},
 	},
 	async run({ args }) {
@@ -121,6 +127,9 @@ export default defineCommand({
 			if (args.filter) {
 				globalThis.__cobaltFilter = args.filter
 			}
+			if (args.reporter) {
+				globalThis.__cobaltReportersOverride = [args.reporter as ReporterType]
+			}
 
 			try {
 				for (const file of files) {
@@ -151,6 +160,7 @@ export default defineCommand({
 				globalThis.__cobaltCIThresholds = undefined
 				globalThis.__cobaltConcurrencyOverride = undefined
 				globalThis.__cobaltFilter = undefined
+				globalThis.__cobaltReportersOverride = undefined
 				globalThis.__cobaltPendingExperiments = undefined
 			}
 
