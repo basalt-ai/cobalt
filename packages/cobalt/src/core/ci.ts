@@ -11,6 +11,7 @@ import type {
 	ExperimentReport,
 	ItemResult,
 	ScoreStats,
+	ThresholdCheck,
 	ThresholdConfig,
 	ThresholdMetric,
 	ThresholdViolation,
@@ -24,6 +25,7 @@ export function validateThresholds(
 	thresholds: ThresholdConfig,
 ): CIResult {
 	const violations: ThresholdViolation[] = []
+	const checks: ThresholdCheck[] = []
 
 	// 1. Global score threshold (avg across ALL evaluators)
 	if (thresholds.score) {
@@ -45,7 +47,7 @@ export function validateThresholds(
 					allEvaluatorNames.length,
 			}
 
-			checkMetricThresholds('score', globalStats, thresholds.score, violations)
+			checkMetricThresholds('score', globalStats, thresholds.score, violations, checks)
 		}
 	}
 
@@ -58,7 +60,7 @@ export function validateThresholds(
 			p50: report.summary.avgLatencyMs,
 			p95: report.summary.avgLatencyMs,
 		}
-		checkMetricThresholds('latency', latencyStats, thresholds.latency, violations)
+		checkMetricThresholds('latency', latencyStats, thresholds.latency, violations, checks)
 	}
 
 	// 3. Tokens threshold
@@ -70,7 +72,7 @@ export function validateThresholds(
 			p50: report.summary.totalTokens,
 			p95: report.summary.totalTokens,
 		}
-		checkMetricThresholds('tokens', tokenStats, thresholds.tokens, violations)
+		checkMetricThresholds('tokens', tokenStats, thresholds.tokens, violations, checks)
 	}
 
 	// 4. Cost threshold
@@ -82,7 +84,7 @@ export function validateThresholds(
 			p50: report.summary.estimatedCost,
 			p95: report.summary.estimatedCost,
 		}
-		checkMetricThresholds('cost', costStats, thresholds.cost, violations)
+		checkMetricThresholds('cost', costStats, thresholds.cost, violations, checks)
 	}
 
 	// 5. Per-evaluator thresholds
@@ -91,21 +93,30 @@ export function validateThresholds(
 			const stats = report.summary.scores[evaluatorName]
 
 			if (!stats) {
-				violations.push({
+				const check: ThresholdCheck = {
 					category: evaluatorName,
 					metric: 'existence',
 					expected: 1,
 					actual: 0,
+					passed: false,
 					message: `Evaluator "${evaluatorName}" not found in results`,
+				}
+				violations.push({
+					category: check.category,
+					metric: check.metric,
+					expected: check.expected,
+					actual: check.actual,
+					message: check.message,
 				})
+				checks.push(check)
 				continue
 			}
 
-			checkMetricThresholds(evaluatorName, stats, threshold, violations)
+			checkMetricThresholds(evaluatorName, stats, threshold, violations, checks)
 
 			// Check pass rate for per-evaluator thresholds
 			if (threshold.passRate !== undefined) {
-				checkPassRateThreshold(evaluatorName, report.items, threshold, violations)
+				checkPassRateThreshold(evaluatorName, report.items, threshold, violations, checks)
 			}
 		}
 	}
@@ -121,6 +132,7 @@ export function validateThresholds(
 
 	return {
 		passed,
+		checks,
 		violations,
 		summary: passed
 			? `All thresholds passed (${checkedCategories.length} categories checked)`
@@ -138,55 +150,111 @@ function checkMetricThresholds(
 	stats: ScoreStats,
 	threshold: ThresholdMetric,
 	violations: ThresholdViolation[],
+	checks: ThresholdCheck[],
 ): void {
-	if (threshold.avg !== undefined && stats.avg < threshold.avg) {
-		violations.push({
+	if (threshold.avg !== undefined) {
+		const passed = stats.avg >= threshold.avg
+		checks.push({
 			category,
 			metric: 'avg',
 			expected: threshold.avg,
 			actual: stats.avg,
-			message: `${category}: avg ${stats.avg.toFixed(3)} < threshold ${threshold.avg.toFixed(3)}`,
+			passed,
+			message: `${category}: avg ${stats.avg.toFixed(3)} ${passed ? '>=' : '<'} threshold ${threshold.avg.toFixed(3)}`,
 		})
+		if (!passed) {
+			violations.push({
+				category,
+				metric: 'avg',
+				expected: threshold.avg,
+				actual: stats.avg,
+				message: `${category}: avg ${stats.avg.toFixed(3)} < threshold ${threshold.avg.toFixed(3)}`,
+			})
+		}
 	}
 
-	if (threshold.min !== undefined && stats.min < threshold.min) {
-		violations.push({
+	if (threshold.min !== undefined) {
+		const passed = stats.min >= threshold.min
+		checks.push({
 			category,
 			metric: 'min',
 			expected: threshold.min,
 			actual: stats.min,
-			message: `${category}: min ${stats.min.toFixed(3)} < threshold ${threshold.min.toFixed(3)}`,
+			passed,
+			message: `${category}: min ${stats.min.toFixed(3)} ${passed ? '>=' : '<'} threshold ${threshold.min.toFixed(3)}`,
 		})
+		if (!passed) {
+			violations.push({
+				category,
+				metric: 'min',
+				expected: threshold.min,
+				actual: stats.min,
+				message: `${category}: min ${stats.min.toFixed(3)} < threshold ${threshold.min.toFixed(3)}`,
+			})
+		}
 	}
 
-	if (threshold.max !== undefined && stats.max > threshold.max) {
-		violations.push({
+	if (threshold.max !== undefined) {
+		const passed = stats.max <= threshold.max
+		checks.push({
 			category,
 			metric: 'max',
 			expected: threshold.max,
 			actual: stats.max,
-			message: `${category}: max ${stats.max.toFixed(3)} > threshold ${threshold.max.toFixed(3)}`,
+			passed,
+			message: `${category}: max ${stats.max.toFixed(3)} ${passed ? '<=' : '>'} threshold ${threshold.max.toFixed(3)}`,
 		})
+		if (!passed) {
+			violations.push({
+				category,
+				metric: 'max',
+				expected: threshold.max,
+				actual: stats.max,
+				message: `${category}: max ${stats.max.toFixed(3)} > threshold ${threshold.max.toFixed(3)}`,
+			})
+		}
 	}
 
-	if (threshold.p50 !== undefined && stats.p50 < threshold.p50) {
-		violations.push({
+	if (threshold.p50 !== undefined) {
+		const passed = stats.p50 >= threshold.p50
+		checks.push({
 			category,
 			metric: 'p50',
 			expected: threshold.p50,
 			actual: stats.p50,
-			message: `${category}: p50 ${stats.p50.toFixed(3)} < threshold ${threshold.p50.toFixed(3)}`,
+			passed,
+			message: `${category}: p50 ${stats.p50.toFixed(3)} ${passed ? '>=' : '<'} threshold ${threshold.p50.toFixed(3)}`,
 		})
+		if (!passed) {
+			violations.push({
+				category,
+				metric: 'p50',
+				expected: threshold.p50,
+				actual: stats.p50,
+				message: `${category}: p50 ${stats.p50.toFixed(3)} < threshold ${threshold.p50.toFixed(3)}`,
+			})
+		}
 	}
 
-	if (threshold.p95 !== undefined && stats.p95 < threshold.p95) {
-		violations.push({
+	if (threshold.p95 !== undefined) {
+		const passed = stats.p95 >= threshold.p95
+		checks.push({
 			category,
 			metric: 'p95',
 			expected: threshold.p95,
 			actual: stats.p95,
-			message: `${category}: p95 ${stats.p95.toFixed(3)} < threshold ${threshold.p95.toFixed(3)}`,
+			passed,
+			message: `${category}: p95 ${stats.p95.toFixed(3)} ${passed ? '>=' : '<'} threshold ${threshold.p95.toFixed(3)}`,
 		})
+		if (!passed) {
+			violations.push({
+				category,
+				metric: 'p95',
+				expected: threshold.p95,
+				actual: stats.p95,
+				message: `${category}: p95 ${stats.p95.toFixed(3)} < threshold ${threshold.p95.toFixed(3)}`,
+			})
+		}
 	}
 }
 
@@ -198,6 +266,7 @@ function checkPassRateThreshold(
 	items: ItemResult[],
 	threshold: ThresholdMetric,
 	violations: ThresholdViolation[],
+	checks: ThresholdCheck[],
 ): void {
 	if (threshold.passRate === undefined) return
 
@@ -212,8 +281,19 @@ function checkPassRateThreshold(
 	}
 
 	const actualPassRate = passedItems / items.length
+	const passed = actualPassRate >= threshold.passRate
+	const message = `${evaluatorName}: pass rate ${(actualPassRate * 100).toFixed(1)}% (${passedItems}/${items.length}) ${passed ? '>=' : '<'} threshold ${(threshold.passRate * 100).toFixed(1)}% (minScore: ${minScore.toFixed(2)})`
 
-	if (actualPassRate < threshold.passRate) {
+	checks.push({
+		category: evaluatorName,
+		metric: 'passRate',
+		expected: threshold.passRate,
+		actual: actualPassRate,
+		passed,
+		message,
+	})
+
+	if (!passed) {
 		violations.push({
 			category: evaluatorName,
 			metric: 'passRate',

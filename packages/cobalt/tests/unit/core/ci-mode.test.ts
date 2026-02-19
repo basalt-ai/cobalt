@@ -55,6 +55,10 @@ describe('CI Mode - validateThresholds', () => {
 
 			expect(result.passed).toBe(true)
 			expect(result.violations).toHaveLength(0)
+			expect(result.checks).toHaveLength(1)
+			expect(result.checks[0].passed).toBe(true)
+			expect(result.checks[0].category).toBe('relevance')
+			expect(result.checks[0].metric).toBe('avg')
 		})
 
 		it('should fail when avg score below threshold', () => {
@@ -75,6 +79,8 @@ describe('CI Mode - validateThresholds', () => {
 			expect(result.violations[0].expected).toBe(0.8)
 			expect(result.violations[0].actual).toBe(0.75)
 			expect(result.violations[0].message).toContain('avg 0.750 < threshold 0.800')
+			expect(result.checks).toHaveLength(1)
+			expect(result.checks[0].passed).toBe(false)
 		})
 
 		it('should validate min threshold', () => {
@@ -153,6 +159,9 @@ describe('CI Mode - validateThresholds', () => {
 			expect(result.passed).toBe(false)
 			expect(result.violations).toHaveLength(1) // min fails
 			expect(result.violations[0].metric).toBe('min')
+			expect(result.checks).toHaveLength(3) // avg, min, p95 all checked
+			expect(result.checks.filter(c => c.passed)).toHaveLength(2) // avg and p95 pass
+			expect(result.checks.filter(c => !c.passed)).toHaveLength(1) // min fails
 		})
 	})
 
@@ -432,6 +441,7 @@ describe('CI Mode - validateThresholds', () => {
 
 			expect(result.passed).toBe(true)
 			expect(result.violations).toHaveLength(0)
+			expect(result.checks).toHaveLength(0)
 		})
 
 		it('should handle exact threshold values (boundary test)', () => {
