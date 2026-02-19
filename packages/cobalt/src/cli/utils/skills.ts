@@ -27,7 +27,7 @@ export function getPackageVersion(): string {
 		const pkg = JSON.parse(require('node:fs').readFileSync(packageJsonPath, 'utf-8'))
 		return pkg.version
 	} catch {
-		return '0.2.0'
+		return '0.3.0'
 	}
 }
 
