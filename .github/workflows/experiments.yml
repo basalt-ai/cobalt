@@ -7,6 +7,8 @@ on:
       - 'packages/cobalt/src/**'
       - 'packages/cobalt/experiments/**'
       - 'packages/cobalt/cobalt.config.ts'
+      - 'packages/github-action/**'
+      - 'action.yml'
 
 permissions:
   pull-requests: write

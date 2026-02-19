@@ -6,7 +6,7 @@ import { downloadPreviousResults, uploadResults } from './artifacts'
 import { installDependencies, runCobalt } from './cobalt'
 import { deleteComment, upsertComment } from './comment'
 import { buildComparisons } from './compare'
-import { parseInputs, resolvePackageManager } from './inputs'
+import { detectAIProvider, parseInputs, resolvePackageManager } from './inputs'
 import { generateCommentBody } from './markdown'
 
 export async function run(): Promise<void> {
@@ -18,9 +18,13 @@ export async function run(): Promise<void> {
 		core.info(`Working directory: ${cwd}`)
 		core.info(`Package manager: ${packageManager}`)
 
-		// Set API key in environment if provided
+		// Set API key in environment if provided (auto-detect provider from key prefix)
+		let aiProvider: 'openai' | 'anthropic' = 'openai'
 		if (inputs.apiKey) {
-			core.exportVariable('OPENAI_API_KEY', inputs.apiKey)
+			aiProvider = detectAIProvider(inputs.apiKey)
+			const envVar = aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
+			core.exportVariable(envVar, inputs.apiKey)
+			core.info(`API key detected as ${aiProvider} (exported as ${envVar})`)
 		}
 
 		// Post initial "in progress" comment
@@ -40,6 +44,8 @@ export async function run(): Promise<void> {
 		// Run cobalt and collect reports
 		const reports = await runCobalt({
 			experimentFiles: inputs.experimentFiles,
+			filter: inputs.filter,
+			concurrency: inputs.concurrency,
 			ci: inputs.ci,
 			cwd,
 			packageManager,
@@ -72,10 +78,14 @@ export async function run(): Promise<void> {
 
 		// Generate AI summaries (if enabled)
 		let aiSummaries: Map<string, string> | undefined
-		if (inputs.aiSummary && inputs.apiKey) {
-			core.info('Generating AI summaries...')
-			aiSummaries = await generateAISummaries(comparisons, inputs.apiKey)
-			core.info(`Generated ${aiSummaries.size} AI summary(ies)`)
+		if (inputs.aiSummary) {
+			if (inputs.apiKey) {
+				core.info(`Generating AI summaries with ${aiProvider}...`)
+				aiSummaries = await generateAISummaries(comparisons, inputs.apiKey, aiProvider)
+				core.info(`Generated ${aiSummaries.size} AI summary(ies)`)
+			} else {
+				core.info('AI summary enabled but no API key provided — skipping')
+			}
 		}
 
 		// Generate and post comment

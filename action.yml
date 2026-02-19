@@ -15,12 +15,20 @@ inputs:
     description: "Working directory for running experiments"
     required: false
     default: "."
+  filter:
+    description: "Filter experiments by name (case-insensitive substring match on filenames). Maps to CLI --filter flag."
+    required: false
+    default: ""
+  concurrency:
+    description: "Override concurrency setting (number of parallel experiment items). Maps to CLI --concurrency flag."
+    required: false
+    default: ""
   ci:
     description: "Enable CI mode with threshold validation"
     required: false
     default: "false"
   api_key:
-    description: "OpenAI or Anthropic API key for LLM judges and AI summary"
+    description: "API key for LLM judges and AI summary. Supports both OpenAI and Anthropic (auto-detected from key prefix)."
     required: false
     default: ""
   ai_summary:

@@ -192,9 +192,15 @@ importers:
       '@actions/github':
         specifier: ^6.0.0
         version: 6.0.1
+      '@ai-sdk/anthropic':
+        specifier: ^3.0.0
+        version: 3.0.45(zod@3.25.76)
       '@ai-sdk/openai':
         specifier: ^3.0.29
         version: 3.0.29(zod@3.25.76)
+      adm-zip:
+        specifier: ^0.5.16
+        version: 0.5.16
       ai:
         specifier: ^6.0.90
         version: 6.0.90(zod@3.25.76)
@@ -208,6 +214,9 @@ importers:
       '@cobalt/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
+      '@types/adm-zip':
+        specifier: ^0.5.6
+        version: 0.5.7
       '@types/node':
         specifier: ^22.10.5
         version: 22.19.9
@@ -3051,6 +3060,12 @@ packages:
     engines: {node: '>=12'}
     dev: false
 
+  /@types/adm-zip@0.5.7:
+    resolution: {integrity: sha512-DNEs/QvmyRLurdQPChqq0Md4zGvPwHerAJYWk9l2jCbD1VPpnzRJorOdiq4zsw09NFbYnhfsoEhWtxIzXpn2yw==}
+    dependencies:
+      '@types/node': 22.19.9
+    dev: true
+
   /@types/babel__core@7.20.5:
     resolution: {integrity: sha512-qoQprZvz5wQFJwMDqeseRXWv3rqMvhgpbXFfVyWhbx9X47POIA6i/+dXefEmZKoAgOaTdaIgNSMqMIU61yRyzA==}
     dependencies:
@@ -3317,6 +3332,11 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
     dev: true
+
+  /adm-zip@0.5.16:
+    resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
+    engines: {node: '>=12.0'}
+    dev: false
 
   /agent-base@7.1.4:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}

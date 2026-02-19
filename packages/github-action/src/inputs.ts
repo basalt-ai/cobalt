@@ -8,6 +8,8 @@ export type PackageManager = 'npm' | 'pnpm' | 'yarn'
 
 const inputSchema = z.object({
 	experimentFiles: z.string(),
+	filter: z.string(),
+	concurrency: z.string(),
 	workingDirectory: z.string(),
 	ci: z.boolean(),
 	apiKey: z.string(),
@@ -24,6 +26,8 @@ export type ActionInputs = z.infer<typeof inputSchema>
 export function parseInputs(): ActionInputs {
 	return inputSchema.parse({
 		experimentFiles: core.getInput('experiment_files'),
+		filter: core.getInput('filter'),
+		concurrency: core.getInput('concurrency'),
 		workingDirectory: core.getInput('working_directory') || '.',
 		ci: core.getBooleanInput('ci'),
 		apiKey: core.getInput('api_key'),
@@ -56,4 +60,14 @@ export function resolvePackageManager(inputs: ActionInputs, cwd: string): Packag
 		return detectPackageManager(cwd)
 	}
 	return inputs.packageManager
+}
+
+export type AIProvider = 'openai' | 'anthropic'
+
+/**
+ * Detect the AI provider from the API key prefix.
+ * Anthropic keys start with "sk-ant-", everything else is treated as OpenAI.
+ */
+export function detectAIProvider(apiKey: string): AIProvider {
+	return apiKey.startsWith('sk-ant-') ? 'anthropic' : 'openai'
 }

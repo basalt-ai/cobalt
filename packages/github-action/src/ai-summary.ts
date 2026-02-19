@@ -1,27 +1,27 @@
 import * as core from '@actions/core'
+import type { AIProvider } from './inputs'
 import type { ExperimentComparison } from './types'
 
 /**
  * Generate AI-powered analysis of experiment results.
- * Uses the AI SDK with OpenAI to produce a brief summary.
+ * Supports both OpenAI and Anthropic providers.
  */
 export async function generateAISummaries(
 	comparisons: ExperimentComparison[],
 	apiKey: string,
+	provider: AIProvider = 'openai',
 ): Promise<Map<string, string>> {
 	const summaries = new Map<string, string>()
 
 	try {
 		const { generateText } = await import('ai')
-		const { createOpenAI } = await import('@ai-sdk/openai')
-
-		const openai = createOpenAI({ apiKey })
+		const model = await resolveModel(apiKey, provider)
 
 		for (const comparison of comparisons) {
 			try {
 				const prompt = buildPrompt(comparison)
 				const { text } = await generateText({
-					model: openai('gpt-4o-mini'),
+					model,
 					prompt,
 					maxTokens: 500,
 				})
@@ -35,6 +35,17 @@ export async function generateAISummaries(
 	}
 
 	return summaries
+}
+
+async function resolveModel(apiKey: string, provider: AIProvider) {
+	if (provider === 'anthropic') {
+		const { createAnthropic } = await import('@ai-sdk/anthropic')
+		const anthropic = createAnthropic({ apiKey })
+		return anthropic('claude-haiku-4-5-20251001')
+	}
+	const { createOpenAI } = await import('@ai-sdk/openai')
+	const openai = createOpenAI({ apiKey })
+	return openai('gpt-4o-mini')
 }
 
 function buildPrompt(comparison: ExperimentComparison): string {
