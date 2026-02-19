@@ -421,6 +421,8 @@ jobs:
 4. **Team Visibility**: Non-technical team members can understand AI quality
 5. **Artifact Links**: Easy access to detailed result files
 
+> **Tip:** For an even richer experience with PR comments, score comparisons, and AI analysis, use the [Cobalt GitHub Action](github-action.md) instead of the built-in reporter.
+
 ## Advanced Patterns
 
 ### Environment-Specific Thresholds
