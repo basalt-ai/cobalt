@@ -46,8 +46,18 @@ export interface ThresholdViolation {
 	message: string
 }
 
+export interface ThresholdCheck {
+	category: string
+	metric: string
+	expected: number
+	actual: number
+	passed: boolean
+	message: string
+}
+
 export interface CIResult {
 	passed: boolean
+	checks: ThresholdCheck[]
 	violations: ThresholdViolation[]
 	summary: string
 }

@@ -144156,7 +144156,11 @@ function resolvePackageManager(inputs, cwd) {
 
 // src/markdown.ts
 function generateCommentBody(comparisons, options) {
-  const sections = ["## Cobalt Experiment Results\n"];
+  const sections = [];
+  const overallStatus = getOverallStatus(comparisons, options.showCIStatus);
+  const headerEmoji = overallStatus === "passed" ? "\u{1F7E2} " : overallStatus === "failed" ? "\u{1F534} " : "";
+  sections.push(`## ${headerEmoji}Cobalt Experiment Results
+`);
   for (const comparison of comparisons) {
     sections.push(generateExperimentSection(comparison, options));
   }
@@ -144164,30 +144168,163 @@ function generateCommentBody(comparisons, options) {
   sections.push("*Generated with [Cobalt](https://github.com/basalt-ai/cobalt)*");
   return sections.join("\n\n");
 }
+function getOverallStatus(comparisons, showCIStatus) {
+  if (!showCIStatus) return "none";
+  const hasCIStatus = comparisons.some((c) => c.current.ciStatus);
+  if (!hasCIStatus) return "none";
+  const allPassed = comparisons.every((c) => !c.current.ciStatus || c.current.ciStatus.passed);
+  return allPassed ? "passed" : "failed";
+}
 function generateExperimentSection(comparison, options) {
   const { current, diffs } = comparison;
   const parts = [];
   const hasComparison = comparison.previous !== void 0;
+  const ciStatus = current.ciStatus;
+  const hasCIChecks = options.showCIStatus && ciStatus?.checks != null && ciStatus.checks.length > 0;
   parts.push(`### ${current.name}`);
-  const headers = hasComparison ? ["Evaluator", "Avg", "P50", "P95", "Min", "Max", "vs Previous"] : ["Evaluator", "Avg", "P50", "P95", "Min", "Max"];
+  const aiSummary = options.aiSummaries?.get(current.name);
+  if (aiSummary) {
+    parts.push(`
+\u{1F916} **AI Analysis**
+
+${aiSummary}
+`);
+  }
+  if (hasCIChecks && ciStatus) {
+    parts.push(`
+${generateCIScoreTable(current, ciStatus, diffs, hasComparison)}`);
+  } else {
+    parts.push(`
+${generateScoreTable(current, diffs, hasComparison)}`);
+  }
+  parts.push(generatePerformanceTable(current));
+  parts.push(generateSummaryLine(current, comparison, hasComparison));
+  return parts.join("\n");
+}
+function generateCIScoreTable(report, ciStatus, diffs, hasComparison) {
+  const headers = hasComparison ? ["", "Evaluator", "Metric", "Score", "Threshold", "Message", "vs Previous"] : ["", "Evaluator", "Metric", "Score", "Threshold", "Message"];
+  const lines = [];
+  lines.push(`| ${headers.join(" | ")} |`);
+  lines.push(`| ${headers.map(() => "---").join(" | ")} |`);
+  const checkMap = /* @__PURE__ */ new Map();
+  for (const check2 of ciStatus.checks) {
+    checkMap.set(`${check2.category}:${check2.metric}`, check2);
+  }
+  const metrics = ["avg", "p50", "p95", "min", "max"];
+  for (const [evaluator, stats] of Object.entries(report.summary.scores)) {
+    const diff = diffs.find((d) => d.evaluator === evaluator);
+    for (let i = 0; i < metrics.length; i++) {
+      const metric = metrics[i];
+      const check2 = checkMap.get(`${evaluator}:${metric}`);
+      const failed = check2 != null && !check2.passed;
+      const statusEmoji = check2 ? check2.passed ? "\u{1F7E2}" : "\u{1F534}" : "";
+      const evaluatorLabel = i === 0 ? `**${evaluator}**` : "";
+      const scoreValue = failed ? `**${stats[metric].toFixed(2)}**` : stats[metric].toFixed(2);
+      const metricLabel = `**${metric}**`;
+      const thresholdStr = check2 ? `${getThresholdOp(metric)} ${check2.expected.toFixed(2)}` : "\u2014";
+      const message = failed ? check2.message : "";
+      const row = [statusEmoji, evaluatorLabel, metricLabel, scoreValue, thresholdStr, message];
+      if (hasComparison) {
+        row.push(i === 0 && diff ? formatDiff(diff) : "");
+      }
+      lines.push(`| ${row.join(" | ")} |`);
+    }
+    const passRateCheck = checkMap.get(`${evaluator}:passRate`);
+    if (passRateCheck) {
+      const failed = !passRateCheck.passed;
+      const statusEmoji = passRateCheck.passed ? "\u{1F7E2}" : "\u{1F534}";
+      const scoreValue = failed ? `**${(passRateCheck.actual * 100).toFixed(1)}%**` : `${(passRateCheck.actual * 100).toFixed(1)}%`;
+      const row = [
+        statusEmoji,
+        "",
+        "**passRate**",
+        scoreValue,
+        `\u2265 ${(passRateCheck.expected * 100).toFixed(1)}%`,
+        failed ? passRateCheck.message : ""
+      ];
+      if (hasComparison) row.push("");
+      lines.push(`| ${row.join(" | ")} |`);
+    }
+  }
+  const nonEvaluatorCategories = ["score", "latency", "tokens", "cost"];
+  for (const category of nonEvaluatorCategories) {
+    const categoryChecks = ciStatus.checks.filter((c) => c.category === category);
+    if (categoryChecks.length === 0) continue;
+    for (let i = 0; i < categoryChecks.length; i++) {
+      const check2 = categoryChecks[i];
+      const failed = !check2.passed;
+      const statusEmoji = check2.passed ? "\u{1F7E2}" : "\u{1F534}";
+      const evaluatorLabel = i === 0 ? `**${category}**` : "";
+      const scoreStr = failed ? `**${formatCheckValue(check2.actual, category)}**` : formatCheckValue(check2.actual, category);
+      const thresholdStr = `${getThresholdOp(check2.metric)} ${formatCheckValue(check2.expected, category)}`;
+      const row = [
+        statusEmoji,
+        evaluatorLabel,
+        `**${check2.metric}**`,
+        scoreStr,
+        thresholdStr,
+        failed ? check2.message : ""
+      ];
+      if (hasComparison) row.push("");
+      lines.push(`| ${row.join(" | ")} |`);
+    }
+  }
+  return lines.join("\n");
+}
+function generateScoreTable(report, diffs, hasComparison) {
+  const headers = hasComparison ? ["Evaluator", "Metric", "Score", "vs Previous"] : ["Evaluator", "Metric", "Score"];
+  const lines = [];
+  lines.push(`| ${headers.join(" | ")} |`);
+  lines.push(`| ${headers.map(() => "---").join(" | ")} |`);
+  const metrics = ["avg", "p50", "p95", "min", "max"];
+  for (const [evaluator, stats] of Object.entries(report.summary.scores)) {
+    const diff = diffs.find((d) => d.evaluator === evaluator);
+    for (let i = 0; i < metrics.length; i++) {
+      const metric = metrics[i];
+      const evaluatorLabel = i === 0 ? `**${evaluator}**` : "";
+      const row = [evaluatorLabel, `**${metric}**`, stats[metric].toFixed(2)];
+      if (hasComparison) {
+        row.push(i === 0 && diff ? formatDiff(diff) : "");
+      }
+      lines.push(`| ${row.join(" | ")} |`);
+    }
+  }
+  return lines.join("\n");
+}
+function generatePerformanceTable(report) {
+  const parts = [];
+  parts.push("\n#### \u26A1 Performance");
+  const headers = ["Metric", "Avg", "P50", "P95", "Min", "Max"];
   parts.push(`| ${headers.join(" | ")} |`);
   parts.push(`| ${headers.map(() => "---").join(" | ")} |`);
-  for (const [evaluator, stats] of Object.entries(current.summary.scores)) {
-    const row = [
-      `**${evaluator}**`,
-      stats.avg.toFixed(2),
-      stats.p50.toFixed(2),
-      stats.p95.toFixed(2),
-      stats.min.toFixed(2),
-      stats.max.toFixed(2)
-    ];
-    if (hasComparison) {
-      const diff = diffs.find((d) => d.evaluator === evaluator);
-      row.push(diff ? formatDiff(diff) : "*new*");
-    }
-    parts.push(`| ${row.join(" | ")} |`);
+  if (report.items.length > 0) {
+    const latencies = report.items.map((item) => item.latencyMs);
+    const sorted = [...latencies].sort((a, b) => a - b);
+    const avg = latencies.reduce((s, v) => s + v, 0) / latencies.length;
+    const min = sorted[0];
+    const max = sorted[sorted.length - 1];
+    const p50 = percentile(sorted, 50);
+    const p95 = percentile(sorted, 95);
+    parts.push(
+      `| Latency | ${fmtMs(avg)} | ${fmtMs(p50)} | ${fmtMs(p95)} | ${fmtMs(min)} | ${fmtMs(max)} |`
+    );
+  } else {
+    const ms = report.summary.avgLatencyMs;
+    parts.push(`| Latency | ${fmtMs(ms)} | \u2014 | \u2014 | \u2014 | \u2014 |`);
   }
-  const { summary } = current;
+  if (report.summary.totalTokens !== void 0 && report.summary.totalTokens > 0) {
+    const total = report.summary.totalTokens;
+    const avgTokens = Math.round(total / report.summary.totalItems);
+    parts.push(
+      `| Tokens | ${avgTokens.toLocaleString()} /item | \u2014 | \u2014 | \u2014 | ${total.toLocaleString()} total |`
+    );
+  } else {
+    parts.push("| Tokens | \u2014 | \u2014 | \u2014 | \u2014 | \u2014 |");
+  }
+  return parts.join("\n");
+}
+function generateSummaryLine(report, comparison, hasComparison) {
+  const { summary } = report;
   const summaryParts = [
     `${summary.totalItems} items`,
     `${(summary.totalDurationMs / 1e3).toFixed(1)}s`
@@ -144209,21 +144346,8 @@ function generateExperimentSection(comparison, options) {
       summaryParts.push("no changes");
     }
   }
-  parts.push(`
-**Summary:** ${summaryParts.join(" | ")}`);
-  if (options.showCIStatus && current.ciStatus) {
-    parts.push(formatCIStatus(current.ciStatus));
-  }
-  const aiSummary = options.aiSummaries?.get(current.name);
-  if (aiSummary) {
-    parts.push(`
-<details>
-<summary>AI Analysis</summary>
-
-${aiSummary}
-</details>`);
-  }
-  return parts.join("\n");
+  return `
+**Summary:** ${summaryParts.join(" \xB7 ")}`;
 }
 function formatDiff(diff) {
   if (diff.direction === "unchanged") return "\u2014";
@@ -144232,20 +144356,30 @@ function formatDiff(diff) {
   const sign = diff.diff > 0 ? "+" : "";
   return `${emoji3} ${arrow} ${sign}${diff.diff.toFixed(3)} (${sign}${diff.percentChange.toFixed(1)}%)`;
 }
-function formatCIStatus(ciStatus) {
-  if (ciStatus.passed) {
-    return "\n**CI:** All thresholds passed";
-  }
-  const violations = ciStatus.violations.map((v) => `| ${v.category} | ${v.metric} | ${v.expected} | ${v.actual} | ${v.message} |`).join("\n");
-  return [
-    "\n<details>",
-    "<summary>CI Status: FAILED</summary>",
-    "",
-    "| Category | Metric | Expected | Actual | Message |",
-    "| --- | --- | --- | --- | --- |",
-    violations,
-    "</details>"
-  ].join("\n");
+function getThresholdOp(metric) {
+  if (metric === "max") return "\u2264";
+  return "\u2265";
+}
+function formatCheckValue(value, category) {
+  if (category === "latency") return fmtMs(value);
+  if (category === "cost") return `$${value.toFixed(4)}`;
+  if (category === "tokens") return value.toLocaleString();
+  return value.toFixed(3);
+}
+function percentile(sorted, p) {
+  if (sorted.length === 0) return 0;
+  if (p <= 0) return sorted[0];
+  if (p >= 100) return sorted[sorted.length - 1];
+  const index = p / 100 * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  if (lower === upper) return sorted[lower];
+  const weight = index - lower;
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+function fmtMs(ms) {
+  if (ms >= 1e3) return `${(ms / 1e3).toFixed(1)}s`;
+  return `${Math.round(ms)}ms`;
 }
 
 // src/main.ts

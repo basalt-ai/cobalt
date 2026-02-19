@@ -291,8 +291,18 @@ export interface ThresholdViolation {
 	message: string
 }
 
+export interface ThresholdCheck {
+	category: string // 'score' | 'latency' | 'tokens' | 'cost' | evaluator name
+	metric: string // 'avg' | 'min' | 'max' | 'p50' | 'p95' | 'passRate'
+	expected: number
+	actual: number
+	passed: boolean
+	message: string
+}
+
 export interface CIResult {
 	passed: boolean
+	checks: ThresholdCheck[]
 	violations: ThresholdViolation[]
 	summary: string
 }
