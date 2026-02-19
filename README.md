@@ -184,7 +184,7 @@ The easiest way to integrate Cobalt into your CI. Runs experiments, posts rich P
 ```yaml
 - uses: basalt-ai/cobalt@v1
   with:
-    api_key: ${{ secrets.OPENAI_API_KEY }}
+    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 [Read the GitHub Action docs →](docs/github-action.md)

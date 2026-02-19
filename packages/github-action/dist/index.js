@@ -8850,7 +8850,7 @@ var require_pool = __commonJS({
     var Pool = class extends PoolBase {
       constructor(origin, {
         connections,
-        factory = defaultFactory,
+        factory: factory8 = defaultFactory,
         connect,
         connectTimeout,
         tls,
@@ -8865,7 +8865,7 @@ var require_pool = __commonJS({
         if (connections != null && (!Number.isFinite(connections) || connections < 0)) {
           throw new InvalidArgumentError3("invalid connections");
         }
-        if (typeof factory !== "function") {
+        if (typeof factory8 !== "function") {
           throw new InvalidArgumentError3("factory must be a function.");
         }
         if (connect != null && typeof connect !== "function" && typeof connect !== "object") {
@@ -8887,7 +8887,7 @@ var require_pool = __commonJS({
         this[kUrl] = util2.parseOrigin(origin);
         this[kOptions] = { ...util2.deepClone(options), connect, allowH2 };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
-        this[kFactory] = factory;
+        this[kFactory] = factory8;
         this.on("connectionError", (origin2, targets, error41) => {
           for (const target of targets) {
             const idx = this[kClients].indexOf(target);
@@ -8948,7 +8948,7 @@ var require_balanced_pool = __commonJS({
       return new Pool(origin, opts);
     }
     var BalancedPool = class extends PoolBase {
-      constructor(upstreams = [], { factory = defaultFactory, ...opts } = {}) {
+      constructor(upstreams = [], { factory: factory8 = defaultFactory, ...opts } = {}) {
         super();
         this[kOptions] = opts;
         this[kIndex] = -1;
@@ -8958,11 +8958,11 @@ var require_balanced_pool = __commonJS({
         if (!Array.isArray(upstreams)) {
           upstreams = [upstreams];
         }
-        if (typeof factory !== "function") {
+        if (typeof factory8 !== "function") {
           throw new InvalidArgumentError3("factory must be a function.");
         }
         this[kInterceptors] = opts.interceptors && opts.interceptors.BalancedPool && Array.isArray(opts.interceptors.BalancedPool) ? opts.interceptors.BalancedPool : [];
-        this[kFactory] = factory;
+        this[kFactory] = factory8;
         for (const upstream of upstreams) {
           this.addUpstream(upstream);
         }
@@ -9114,9 +9114,9 @@ var require_agent = __commonJS({
       return opts && opts.connections === 1 ? new Client(origin, opts) : new Pool(origin, opts);
     }
     var Agent = class extends DispatcherBase {
-      constructor({ factory = defaultFactory, maxRedirections = 0, connect, ...options } = {}) {
+      constructor({ factory: factory8 = defaultFactory, maxRedirections = 0, connect, ...options } = {}) {
         super();
-        if (typeof factory !== "function") {
+        if (typeof factory8 !== "function") {
           throw new InvalidArgumentError3("factory must be a function.");
         }
         if (connect != null && typeof connect !== "function" && typeof connect !== "object") {
@@ -9132,7 +9132,7 @@ var require_agent = __commonJS({
         this[kOptions] = { ...util2.deepClone(options), connect };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kMaxRedirections] = maxRedirections;
-        this[kFactory] = factory;
+        this[kFactory] = factory8;
         this[kClients] = /* @__PURE__ */ new Map();
         this[kFinalizer] = new FinalizationRegistry(
           /* istanbul ignore next: gc is undeterministic */
@@ -9721,7 +9721,7 @@ var require_api_stream = __commonJS({
     var { AsyncResource } = __require("async_hooks");
     var { addSignal, removeSignal } = require_abort_signal();
     var StreamHandler = class extends AsyncResource {
-      constructor(opts, factory, callback) {
+      constructor(opts, factory8, callback) {
         if (!opts || typeof opts !== "object") {
           throw new InvalidArgumentError3("invalid opts");
         }
@@ -9730,7 +9730,7 @@ var require_api_stream = __commonJS({
           if (typeof callback !== "function") {
             throw new InvalidArgumentError3("invalid callback");
           }
-          if (typeof factory !== "function") {
+          if (typeof factory8 !== "function") {
             throw new InvalidArgumentError3("invalid factory");
           }
           if (signal && typeof signal.on !== "function" && typeof signal.addEventListener !== "function") {
@@ -9751,7 +9751,7 @@ var require_api_stream = __commonJS({
         }
         this.responseHeaders = responseHeaders || null;
         this.opaque = opaque || null;
-        this.factory = factory;
+        this.factory = factory8;
         this.callback = callback;
         this.res = null;
         this.abort = null;
@@ -9775,7 +9775,7 @@ var require_api_stream = __commonJS({
         this.context = context5;
       }
       onHeaders(statusCode, rawHeaders, resume, statusMessage) {
-        const { factory, opaque, context: context5, callback, responseHeaders } = this;
+        const { factory: factory8, opaque, context: context5, callback, responseHeaders } = this;
         const headers = responseHeaders === "raw" ? util2.parseRawHeaders(rawHeaders) : util2.parseHeaders(rawHeaders);
         if (statusCode < 200) {
           if (this.onInfo) {
@@ -9796,10 +9796,10 @@ var require_api_stream = __commonJS({
             { callback, body: res, contentType, statusCode, statusMessage, headers }
           );
         } else {
-          if (factory === null) {
+          if (factory8 === null) {
             return;
           }
-          res = this.runInAsyncScope(factory, null, {
+          res = this.runInAsyncScope(factory8, null, {
             statusCode,
             headers,
             opaque,
@@ -9858,16 +9858,16 @@ var require_api_stream = __commonJS({
         }
       }
     };
-    function stream(opts, factory, callback) {
+    function stream(opts, factory8, callback) {
       if (callback === void 0) {
         return new Promise((resolve4, reject) => {
-          stream.call(this, opts, factory, (err, data) => {
+          stream.call(this, opts, factory8, (err, data) => {
             return err ? reject(err) : resolve4(data);
           });
         });
       }
       try {
-        this.dispatch(opts, new StreamHandler(opts, factory, callback));
+        this.dispatch(opts, new StreamHandler(opts, factory8, callback));
       } catch (err) {
         if (typeof callback !== "function") {
           throw err;
@@ -20165,8 +20165,8 @@ var require_dist_node2 = __commonJS({
     });
     module.exports = __toCommonJS2(dist_src_exports);
     var import_universal_user_agent = require_dist_node();
-    var VERSION6 = "9.0.6";
-    var userAgent = `octokit-endpoint.js/${VERSION6} ${(0, import_universal_user_agent.getUserAgent)()}`;
+    var VERSION7 = "9.0.6";
+    var userAgent = `octokit-endpoint.js/${VERSION7} ${(0, import_universal_user_agent.getUserAgent)()}`;
     var DEFAULTS = {
       method: "GET",
       baseUrl: "https://api.github.com",
@@ -20696,7 +20696,7 @@ var require_dist_node5 = __commonJS({
     module.exports = __toCommonJS2(dist_src_exports);
     var import_endpoint = require_dist_node2();
     var import_universal_user_agent = require_dist_node();
-    var VERSION6 = "8.4.1";
+    var VERSION7 = "8.4.1";
     function isPlainObject2(value) {
       if (typeof value !== "object" || value === null)
         return false;
@@ -20872,7 +20872,7 @@ var require_dist_node5 = __commonJS({
     }
     var request = withDefaults(import_endpoint.endpoint, {
       headers: {
-        "user-agent": `octokit-request.js/${VERSION6} ${(0, import_universal_user_agent.getUserAgent)()}`
+        "user-agent": `octokit-request.js/${VERSION7} ${(0, import_universal_user_agent.getUserAgent)()}`
       }
     });
   }
@@ -20908,7 +20908,7 @@ var require_dist_node6 = __commonJS({
     module.exports = __toCommonJS2(index_exports);
     var import_request3 = require_dist_node5();
     var import_universal_user_agent = require_dist_node();
-    var VERSION6 = "7.1.1";
+    var VERSION7 = "7.1.1";
     var import_request2 = require_dist_node5();
     var import_request = require_dist_node5();
     function _buildMessageForResponseErrors(data) {
@@ -21001,7 +21001,7 @@ var require_dist_node6 = __commonJS({
     }
     var graphql2 = withDefaults(import_request3.request, {
       headers: {
-        "user-agent": `octokit-graphql.js/${VERSION6} ${(0, import_universal_user_agent.getUserAgent)()}`
+        "user-agent": `octokit-graphql.js/${VERSION7} ${(0, import_universal_user_agent.getUserAgent)()}`
       },
       method: "POST",
       url: "/graphql"
@@ -21117,7 +21117,7 @@ var require_dist_node8 = __commonJS({
     var import_request = require_dist_node5();
     var import_graphql = require_dist_node6();
     var import_auth_token = require_dist_node7();
-    var VERSION6 = "5.2.2";
+    var VERSION7 = "5.2.2";
     var noop2 = () => {
     };
     var consoleWarn = console.warn.bind(console);
@@ -21137,10 +21137,10 @@ var require_dist_node8 = __commonJS({
       }
       return logger;
     }
-    var userAgentTrail = `octokit-core.js/${VERSION6} ${(0, import_universal_user_agent.getUserAgent)()}`;
+    var userAgentTrail = `octokit-core.js/${VERSION7} ${(0, import_universal_user_agent.getUserAgent)()}`;
     var Octokit = class {
       static {
-        this.VERSION = VERSION6;
+        this.VERSION = VERSION7;
       }
       static defaults(defaults) {
         const OctokitWithDefaults = class extends this {
@@ -21279,7 +21279,7 @@ var require_dist_node9 = __commonJS({
       restEndpointMethods: () => restEndpointMethods
     });
     module.exports = __toCommonJS2(dist_src_exports);
-    var VERSION6 = "10.4.1";
+    var VERSION7 = "10.4.1";
     var Endpoints = {
       actions: {
         addCustomLabelsToSelfHostedRunnerForOrg: [
@@ -23396,7 +23396,7 @@ var require_dist_node9 = __commonJS({
         rest: api
       };
     }
-    restEndpointMethods.VERSION = VERSION6;
+    restEndpointMethods.VERSION = VERSION7;
     function legacyRestEndpointMethods(octokit) {
       const api = endpointsToMethods(octokit);
       return {
@@ -23404,7 +23404,7 @@ var require_dist_node9 = __commonJS({
         rest: api
       };
     }
-    legacyRestEndpointMethods.VERSION = VERSION6;
+    legacyRestEndpointMethods.VERSION = VERSION7;
   }
 });
 
@@ -23437,7 +23437,7 @@ var require_dist_node10 = __commonJS({
       paginatingEndpoints: () => paginatingEndpoints
     });
     module.exports = __toCommonJS2(dist_src_exports);
-    var VERSION6 = "9.2.2";
+    var VERSION7 = "9.2.2";
     function normalizePaginatedListResponse(response) {
       if (!response.data) {
         return {
@@ -23783,7 +23783,7 @@ var require_dist_node10 = __commonJS({
         })
       };
     }
-    paginateRest.VERSION = VERSION6;
+    paginateRest.VERSION = VERSION7;
   }
 });
 
@@ -41510,6 +41510,33 @@ function tool(tool2) {
 function dynamicTool(tool2) {
   return { ...tool2, type: "dynamic" };
 }
+function createProviderToolFactory({
+  id,
+  inputSchema: inputSchema2
+}) {
+  return ({
+    execute,
+    outputSchema: outputSchema2,
+    needsApproval,
+    toModelOutput,
+    onInputStart,
+    onInputDelta,
+    onInputAvailable,
+    ...args
+  }) => tool({
+    type: "provider",
+    id,
+    args,
+    inputSchema: inputSchema2,
+    outputSchema: outputSchema2,
+    execute,
+    needsApproval,
+    toModelOutput,
+    onInputStart,
+    onInputDelta,
+    onInputAvailable
+  });
+}
 function createProviderToolFactoryWithOutputSchema({
   id,
   inputSchema: inputSchema2,
@@ -57841,10 +57868,4639 @@ var init_dist5 = __esm({
   }
 });
 
-// ../../node_modules/.pnpm/@ai-sdk+openai@3.0.29_zod@3.25.76/node_modules/@ai-sdk/openai/dist/index.mjs
+// ../../node_modules/.pnpm/@ai-sdk+anthropic@3.0.45_zod@3.25.76/node_modules/@ai-sdk/anthropic/dist/index.mjs
 var dist_exports2 = {};
 __export(dist_exports2, {
   VERSION: () => VERSION5,
+  anthropic: () => anthropic,
+  createAnthropic: () => createAnthropic,
+  forwardAnthropicContainerIdFromLastStep: () => forwardAnthropicContainerIdFromLastStep
+});
+function getCacheControl(providerMetadata) {
+  var _a21;
+  const anthropic2 = providerMetadata == null ? void 0 : providerMetadata.anthropic;
+  const cacheControlValue = (_a21 = anthropic2 == null ? void 0 : anthropic2.cacheControl) != null ? _a21 : anthropic2 == null ? void 0 : anthropic2.cache_control;
+  return cacheControlValue;
+}
+async function prepareTools({
+  tools,
+  toolChoice,
+  disableParallelToolUse,
+  cacheControlValidator,
+  supportsStructuredOutput
+}) {
+  var _a21;
+  tools = (tools == null ? void 0 : tools.length) ? tools : void 0;
+  const toolWarnings = [];
+  const betas = /* @__PURE__ */ new Set();
+  const validator = cacheControlValidator || new CacheControlValidator();
+  if (tools == null) {
+    return { tools: void 0, toolChoice: void 0, toolWarnings, betas };
+  }
+  const anthropicTools2 = [];
+  for (const tool2 of tools) {
+    switch (tool2.type) {
+      case "function": {
+        const cacheControl = validator.getCacheControl(tool2.providerOptions, {
+          type: "tool definition",
+          canCache: true
+        });
+        const anthropicOptions = (_a21 = tool2.providerOptions) == null ? void 0 : _a21.anthropic;
+        const deferLoading = anthropicOptions == null ? void 0 : anthropicOptions.deferLoading;
+        const allowedCallers = anthropicOptions == null ? void 0 : anthropicOptions.allowedCallers;
+        anthropicTools2.push({
+          name: tool2.name,
+          description: tool2.description,
+          input_schema: tool2.inputSchema,
+          cache_control: cacheControl,
+          ...supportsStructuredOutput === true && tool2.strict != null ? { strict: tool2.strict } : {},
+          ...deferLoading != null ? { defer_loading: deferLoading } : {},
+          ...allowedCallers != null ? { allowed_callers: allowedCallers } : {},
+          ...tool2.inputExamples != null ? {
+            input_examples: tool2.inputExamples.map(
+              (example) => example.input
+            )
+          } : {}
+        });
+        if (supportsStructuredOutput === true) {
+          betas.add("structured-outputs-2025-11-13");
+        }
+        if (tool2.inputExamples != null || allowedCallers != null) {
+          betas.add("advanced-tool-use-2025-11-20");
+        }
+        break;
+      }
+      case "provider": {
+        switch (tool2.id) {
+          case "anthropic.code_execution_20250522": {
+            betas.add("code-execution-2025-05-22");
+            anthropicTools2.push({
+              type: "code_execution_20250522",
+              name: "code_execution",
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.code_execution_20250825": {
+            betas.add("code-execution-2025-08-25");
+            anthropicTools2.push({
+              type: "code_execution_20250825",
+              name: "code_execution"
+            });
+            break;
+          }
+          case "anthropic.computer_20250124": {
+            betas.add("computer-use-2025-01-24");
+            anthropicTools2.push({
+              name: "computer",
+              type: "computer_20250124",
+              display_width_px: tool2.args.displayWidthPx,
+              display_height_px: tool2.args.displayHeightPx,
+              display_number: tool2.args.displayNumber,
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.computer_20251124": {
+            betas.add("computer-use-2025-11-24");
+            anthropicTools2.push({
+              name: "computer",
+              type: "computer_20251124",
+              display_width_px: tool2.args.displayWidthPx,
+              display_height_px: tool2.args.displayHeightPx,
+              display_number: tool2.args.displayNumber,
+              enable_zoom: tool2.args.enableZoom,
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.computer_20241022": {
+            betas.add("computer-use-2024-10-22");
+            anthropicTools2.push({
+              name: "computer",
+              type: "computer_20241022",
+              display_width_px: tool2.args.displayWidthPx,
+              display_height_px: tool2.args.displayHeightPx,
+              display_number: tool2.args.displayNumber,
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.text_editor_20250124": {
+            betas.add("computer-use-2025-01-24");
+            anthropicTools2.push({
+              name: "str_replace_editor",
+              type: "text_editor_20250124",
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.text_editor_20241022": {
+            betas.add("computer-use-2024-10-22");
+            anthropicTools2.push({
+              name: "str_replace_editor",
+              type: "text_editor_20241022",
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.text_editor_20250429": {
+            betas.add("computer-use-2025-01-24");
+            anthropicTools2.push({
+              name: "str_replace_based_edit_tool",
+              type: "text_editor_20250429",
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.text_editor_20250728": {
+            const args = await validateTypes({
+              value: tool2.args,
+              schema: textEditor_20250728ArgsSchema
+            });
+            anthropicTools2.push({
+              name: "str_replace_based_edit_tool",
+              type: "text_editor_20250728",
+              max_characters: args.maxCharacters,
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.bash_20250124": {
+            betas.add("computer-use-2025-01-24");
+            anthropicTools2.push({
+              name: "bash",
+              type: "bash_20250124",
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.bash_20241022": {
+            betas.add("computer-use-2024-10-22");
+            anthropicTools2.push({
+              name: "bash",
+              type: "bash_20241022",
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.memory_20250818": {
+            betas.add("context-management-2025-06-27");
+            anthropicTools2.push({
+              name: "memory",
+              type: "memory_20250818"
+            });
+            break;
+          }
+          case "anthropic.web_fetch_20250910": {
+            betas.add("web-fetch-2025-09-10");
+            const args = await validateTypes({
+              value: tool2.args,
+              schema: webFetch_20250910ArgsSchema
+            });
+            anthropicTools2.push({
+              type: "web_fetch_20250910",
+              name: "web_fetch",
+              max_uses: args.maxUses,
+              allowed_domains: args.allowedDomains,
+              blocked_domains: args.blockedDomains,
+              citations: args.citations,
+              max_content_tokens: args.maxContentTokens,
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.web_search_20250305": {
+            const args = await validateTypes({
+              value: tool2.args,
+              schema: webSearch_20250305ArgsSchema
+            });
+            anthropicTools2.push({
+              type: "web_search_20250305",
+              name: "web_search",
+              max_uses: args.maxUses,
+              allowed_domains: args.allowedDomains,
+              blocked_domains: args.blockedDomains,
+              user_location: args.userLocation,
+              cache_control: void 0
+            });
+            break;
+          }
+          case "anthropic.tool_search_regex_20251119": {
+            betas.add("advanced-tool-use-2025-11-20");
+            anthropicTools2.push({
+              type: "tool_search_tool_regex_20251119",
+              name: "tool_search_tool_regex"
+            });
+            break;
+          }
+          case "anthropic.tool_search_bm25_20251119": {
+            betas.add("advanced-tool-use-2025-11-20");
+            anthropicTools2.push({
+              type: "tool_search_tool_bm25_20251119",
+              name: "tool_search_tool_bm25"
+            });
+            break;
+          }
+          default: {
+            toolWarnings.push({
+              type: "unsupported",
+              feature: `provider-defined tool ${tool2.id}`
+            });
+            break;
+          }
+        }
+        break;
+      }
+      default: {
+        toolWarnings.push({
+          type: "unsupported",
+          feature: `tool ${tool2}`
+        });
+        break;
+      }
+    }
+  }
+  if (toolChoice == null) {
+    return {
+      tools: anthropicTools2,
+      toolChoice: disableParallelToolUse ? { type: "auto", disable_parallel_tool_use: disableParallelToolUse } : void 0,
+      toolWarnings,
+      betas
+    };
+  }
+  const type = toolChoice.type;
+  switch (type) {
+    case "auto":
+      return {
+        tools: anthropicTools2,
+        toolChoice: {
+          type: "auto",
+          disable_parallel_tool_use: disableParallelToolUse
+        },
+        toolWarnings,
+        betas
+      };
+    case "required":
+      return {
+        tools: anthropicTools2,
+        toolChoice: {
+          type: "any",
+          disable_parallel_tool_use: disableParallelToolUse
+        },
+        toolWarnings,
+        betas
+      };
+    case "none":
+      return { tools: void 0, toolChoice: void 0, toolWarnings, betas };
+    case "tool":
+      return {
+        tools: anthropicTools2,
+        toolChoice: {
+          type: "tool",
+          name: toolChoice.toolName,
+          disable_parallel_tool_use: disableParallelToolUse
+        },
+        toolWarnings,
+        betas
+      };
+    default: {
+      const _exhaustiveCheck = type;
+      throw new UnsupportedFunctionalityError({
+        functionality: `tool choice type: ${_exhaustiveCheck}`
+      });
+    }
+  }
+}
+function convertAnthropicMessagesUsage({
+  usage,
+  rawUsage
+}) {
+  var _a21, _b17;
+  const cacheCreationTokens = (_a21 = usage.cache_creation_input_tokens) != null ? _a21 : 0;
+  const cacheReadTokens = (_b17 = usage.cache_read_input_tokens) != null ? _b17 : 0;
+  let inputTokens;
+  let outputTokens;
+  if (usage.iterations && usage.iterations.length > 0) {
+    const totals = usage.iterations.reduce(
+      (acc, iter) => ({
+        input: acc.input + iter.input_tokens,
+        output: acc.output + iter.output_tokens
+      }),
+      { input: 0, output: 0 }
+    );
+    inputTokens = totals.input;
+    outputTokens = totals.output;
+  } else {
+    inputTokens = usage.input_tokens;
+    outputTokens = usage.output_tokens;
+  }
+  return {
+    inputTokens: {
+      total: inputTokens + cacheCreationTokens + cacheReadTokens,
+      noCache: inputTokens,
+      cacheRead: cacheReadTokens,
+      cacheWrite: cacheCreationTokens
+    },
+    outputTokens: {
+      total: outputTokens,
+      text: void 0,
+      reasoning: void 0
+    },
+    raw: rawUsage != null ? rawUsage : usage
+  };
+}
+function convertToString(data) {
+  if (typeof data === "string") {
+    return Buffer.from(data, "base64").toString("utf-8");
+  }
+  if (data instanceof Uint8Array) {
+    return new TextDecoder().decode(data);
+  }
+  if (data instanceof URL) {
+    throw new UnsupportedFunctionalityError({
+      functionality: "URL-based text documents are not supported for citations"
+    });
+  }
+  throw new UnsupportedFunctionalityError({
+    functionality: `unsupported data type for text documents: ${typeof data}`
+  });
+}
+function isUrlData(data) {
+  return data instanceof URL || isUrlString(data);
+}
+function isUrlString(data) {
+  return typeof data === "string" && /^https?:\/\//i.test(data);
+}
+function getUrlString(data) {
+  return data instanceof URL ? data.toString() : data;
+}
+async function convertToAnthropicMessagesPrompt({
+  prompt,
+  sendReasoning,
+  warnings,
+  cacheControlValidator,
+  toolNameMapping
+}) {
+  var _a21, _b17, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m, _n, _o, _p, _q, _r;
+  const betas = /* @__PURE__ */ new Set();
+  const blocks = groupIntoBlocks(prompt);
+  const validator = cacheControlValidator || new CacheControlValidator();
+  let system = void 0;
+  const messages = [];
+  async function shouldEnableCitations(providerMetadata) {
+    var _a24, _b23;
+    const anthropicOptions = await parseProviderOptions({
+      provider: "anthropic",
+      providerOptions: providerMetadata,
+      schema: anthropicFilePartProviderOptions
+    });
+    return (_b23 = (_a24 = anthropicOptions == null ? void 0 : anthropicOptions.citations) == null ? void 0 : _a24.enabled) != null ? _b23 : false;
+  }
+  async function getDocumentMetadata(providerMetadata) {
+    const anthropicOptions = await parseProviderOptions({
+      provider: "anthropic",
+      providerOptions: providerMetadata,
+      schema: anthropicFilePartProviderOptions
+    });
+    return {
+      title: anthropicOptions == null ? void 0 : anthropicOptions.title,
+      context: anthropicOptions == null ? void 0 : anthropicOptions.context
+    };
+  }
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    const isLastBlock = i === blocks.length - 1;
+    const type = block.type;
+    switch (type) {
+      case "system": {
+        if (system != null) {
+          throw new UnsupportedFunctionalityError({
+            functionality: "Multiple system messages that are separated by user/assistant messages"
+          });
+        }
+        system = block.messages.map(({ content, providerOptions }) => ({
+          type: "text",
+          text: content,
+          cache_control: validator.getCacheControl(providerOptions, {
+            type: "system message",
+            canCache: true
+          })
+        }));
+        break;
+      }
+      case "user": {
+        const anthropicContent = [];
+        for (const message of block.messages) {
+          const { role, content } = message;
+          switch (role) {
+            case "user": {
+              for (let j = 0; j < content.length; j++) {
+                const part = content[j];
+                const isLastPart = j === content.length - 1;
+                const cacheControl = (_a21 = validator.getCacheControl(part.providerOptions, {
+                  type: "user message part",
+                  canCache: true
+                })) != null ? _a21 : isLastPart ? validator.getCacheControl(message.providerOptions, {
+                  type: "user message",
+                  canCache: true
+                }) : void 0;
+                switch (part.type) {
+                  case "text": {
+                    anthropicContent.push({
+                      type: "text",
+                      text: part.text,
+                      cache_control: cacheControl
+                    });
+                    break;
+                  }
+                  case "file": {
+                    if (part.mediaType.startsWith("image/")) {
+                      anthropicContent.push({
+                        type: "image",
+                        source: isUrlData(part.data) ? {
+                          type: "url",
+                          url: getUrlString(part.data)
+                        } : {
+                          type: "base64",
+                          media_type: part.mediaType === "image/*" ? "image/jpeg" : part.mediaType,
+                          data: convertToBase64(part.data)
+                        },
+                        cache_control: cacheControl
+                      });
+                    } else if (part.mediaType === "application/pdf") {
+                      betas.add("pdfs-2024-09-25");
+                      const enableCitations = await shouldEnableCitations(
+                        part.providerOptions
+                      );
+                      const metadata = await getDocumentMetadata(
+                        part.providerOptions
+                      );
+                      anthropicContent.push({
+                        type: "document",
+                        source: isUrlData(part.data) ? {
+                          type: "url",
+                          url: getUrlString(part.data)
+                        } : {
+                          type: "base64",
+                          media_type: "application/pdf",
+                          data: convertToBase64(part.data)
+                        },
+                        title: (_b17 = metadata.title) != null ? _b17 : part.filename,
+                        ...metadata.context && { context: metadata.context },
+                        ...enableCitations && {
+                          citations: { enabled: true }
+                        },
+                        cache_control: cacheControl
+                      });
+                    } else if (part.mediaType === "text/plain") {
+                      const enableCitations = await shouldEnableCitations(
+                        part.providerOptions
+                      );
+                      const metadata = await getDocumentMetadata(
+                        part.providerOptions
+                      );
+                      anthropicContent.push({
+                        type: "document",
+                        source: isUrlData(part.data) ? {
+                          type: "url",
+                          url: getUrlString(part.data)
+                        } : {
+                          type: "text",
+                          media_type: "text/plain",
+                          data: convertToString(part.data)
+                        },
+                        title: (_c = metadata.title) != null ? _c : part.filename,
+                        ...metadata.context && { context: metadata.context },
+                        ...enableCitations && {
+                          citations: { enabled: true }
+                        },
+                        cache_control: cacheControl
+                      });
+                    } else {
+                      throw new UnsupportedFunctionalityError({
+                        functionality: `media type: ${part.mediaType}`
+                      });
+                    }
+                    break;
+                  }
+                }
+              }
+              break;
+            }
+            case "tool": {
+              for (let i2 = 0; i2 < content.length; i2++) {
+                const part = content[i2];
+                if (part.type === "tool-approval-response") {
+                  continue;
+                }
+                const isLastPart = i2 === content.length - 1;
+                const cacheControl = (_d = validator.getCacheControl(part.providerOptions, {
+                  type: "tool result part",
+                  canCache: true
+                })) != null ? _d : isLastPart ? validator.getCacheControl(message.providerOptions, {
+                  type: "tool result message",
+                  canCache: true
+                }) : void 0;
+                const output = part.output;
+                let contentValue;
+                switch (output.type) {
+                  case "content":
+                    contentValue = output.value.map((contentPart) => {
+                      var _a24;
+                      switch (contentPart.type) {
+                        case "text":
+                          return {
+                            type: "text",
+                            text: contentPart.text
+                          };
+                        case "image-data": {
+                          return {
+                            type: "image",
+                            source: {
+                              type: "base64",
+                              media_type: contentPart.mediaType,
+                              data: contentPart.data
+                            }
+                          };
+                        }
+                        case "image-url": {
+                          return {
+                            type: "image",
+                            source: {
+                              type: "url",
+                              url: contentPart.url
+                            }
+                          };
+                        }
+                        case "file-url": {
+                          return {
+                            type: "document",
+                            source: {
+                              type: "url",
+                              url: contentPart.url
+                            }
+                          };
+                        }
+                        case "file-data": {
+                          if (contentPart.mediaType === "application/pdf") {
+                            betas.add("pdfs-2024-09-25");
+                            return {
+                              type: "document",
+                              source: {
+                                type: "base64",
+                                media_type: contentPart.mediaType,
+                                data: contentPart.data
+                              }
+                            };
+                          }
+                          warnings.push({
+                            type: "other",
+                            message: `unsupported tool content part type: ${contentPart.type} with media type: ${contentPart.mediaType}`
+                          });
+                          return void 0;
+                        }
+                        case "custom": {
+                          const anthropicOptions = (_a24 = contentPart.providerOptions) == null ? void 0 : _a24.anthropic;
+                          if ((anthropicOptions == null ? void 0 : anthropicOptions.type) === "tool-reference") {
+                            return {
+                              type: "tool_reference",
+                              tool_name: anthropicOptions.toolName
+                            };
+                          }
+                          warnings.push({
+                            type: "other",
+                            message: `unsupported custom tool content part`
+                          });
+                          return void 0;
+                        }
+                        default: {
+                          warnings.push({
+                            type: "other",
+                            message: `unsupported tool content part type: ${contentPart.type}`
+                          });
+                          return void 0;
+                        }
+                      }
+                    }).filter(isNonNullable);
+                    break;
+                  case "text":
+                  case "error-text":
+                    contentValue = output.value;
+                    break;
+                  case "execution-denied":
+                    contentValue = (_e = output.reason) != null ? _e : "Tool execution denied.";
+                    break;
+                  case "json":
+                  case "error-json":
+                  default:
+                    contentValue = JSON.stringify(output.value);
+                    break;
+                }
+                anthropicContent.push({
+                  type: "tool_result",
+                  tool_use_id: part.toolCallId,
+                  content: contentValue,
+                  is_error: output.type === "error-text" || output.type === "error-json" ? true : void 0,
+                  cache_control: cacheControl
+                });
+              }
+              break;
+            }
+            default: {
+              const _exhaustiveCheck = role;
+              throw new Error(`Unsupported role: ${_exhaustiveCheck}`);
+            }
+          }
+        }
+        messages.push({ role: "user", content: anthropicContent });
+        break;
+      }
+      case "assistant": {
+        const anthropicContent = [];
+        const mcpToolUseIds = /* @__PURE__ */ new Set();
+        for (let j = 0; j < block.messages.length; j++) {
+          const message = block.messages[j];
+          const isLastMessage = j === block.messages.length - 1;
+          const { content } = message;
+          for (let k = 0; k < content.length; k++) {
+            const part = content[k];
+            const isLastContentPart = k === content.length - 1;
+            const cacheControl = (_f = validator.getCacheControl(part.providerOptions, {
+              type: "assistant message part",
+              canCache: true
+            })) != null ? _f : isLastContentPart ? validator.getCacheControl(message.providerOptions, {
+              type: "assistant message",
+              canCache: true
+            }) : void 0;
+            switch (part.type) {
+              case "text": {
+                const textMetadata = (_g = part.providerOptions) == null ? void 0 : _g.anthropic;
+                if ((textMetadata == null ? void 0 : textMetadata.type) === "compaction") {
+                  anthropicContent.push({
+                    type: "compaction",
+                    content: part.text,
+                    cache_control: cacheControl
+                  });
+                } else {
+                  anthropicContent.push({
+                    type: "text",
+                    text: (
+                      // trim the last text part if it's the last message in the block
+                      // because Anthropic does not allow trailing whitespace
+                      // in pre-filled assistant responses
+                      isLastBlock && isLastMessage && isLastContentPart ? part.text.trim() : part.text
+                    ),
+                    cache_control: cacheControl
+                  });
+                }
+                break;
+              }
+              case "reasoning": {
+                if (sendReasoning) {
+                  const reasoningMetadata = await parseProviderOptions({
+                    provider: "anthropic",
+                    providerOptions: part.providerOptions,
+                    schema: anthropicReasoningMetadataSchema
+                  });
+                  if (reasoningMetadata != null) {
+                    if (reasoningMetadata.signature != null) {
+                      validator.getCacheControl(part.providerOptions, {
+                        type: "thinking block",
+                        canCache: false
+                      });
+                      anthropicContent.push({
+                        type: "thinking",
+                        thinking: part.text,
+                        signature: reasoningMetadata.signature
+                      });
+                    } else if (reasoningMetadata.redactedData != null) {
+                      validator.getCacheControl(part.providerOptions, {
+                        type: "redacted thinking block",
+                        canCache: false
+                      });
+                      anthropicContent.push({
+                        type: "redacted_thinking",
+                        data: reasoningMetadata.redactedData
+                      });
+                    } else {
+                      warnings.push({
+                        type: "other",
+                        message: "unsupported reasoning metadata"
+                      });
+                    }
+                  } else {
+                    warnings.push({
+                      type: "other",
+                      message: "unsupported reasoning metadata"
+                    });
+                  }
+                } else {
+                  warnings.push({
+                    type: "other",
+                    message: "sending reasoning content is disabled for this model"
+                  });
+                }
+                break;
+              }
+              case "tool-call": {
+                if (part.providerExecuted) {
+                  const providerToolName = toolNameMapping.toProviderToolName(
+                    part.toolName
+                  );
+                  const isMcpToolUse = ((_i = (_h = part.providerOptions) == null ? void 0 : _h.anthropic) == null ? void 0 : _i.type) === "mcp-tool-use";
+                  if (isMcpToolUse) {
+                    mcpToolUseIds.add(part.toolCallId);
+                    const serverName = (_k = (_j = part.providerOptions) == null ? void 0 : _j.anthropic) == null ? void 0 : _k.serverName;
+                    if (serverName == null || typeof serverName !== "string") {
+                      warnings.push({
+                        type: "other",
+                        message: "mcp tool use server name is required and must be a string"
+                      });
+                      break;
+                    }
+                    anthropicContent.push({
+                      type: "mcp_tool_use",
+                      id: part.toolCallId,
+                      name: part.toolName,
+                      input: part.input,
+                      server_name: serverName,
+                      cache_control: cacheControl
+                    });
+                  } else if (
+                    // code execution 20250825:
+                    providerToolName === "code_execution" && part.input != null && typeof part.input === "object" && "type" in part.input && typeof part.input.type === "string" && (part.input.type === "bash_code_execution" || part.input.type === "text_editor_code_execution")
+                  ) {
+                    anthropicContent.push({
+                      type: "server_tool_use",
+                      id: part.toolCallId,
+                      name: part.input.type,
+                      // map back to subtool name
+                      input: part.input,
+                      cache_control: cacheControl
+                    });
+                  } else if (
+                    // code execution 20250825 programmatic tool calling:
+                    // Strip the fake 'programmatic-tool-call' type before sending to Anthropic
+                    providerToolName === "code_execution" && part.input != null && typeof part.input === "object" && "type" in part.input && part.input.type === "programmatic-tool-call"
+                  ) {
+                    const { type: _2, ...inputWithoutType } = part.input;
+                    anthropicContent.push({
+                      type: "server_tool_use",
+                      id: part.toolCallId,
+                      name: "code_execution",
+                      input: inputWithoutType,
+                      cache_control: cacheControl
+                    });
+                  } else {
+                    if (providerToolName === "code_execution" || // code execution 20250522
+                    providerToolName === "web_fetch" || providerToolName === "web_search") {
+                      anthropicContent.push({
+                        type: "server_tool_use",
+                        id: part.toolCallId,
+                        name: providerToolName,
+                        input: part.input,
+                        cache_control: cacheControl
+                      });
+                    } else if (providerToolName === "tool_search_tool_regex" || providerToolName === "tool_search_tool_bm25") {
+                      anthropicContent.push({
+                        type: "server_tool_use",
+                        id: part.toolCallId,
+                        name: providerToolName,
+                        input: part.input,
+                        cache_control: cacheControl
+                      });
+                    } else {
+                      warnings.push({
+                        type: "other",
+                        message: `provider executed tool call for tool ${part.toolName} is not supported`
+                      });
+                    }
+                  }
+                  break;
+                }
+                const callerOptions = (_l = part.providerOptions) == null ? void 0 : _l.anthropic;
+                const caller = (callerOptions == null ? void 0 : callerOptions.caller) ? callerOptions.caller.type === "code_execution_20250825" && callerOptions.caller.toolId ? {
+                  type: "code_execution_20250825",
+                  tool_id: callerOptions.caller.toolId
+                } : callerOptions.caller.type === "direct" ? { type: "direct" } : void 0 : void 0;
+                anthropicContent.push({
+                  type: "tool_use",
+                  id: part.toolCallId,
+                  name: part.toolName,
+                  input: part.input,
+                  ...caller && { caller },
+                  cache_control: cacheControl
+                });
+                break;
+              }
+              case "tool-result": {
+                const providerToolName = toolNameMapping.toProviderToolName(
+                  part.toolName
+                );
+                if (mcpToolUseIds.has(part.toolCallId)) {
+                  const output = part.output;
+                  if (output.type !== "json" && output.type !== "error-json") {
+                    warnings.push({
+                      type: "other",
+                      message: `provider executed tool result output type ${output.type} for tool ${part.toolName} is not supported`
+                    });
+                    break;
+                  }
+                  anthropicContent.push({
+                    type: "mcp_tool_result",
+                    tool_use_id: part.toolCallId,
+                    is_error: output.type === "error-json",
+                    content: output.value,
+                    cache_control: cacheControl
+                  });
+                } else if (providerToolName === "code_execution") {
+                  const output = part.output;
+                  if (output.type === "error-text" || output.type === "error-json") {
+                    let errorInfo = {};
+                    try {
+                      if (typeof output.value === "string") {
+                        errorInfo = JSON.parse(output.value);
+                      } else if (typeof output.value === "object" && output.value !== null) {
+                        errorInfo = output.value;
+                      }
+                    } catch (e) {
+                    }
+                    if (errorInfo.type === "code_execution_tool_result_error") {
+                      anthropicContent.push({
+                        type: "code_execution_tool_result",
+                        tool_use_id: part.toolCallId,
+                        content: {
+                          type: "code_execution_tool_result_error",
+                          error_code: (_m = errorInfo.errorCode) != null ? _m : "unknown"
+                        },
+                        cache_control: cacheControl
+                      });
+                    } else {
+                      anthropicContent.push({
+                        type: "bash_code_execution_tool_result",
+                        tool_use_id: part.toolCallId,
+                        cache_control: cacheControl,
+                        content: {
+                          type: "bash_code_execution_tool_result_error",
+                          error_code: (_n = errorInfo.errorCode) != null ? _n : "unknown"
+                        }
+                      });
+                    }
+                    break;
+                  }
+                  if (output.type !== "json") {
+                    warnings.push({
+                      type: "other",
+                      message: `provider executed tool result output type ${output.type} for tool ${part.toolName} is not supported`
+                    });
+                    break;
+                  }
+                  if (output.value == null || typeof output.value !== "object" || !("type" in output.value) || typeof output.value.type !== "string") {
+                    warnings.push({
+                      type: "other",
+                      message: `provider executed tool result output value is not a valid code execution result for tool ${part.toolName}`
+                    });
+                    break;
+                  }
+                  if (output.value.type === "code_execution_result") {
+                    const codeExecutionOutput = await validateTypes({
+                      value: output.value,
+                      schema: codeExecution_20250522OutputSchema
+                    });
+                    anthropicContent.push({
+                      type: "code_execution_tool_result",
+                      tool_use_id: part.toolCallId,
+                      content: {
+                        type: codeExecutionOutput.type,
+                        stdout: codeExecutionOutput.stdout,
+                        stderr: codeExecutionOutput.stderr,
+                        return_code: codeExecutionOutput.return_code,
+                        content: (_o = codeExecutionOutput.content) != null ? _o : []
+                      },
+                      cache_control: cacheControl
+                    });
+                  } else {
+                    const codeExecutionOutput = await validateTypes({
+                      value: output.value,
+                      schema: codeExecution_20250825OutputSchema
+                    });
+                    if (codeExecutionOutput.type === "code_execution_result") {
+                      anthropicContent.push({
+                        type: "code_execution_tool_result",
+                        tool_use_id: part.toolCallId,
+                        content: {
+                          type: codeExecutionOutput.type,
+                          stdout: codeExecutionOutput.stdout,
+                          stderr: codeExecutionOutput.stderr,
+                          return_code: codeExecutionOutput.return_code,
+                          content: (_p = codeExecutionOutput.content) != null ? _p : []
+                        },
+                        cache_control: cacheControl
+                      });
+                    } else if (codeExecutionOutput.type === "bash_code_execution_result" || codeExecutionOutput.type === "bash_code_execution_tool_result_error") {
+                      anthropicContent.push({
+                        type: "bash_code_execution_tool_result",
+                        tool_use_id: part.toolCallId,
+                        cache_control: cacheControl,
+                        content: codeExecutionOutput
+                      });
+                    } else {
+                      anthropicContent.push({
+                        type: "text_editor_code_execution_tool_result",
+                        tool_use_id: part.toolCallId,
+                        cache_control: cacheControl,
+                        content: codeExecutionOutput
+                      });
+                    }
+                  }
+                  break;
+                }
+                if (providerToolName === "web_fetch") {
+                  const output = part.output;
+                  if (output.type === "error-json") {
+                    let errorValue = {};
+                    try {
+                      if (typeof output.value === "string") {
+                        errorValue = JSON.parse(output.value);
+                      } else if (typeof output.value === "object" && output.value !== null) {
+                        errorValue = output.value;
+                      }
+                    } catch (e) {
+                      const extractedErrorCode = (_q = output.value) == null ? void 0 : _q.errorCode;
+                      errorValue = {
+                        errorCode: typeof extractedErrorCode === "string" ? extractedErrorCode : "unknown"
+                      };
+                    }
+                    anthropicContent.push({
+                      type: "web_fetch_tool_result",
+                      tool_use_id: part.toolCallId,
+                      content: {
+                        type: "web_fetch_tool_result_error",
+                        error_code: (_r = errorValue.errorCode) != null ? _r : "unknown"
+                      },
+                      cache_control: cacheControl
+                    });
+                    break;
+                  }
+                  if (output.type !== "json") {
+                    warnings.push({
+                      type: "other",
+                      message: `provider executed tool result output type ${output.type} for tool ${part.toolName} is not supported`
+                    });
+                    break;
+                  }
+                  const webFetchOutput = await validateTypes({
+                    value: output.value,
+                    schema: webFetch_20250910OutputSchema
+                  });
+                  anthropicContent.push({
+                    type: "web_fetch_tool_result",
+                    tool_use_id: part.toolCallId,
+                    content: {
+                      type: "web_fetch_result",
+                      url: webFetchOutput.url,
+                      retrieved_at: webFetchOutput.retrievedAt,
+                      content: {
+                        type: "document",
+                        title: webFetchOutput.content.title,
+                        citations: webFetchOutput.content.citations,
+                        source: {
+                          type: webFetchOutput.content.source.type,
+                          media_type: webFetchOutput.content.source.mediaType,
+                          data: webFetchOutput.content.source.data
+                        }
+                      }
+                    },
+                    cache_control: cacheControl
+                  });
+                  break;
+                }
+                if (providerToolName === "web_search") {
+                  const output = part.output;
+                  if (output.type !== "json") {
+                    warnings.push({
+                      type: "other",
+                      message: `provider executed tool result output type ${output.type} for tool ${part.toolName} is not supported`
+                    });
+                    break;
+                  }
+                  const webSearchOutput = await validateTypes({
+                    value: output.value,
+                    schema: webSearch_20250305OutputSchema
+                  });
+                  anthropicContent.push({
+                    type: "web_search_tool_result",
+                    tool_use_id: part.toolCallId,
+                    content: webSearchOutput.map((result) => ({
+                      url: result.url,
+                      title: result.title,
+                      page_age: result.pageAge,
+                      encrypted_content: result.encryptedContent,
+                      type: result.type
+                    })),
+                    cache_control: cacheControl
+                  });
+                  break;
+                }
+                if (providerToolName === "tool_search_tool_regex" || providerToolName === "tool_search_tool_bm25") {
+                  const output = part.output;
+                  if (output.type !== "json") {
+                    warnings.push({
+                      type: "other",
+                      message: `provider executed tool result output type ${output.type} for tool ${part.toolName} is not supported`
+                    });
+                    break;
+                  }
+                  const toolSearchOutput = await validateTypes({
+                    value: output.value,
+                    schema: toolSearchRegex_20251119OutputSchema
+                  });
+                  const toolReferences = toolSearchOutput.map((ref) => ({
+                    type: "tool_reference",
+                    tool_name: ref.toolName
+                  }));
+                  anthropicContent.push({
+                    type: "tool_search_tool_result",
+                    tool_use_id: part.toolCallId,
+                    content: {
+                      type: "tool_search_tool_search_result",
+                      tool_references: toolReferences
+                    },
+                    cache_control: cacheControl
+                  });
+                  break;
+                }
+                warnings.push({
+                  type: "other",
+                  message: `provider executed tool result for tool ${part.toolName} is not supported`
+                });
+                break;
+              }
+            }
+          }
+        }
+        messages.push({ role: "assistant", content: anthropicContent });
+        break;
+      }
+      default: {
+        const _exhaustiveCheck = type;
+        throw new Error(`content type: ${_exhaustiveCheck}`);
+      }
+    }
+  }
+  return {
+    prompt: { system, messages },
+    betas
+  };
+}
+function groupIntoBlocks(prompt) {
+  const blocks = [];
+  let currentBlock = void 0;
+  for (const message of prompt) {
+    const { role } = message;
+    switch (role) {
+      case "system": {
+        if ((currentBlock == null ? void 0 : currentBlock.type) !== "system") {
+          currentBlock = { type: "system", messages: [] };
+          blocks.push(currentBlock);
+        }
+        currentBlock.messages.push(message);
+        break;
+      }
+      case "assistant": {
+        if ((currentBlock == null ? void 0 : currentBlock.type) !== "assistant") {
+          currentBlock = { type: "assistant", messages: [] };
+          blocks.push(currentBlock);
+        }
+        currentBlock.messages.push(message);
+        break;
+      }
+      case "user": {
+        if ((currentBlock == null ? void 0 : currentBlock.type) !== "user") {
+          currentBlock = { type: "user", messages: [] };
+          blocks.push(currentBlock);
+        }
+        currentBlock.messages.push(message);
+        break;
+      }
+      case "tool": {
+        if ((currentBlock == null ? void 0 : currentBlock.type) !== "user") {
+          currentBlock = { type: "user", messages: [] };
+          blocks.push(currentBlock);
+        }
+        currentBlock.messages.push(message);
+        break;
+      }
+      default: {
+        const _exhaustiveCheck = role;
+        throw new Error(`Unsupported role: ${_exhaustiveCheck}`);
+      }
+    }
+  }
+  return blocks;
+}
+function mapAnthropicStopReason({
+  finishReason,
+  isJsonResponseFromTool
+}) {
+  switch (finishReason) {
+    case "pause_turn":
+    case "end_turn":
+    case "stop_sequence":
+      return "stop";
+    case "refusal":
+      return "content-filter";
+    case "tool_use":
+      return isJsonResponseFromTool ? "stop" : "tool-calls";
+    case "max_tokens":
+    case "model_context_window_exceeded":
+      return "length";
+    case "compaction":
+      return "other";
+    default:
+      return "other";
+  }
+}
+function createCitationSource(citation, citationDocuments, generateId3) {
+  var _a21;
+  if (citation.type === "web_search_result_location") {
+    return {
+      type: "source",
+      sourceType: "url",
+      id: generateId3(),
+      url: citation.url,
+      title: citation.title,
+      providerMetadata: {
+        anthropic: {
+          citedText: citation.cited_text,
+          encryptedIndex: citation.encrypted_index
+        }
+      }
+    };
+  }
+  if (citation.type !== "page_location" && citation.type !== "char_location") {
+    return;
+  }
+  const documentInfo = citationDocuments[citation.document_index];
+  if (!documentInfo) {
+    return;
+  }
+  return {
+    type: "source",
+    sourceType: "document",
+    id: generateId3(),
+    mediaType: documentInfo.mediaType,
+    title: (_a21 = citation.document_title) != null ? _a21 : documentInfo.title,
+    filename: documentInfo.filename,
+    providerMetadata: {
+      anthropic: citation.type === "page_location" ? {
+        citedText: citation.cited_text,
+        startPageNumber: citation.start_page_number,
+        endPageNumber: citation.end_page_number
+      } : {
+        citedText: citation.cited_text,
+        startCharIndex: citation.start_char_index,
+        endCharIndex: citation.end_char_index
+      }
+    }
+  };
+}
+function getModelCapabilities(modelId) {
+  if (modelId.includes("claude-sonnet-4-6") || modelId.includes("claude-opus-4-6")) {
+    return {
+      maxOutputTokens: 128e3,
+      supportsStructuredOutput: true,
+      isKnownModel: true
+    };
+  } else if (modelId.includes("claude-sonnet-4-5") || modelId.includes("claude-opus-4-5") || modelId.includes("claude-haiku-4-5")) {
+    return {
+      maxOutputTokens: 64e3,
+      supportsStructuredOutput: true,
+      isKnownModel: true
+    };
+  } else if (modelId.includes("claude-opus-4-1")) {
+    return {
+      maxOutputTokens: 32e3,
+      supportsStructuredOutput: true,
+      isKnownModel: true
+    };
+  } else if (modelId.includes("claude-sonnet-4-") || modelId.includes("claude-3-7-sonnet")) {
+    return {
+      maxOutputTokens: 64e3,
+      supportsStructuredOutput: false,
+      isKnownModel: true
+    };
+  } else if (modelId.includes("claude-opus-4-")) {
+    return {
+      maxOutputTokens: 32e3,
+      supportsStructuredOutput: false,
+      isKnownModel: true
+    };
+  } else if (modelId.includes("claude-3-5-haiku")) {
+    return {
+      maxOutputTokens: 8192,
+      supportsStructuredOutput: false,
+      isKnownModel: true
+    };
+  } else if (modelId.includes("claude-3-haiku")) {
+    return {
+      maxOutputTokens: 4096,
+      supportsStructuredOutput: false,
+      isKnownModel: true
+    };
+  } else {
+    return {
+      maxOutputTokens: 4096,
+      supportsStructuredOutput: false,
+      isKnownModel: false
+    };
+  }
+}
+function mapAnthropicResponseContextManagement(contextManagement) {
+  return contextManagement ? {
+    appliedEdits: contextManagement.applied_edits.map((edit) => {
+      const strategy = edit.type;
+      switch (strategy) {
+        case "clear_tool_uses_20250919":
+          return {
+            type: edit.type,
+            clearedToolUses: edit.cleared_tool_uses,
+            clearedInputTokens: edit.cleared_input_tokens
+          };
+        case "clear_thinking_20251015":
+          return {
+            type: edit.type,
+            clearedThinkingTurns: edit.cleared_thinking_turns,
+            clearedInputTokens: edit.cleared_input_tokens
+          };
+        case "compact_20260112":
+          return {
+            type: edit.type
+          };
+      }
+    }).filter((edit) => edit !== void 0)
+  } : null;
+}
+function createAnthropic(options = {}) {
+  var _a21, _b17;
+  const baseURL = (_a21 = withoutTrailingSlash(
+    loadOptionalSetting({
+      settingValue: options.baseURL,
+      environmentVariableName: "ANTHROPIC_BASE_URL"
+    })
+  )) != null ? _a21 : "https://api.anthropic.com/v1";
+  const providerName = (_b17 = options.name) != null ? _b17 : "anthropic.messages";
+  if (options.apiKey && options.authToken) {
+    throw new InvalidArgumentError({
+      argument: "apiKey/authToken",
+      message: "Both apiKey and authToken were provided. Please use only one authentication method."
+    });
+  }
+  const getHeaders = () => {
+    const authHeaders = options.authToken ? { Authorization: `Bearer ${options.authToken}` } : {
+      "x-api-key": loadApiKey({
+        apiKey: options.apiKey,
+        environmentVariableName: "ANTHROPIC_API_KEY",
+        description: "Anthropic"
+      })
+    };
+    return withUserAgentSuffix(
+      {
+        "anthropic-version": "2023-06-01",
+        ...authHeaders,
+        ...options.headers
+      },
+      `ai-sdk/anthropic/${VERSION5}`
+    );
+  };
+  const createChatModel = (modelId) => {
+    var _a24;
+    return new AnthropicMessagesLanguageModel(modelId, {
+      provider: providerName,
+      baseURL,
+      headers: getHeaders,
+      fetch: options.fetch,
+      generateId: (_a24 = options.generateId) != null ? _a24 : generateId,
+      supportedUrls: () => ({
+        "image/*": [/^https?:\/\/.*$/],
+        "application/pdf": [/^https?:\/\/.*$/]
+      })
+    });
+  };
+  const provider = function(modelId) {
+    if (new.target) {
+      throw new Error(
+        "The Anthropic model function cannot be called with the new keyword."
+      );
+    }
+    return createChatModel(modelId);
+  };
+  provider.specificationVersion = "v3";
+  provider.languageModel = createChatModel;
+  provider.chat = createChatModel;
+  provider.messages = createChatModel;
+  provider.embeddingModel = (modelId) => {
+    throw new NoSuchModelError({ modelId, modelType: "embeddingModel" });
+  };
+  provider.textEmbeddingModel = provider.embeddingModel;
+  provider.imageModel = (modelId) => {
+    throw new NoSuchModelError({ modelId, modelType: "imageModel" });
+  };
+  provider.tools = anthropicTools;
+  return provider;
+}
+function forwardAnthropicContainerIdFromLastStep({
+  steps
+}) {
+  var _a21, _b17, _c;
+  for (let i = steps.length - 1; i >= 0; i--) {
+    const containerId = (_c = (_b17 = (_a21 = steps[i].providerMetadata) == null ? void 0 : _a21.anthropic) == null ? void 0 : _b17.container) == null ? void 0 : _c.id;
+    if (containerId) {
+      return {
+        providerOptions: {
+          anthropic: {
+            container: { id: containerId }
+          }
+        }
+      };
+    }
+  }
+  return void 0;
+}
+var VERSION5, anthropicErrorDataSchema, anthropicFailedResponseHandler, anthropicMessagesResponseSchema, anthropicMessagesChunkSchema, anthropicReasoningMetadataSchema, anthropicFilePartProviderOptions, anthropicLanguageModelOptions, MAX_CACHE_BREAKPOINTS, CacheControlValidator, textEditor_20250728ArgsSchema, textEditor_20250728InputSchema, factory, textEditor_20250728, webSearch_20250305ArgsSchema, webSearch_20250305OutputSchema, webSearch_20250305InputSchema, factory2, webSearch_20250305, webFetch_20250910ArgsSchema, webFetch_20250910OutputSchema, webFetch_20250910InputSchema, factory3, webFetch_20250910, codeExecution_20250522OutputSchema, codeExecution_20250522InputSchema, factory4, codeExecution_20250522, codeExecution_20250825OutputSchema, codeExecution_20250825InputSchema, factory5, codeExecution_20250825, toolSearchRegex_20251119OutputSchema, toolSearchRegex_20251119InputSchema, factory6, toolSearchRegex_20251119, AnthropicMessagesLanguageModel, bash_20241022InputSchema, bash_20241022, bash_20250124InputSchema, bash_20250124, computer_20241022InputSchema, computer_20241022, computer_20250124InputSchema, computer_20250124, computer_20251124InputSchema, computer_20251124, memory_20250818InputSchema, memory_20250818, textEditor_20241022InputSchema, textEditor_20241022, textEditor_20250124InputSchema, textEditor_20250124, textEditor_20250429InputSchema, textEditor_20250429, toolSearchBm25_20251119OutputSchema, toolSearchBm25_20251119InputSchema, factory7, toolSearchBm25_20251119, anthropicTools, anthropic;
+var init_dist6 = __esm({
+  "../../node_modules/.pnpm/@ai-sdk+anthropic@3.0.45_zod@3.25.76/node_modules/@ai-sdk/anthropic/dist/index.mjs"() {
+    init_dist();
+    init_dist3();
+    init_dist();
+    init_dist3();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_v4();
+    init_dist();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_dist();
+    init_dist3();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    init_dist3();
+    init_v4();
+    VERSION5 = true ? "3.0.45" : "0.0.0-test";
+    anthropicErrorDataSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          type: external_exports.literal("error"),
+          error: external_exports.object({
+            type: external_exports.string(),
+            message: external_exports.string()
+          })
+        })
+      )
+    );
+    anthropicFailedResponseHandler = createJsonErrorResponseHandler({
+      errorSchema: anthropicErrorDataSchema,
+      errorToMessage: (data) => data.error.message
+    });
+    anthropicMessagesResponseSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          type: external_exports.literal("message"),
+          id: external_exports.string().nullish(),
+          model: external_exports.string().nullish(),
+          content: external_exports.array(
+            external_exports.discriminatedUnion("type", [
+              external_exports.object({
+                type: external_exports.literal("text"),
+                text: external_exports.string(),
+                citations: external_exports.array(
+                  external_exports.discriminatedUnion("type", [
+                    external_exports.object({
+                      type: external_exports.literal("web_search_result_location"),
+                      cited_text: external_exports.string(),
+                      url: external_exports.string(),
+                      title: external_exports.string(),
+                      encrypted_index: external_exports.string()
+                    }),
+                    external_exports.object({
+                      type: external_exports.literal("page_location"),
+                      cited_text: external_exports.string(),
+                      document_index: external_exports.number(),
+                      document_title: external_exports.string().nullable(),
+                      start_page_number: external_exports.number(),
+                      end_page_number: external_exports.number()
+                    }),
+                    external_exports.object({
+                      type: external_exports.literal("char_location"),
+                      cited_text: external_exports.string(),
+                      document_index: external_exports.number(),
+                      document_title: external_exports.string().nullable(),
+                      start_char_index: external_exports.number(),
+                      end_char_index: external_exports.number()
+                    })
+                  ])
+                ).optional()
+              }),
+              external_exports.object({
+                type: external_exports.literal("thinking"),
+                thinking: external_exports.string(),
+                signature: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("redacted_thinking"),
+                data: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("compaction"),
+                content: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("tool_use"),
+                id: external_exports.string(),
+                name: external_exports.string(),
+                input: external_exports.unknown(),
+                // Programmatic tool calling: caller info when triggered from code execution
+                caller: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("code_execution_20250825"),
+                    tool_id: external_exports.string()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("direct")
+                  })
+                ]).optional()
+              }),
+              external_exports.object({
+                type: external_exports.literal("server_tool_use"),
+                id: external_exports.string(),
+                name: external_exports.string(),
+                input: external_exports.record(external_exports.string(), external_exports.unknown()).nullish()
+              }),
+              external_exports.object({
+                type: external_exports.literal("mcp_tool_use"),
+                id: external_exports.string(),
+                name: external_exports.string(),
+                input: external_exports.unknown(),
+                server_name: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("mcp_tool_result"),
+                tool_use_id: external_exports.string(),
+                is_error: external_exports.boolean(),
+                content: external_exports.array(
+                  external_exports.union([
+                    external_exports.string(),
+                    external_exports.object({ type: external_exports.literal("text"), text: external_exports.string() })
+                  ])
+                )
+              }),
+              external_exports.object({
+                type: external_exports.literal("web_fetch_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("web_fetch_result"),
+                    url: external_exports.string(),
+                    retrieved_at: external_exports.string(),
+                    content: external_exports.object({
+                      type: external_exports.literal("document"),
+                      title: external_exports.string().nullable(),
+                      citations: external_exports.object({ enabled: external_exports.boolean() }).optional(),
+                      source: external_exports.union([
+                        external_exports.object({
+                          type: external_exports.literal("base64"),
+                          media_type: external_exports.literal("application/pdf"),
+                          data: external_exports.string()
+                        }),
+                        external_exports.object({
+                          type: external_exports.literal("text"),
+                          media_type: external_exports.literal("text/plain"),
+                          data: external_exports.string()
+                        })
+                      ])
+                    })
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("web_fetch_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              external_exports.object({
+                type: external_exports.literal("web_search_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.array(
+                    external_exports.object({
+                      type: external_exports.literal("web_search_result"),
+                      url: external_exports.string(),
+                      title: external_exports.string(),
+                      encrypted_content: external_exports.string(),
+                      page_age: external_exports.string().nullish()
+                    })
+                  ),
+                  external_exports.object({
+                    type: external_exports.literal("web_search_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              // code execution results for code_execution_20250522 tool:
+              external_exports.object({
+                type: external_exports.literal("code_execution_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("code_execution_result"),
+                    stdout: external_exports.string(),
+                    stderr: external_exports.string(),
+                    return_code: external_exports.number(),
+                    content: external_exports.array(
+                      external_exports.object({
+                        type: external_exports.literal("code_execution_output"),
+                        file_id: external_exports.string()
+                      })
+                    ).optional().default([])
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("code_execution_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              // bash code execution results for code_execution_20250825 tool:
+              external_exports.object({
+                type: external_exports.literal("bash_code_execution_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.discriminatedUnion("type", [
+                  external_exports.object({
+                    type: external_exports.literal("bash_code_execution_result"),
+                    content: external_exports.array(
+                      external_exports.object({
+                        type: external_exports.literal("bash_code_execution_output"),
+                        file_id: external_exports.string()
+                      })
+                    ),
+                    stdout: external_exports.string(),
+                    stderr: external_exports.string(),
+                    return_code: external_exports.number()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("bash_code_execution_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              // text editor code execution results for code_execution_20250825 tool:
+              external_exports.object({
+                type: external_exports.literal("text_editor_code_execution_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.discriminatedUnion("type", [
+                  external_exports.object({
+                    type: external_exports.literal("text_editor_code_execution_tool_result_error"),
+                    error_code: external_exports.string()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("text_editor_code_execution_view_result"),
+                    content: external_exports.string(),
+                    file_type: external_exports.string(),
+                    num_lines: external_exports.number().nullable(),
+                    start_line: external_exports.number().nullable(),
+                    total_lines: external_exports.number().nullable()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("text_editor_code_execution_create_result"),
+                    is_file_update: external_exports.boolean()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal(
+                      "text_editor_code_execution_str_replace_result"
+                    ),
+                    lines: external_exports.array(external_exports.string()).nullable(),
+                    new_lines: external_exports.number().nullable(),
+                    new_start: external_exports.number().nullable(),
+                    old_lines: external_exports.number().nullable(),
+                    old_start: external_exports.number().nullable()
+                  })
+                ])
+              }),
+              // tool search tool results for tool_search_tool_regex_20251119 and tool_search_tool_bm25_20251119:
+              external_exports.object({
+                type: external_exports.literal("tool_search_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("tool_search_tool_search_result"),
+                    tool_references: external_exports.array(
+                      external_exports.object({
+                        type: external_exports.literal("tool_reference"),
+                        tool_name: external_exports.string()
+                      })
+                    )
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("tool_search_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              })
+            ])
+          ),
+          stop_reason: external_exports.string().nullish(),
+          stop_sequence: external_exports.string().nullish(),
+          usage: external_exports.looseObject({
+            input_tokens: external_exports.number(),
+            output_tokens: external_exports.number(),
+            cache_creation_input_tokens: external_exports.number().nullish(),
+            cache_read_input_tokens: external_exports.number().nullish(),
+            iterations: external_exports.array(
+              external_exports.object({
+                type: external_exports.union([external_exports.literal("compaction"), external_exports.literal("message")]),
+                input_tokens: external_exports.number(),
+                output_tokens: external_exports.number()
+              })
+            ).nullish()
+          }),
+          container: external_exports.object({
+            expires_at: external_exports.string(),
+            id: external_exports.string(),
+            skills: external_exports.array(
+              external_exports.object({
+                type: external_exports.union([external_exports.literal("anthropic"), external_exports.literal("custom")]),
+                skill_id: external_exports.string(),
+                version: external_exports.string()
+              })
+            ).nullish()
+          }).nullish(),
+          context_management: external_exports.object({
+            applied_edits: external_exports.array(
+              external_exports.union([
+                external_exports.object({
+                  type: external_exports.literal("clear_tool_uses_20250919"),
+                  cleared_tool_uses: external_exports.number(),
+                  cleared_input_tokens: external_exports.number()
+                }),
+                external_exports.object({
+                  type: external_exports.literal("clear_thinking_20251015"),
+                  cleared_thinking_turns: external_exports.number(),
+                  cleared_input_tokens: external_exports.number()
+                }),
+                external_exports.object({
+                  type: external_exports.literal("compact_20260112")
+                })
+              ])
+            )
+          }).nullish()
+        })
+      )
+    );
+    anthropicMessagesChunkSchema = lazySchema(
+      () => zodSchema(
+        external_exports.discriminatedUnion("type", [
+          external_exports.object({
+            type: external_exports.literal("message_start"),
+            message: external_exports.object({
+              id: external_exports.string().nullish(),
+              model: external_exports.string().nullish(),
+              role: external_exports.string().nullish(),
+              usage: external_exports.looseObject({
+                input_tokens: external_exports.number(),
+                cache_creation_input_tokens: external_exports.number().nullish(),
+                cache_read_input_tokens: external_exports.number().nullish()
+              }),
+              // Programmatic tool calling: content may be pre-populated for deferred tool calls
+              content: external_exports.array(
+                external_exports.discriminatedUnion("type", [
+                  external_exports.object({
+                    type: external_exports.literal("tool_use"),
+                    id: external_exports.string(),
+                    name: external_exports.string(),
+                    input: external_exports.unknown(),
+                    caller: external_exports.union([
+                      external_exports.object({
+                        type: external_exports.literal("code_execution_20250825"),
+                        tool_id: external_exports.string()
+                      }),
+                      external_exports.object({
+                        type: external_exports.literal("direct")
+                      })
+                    ]).optional()
+                  })
+                ])
+              ).nullish(),
+              stop_reason: external_exports.string().nullish(),
+              container: external_exports.object({
+                expires_at: external_exports.string(),
+                id: external_exports.string()
+              }).nullish()
+            })
+          }),
+          external_exports.object({
+            type: external_exports.literal("content_block_start"),
+            index: external_exports.number(),
+            content_block: external_exports.discriminatedUnion("type", [
+              external_exports.object({
+                type: external_exports.literal("text"),
+                text: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("thinking"),
+                thinking: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("tool_use"),
+                id: external_exports.string(),
+                name: external_exports.string(),
+                // Programmatic tool calling: input may be present directly for deferred tool calls
+                input: external_exports.record(external_exports.string(), external_exports.unknown()).optional(),
+                // Programmatic tool calling: caller info when triggered from code execution
+                caller: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("code_execution_20250825"),
+                    tool_id: external_exports.string()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("direct")
+                  })
+                ]).optional()
+              }),
+              external_exports.object({
+                type: external_exports.literal("redacted_thinking"),
+                data: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("compaction"),
+                content: external_exports.string().nullish()
+              }),
+              external_exports.object({
+                type: external_exports.literal("server_tool_use"),
+                id: external_exports.string(),
+                name: external_exports.string(),
+                input: external_exports.record(external_exports.string(), external_exports.unknown()).nullish()
+              }),
+              external_exports.object({
+                type: external_exports.literal("mcp_tool_use"),
+                id: external_exports.string(),
+                name: external_exports.string(),
+                input: external_exports.unknown(),
+                server_name: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("mcp_tool_result"),
+                tool_use_id: external_exports.string(),
+                is_error: external_exports.boolean(),
+                content: external_exports.array(
+                  external_exports.union([
+                    external_exports.string(),
+                    external_exports.object({ type: external_exports.literal("text"), text: external_exports.string() })
+                  ])
+                )
+              }),
+              external_exports.object({
+                type: external_exports.literal("web_fetch_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("web_fetch_result"),
+                    url: external_exports.string(),
+                    retrieved_at: external_exports.string(),
+                    content: external_exports.object({
+                      type: external_exports.literal("document"),
+                      title: external_exports.string().nullable(),
+                      citations: external_exports.object({ enabled: external_exports.boolean() }).optional(),
+                      source: external_exports.union([
+                        external_exports.object({
+                          type: external_exports.literal("base64"),
+                          media_type: external_exports.literal("application/pdf"),
+                          data: external_exports.string()
+                        }),
+                        external_exports.object({
+                          type: external_exports.literal("text"),
+                          media_type: external_exports.literal("text/plain"),
+                          data: external_exports.string()
+                        })
+                      ])
+                    })
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("web_fetch_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              external_exports.object({
+                type: external_exports.literal("web_search_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.array(
+                    external_exports.object({
+                      type: external_exports.literal("web_search_result"),
+                      url: external_exports.string(),
+                      title: external_exports.string(),
+                      encrypted_content: external_exports.string(),
+                      page_age: external_exports.string().nullish()
+                    })
+                  ),
+                  external_exports.object({
+                    type: external_exports.literal("web_search_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              // code execution results for code_execution_20250522 tool:
+              external_exports.object({
+                type: external_exports.literal("code_execution_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("code_execution_result"),
+                    stdout: external_exports.string(),
+                    stderr: external_exports.string(),
+                    return_code: external_exports.number(),
+                    content: external_exports.array(
+                      external_exports.object({
+                        type: external_exports.literal("code_execution_output"),
+                        file_id: external_exports.string()
+                      })
+                    ).optional().default([])
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("code_execution_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              // bash code execution results for code_execution_20250825 tool:
+              external_exports.object({
+                type: external_exports.literal("bash_code_execution_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.discriminatedUnion("type", [
+                  external_exports.object({
+                    type: external_exports.literal("bash_code_execution_result"),
+                    content: external_exports.array(
+                      external_exports.object({
+                        type: external_exports.literal("bash_code_execution_output"),
+                        file_id: external_exports.string()
+                      })
+                    ),
+                    stdout: external_exports.string(),
+                    stderr: external_exports.string(),
+                    return_code: external_exports.number()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("bash_code_execution_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              }),
+              // text editor code execution results for code_execution_20250825 tool:
+              external_exports.object({
+                type: external_exports.literal("text_editor_code_execution_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.discriminatedUnion("type", [
+                  external_exports.object({
+                    type: external_exports.literal("text_editor_code_execution_tool_result_error"),
+                    error_code: external_exports.string()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("text_editor_code_execution_view_result"),
+                    content: external_exports.string(),
+                    file_type: external_exports.string(),
+                    num_lines: external_exports.number().nullable(),
+                    start_line: external_exports.number().nullable(),
+                    total_lines: external_exports.number().nullable()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("text_editor_code_execution_create_result"),
+                    is_file_update: external_exports.boolean()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal(
+                      "text_editor_code_execution_str_replace_result"
+                    ),
+                    lines: external_exports.array(external_exports.string()).nullable(),
+                    new_lines: external_exports.number().nullable(),
+                    new_start: external_exports.number().nullable(),
+                    old_lines: external_exports.number().nullable(),
+                    old_start: external_exports.number().nullable()
+                  })
+                ])
+              }),
+              // tool search tool results for tool_search_tool_regex_20251119 and tool_search_tool_bm25_20251119:
+              external_exports.object({
+                type: external_exports.literal("tool_search_tool_result"),
+                tool_use_id: external_exports.string(),
+                content: external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("tool_search_tool_search_result"),
+                    tool_references: external_exports.array(
+                      external_exports.object({
+                        type: external_exports.literal("tool_reference"),
+                        tool_name: external_exports.string()
+                      })
+                    )
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("tool_search_tool_result_error"),
+                    error_code: external_exports.string()
+                  })
+                ])
+              })
+            ])
+          }),
+          external_exports.object({
+            type: external_exports.literal("content_block_delta"),
+            index: external_exports.number(),
+            delta: external_exports.discriminatedUnion("type", [
+              external_exports.object({
+                type: external_exports.literal("input_json_delta"),
+                partial_json: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("text_delta"),
+                text: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("thinking_delta"),
+                thinking: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("signature_delta"),
+                signature: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("compaction_delta"),
+                content: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("citations_delta"),
+                citation: external_exports.discriminatedUnion("type", [
+                  external_exports.object({
+                    type: external_exports.literal("web_search_result_location"),
+                    cited_text: external_exports.string(),
+                    url: external_exports.string(),
+                    title: external_exports.string(),
+                    encrypted_index: external_exports.string()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("page_location"),
+                    cited_text: external_exports.string(),
+                    document_index: external_exports.number(),
+                    document_title: external_exports.string().nullable(),
+                    start_page_number: external_exports.number(),
+                    end_page_number: external_exports.number()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("char_location"),
+                    cited_text: external_exports.string(),
+                    document_index: external_exports.number(),
+                    document_title: external_exports.string().nullable(),
+                    start_char_index: external_exports.number(),
+                    end_char_index: external_exports.number()
+                  })
+                ])
+              })
+            ])
+          }),
+          external_exports.object({
+            type: external_exports.literal("content_block_stop"),
+            index: external_exports.number()
+          }),
+          external_exports.object({
+            type: external_exports.literal("error"),
+            error: external_exports.object({
+              type: external_exports.string(),
+              message: external_exports.string()
+            })
+          }),
+          external_exports.object({
+            type: external_exports.literal("message_delta"),
+            delta: external_exports.object({
+              stop_reason: external_exports.string().nullish(),
+              stop_sequence: external_exports.string().nullish(),
+              container: external_exports.object({
+                expires_at: external_exports.string(),
+                id: external_exports.string(),
+                skills: external_exports.array(
+                  external_exports.object({
+                    type: external_exports.union([
+                      external_exports.literal("anthropic"),
+                      external_exports.literal("custom")
+                    ]),
+                    skill_id: external_exports.string(),
+                    version: external_exports.string()
+                  })
+                ).nullish()
+              }).nullish()
+            }),
+            usage: external_exports.looseObject({
+              input_tokens: external_exports.number().nullish(),
+              output_tokens: external_exports.number(),
+              cache_creation_input_tokens: external_exports.number().nullish(),
+              cache_read_input_tokens: external_exports.number().nullish(),
+              iterations: external_exports.array(
+                external_exports.object({
+                  type: external_exports.union([external_exports.literal("compaction"), external_exports.literal("message")]),
+                  input_tokens: external_exports.number(),
+                  output_tokens: external_exports.number()
+                })
+              ).nullish()
+            }),
+            context_management: external_exports.object({
+              applied_edits: external_exports.array(
+                external_exports.union([
+                  external_exports.object({
+                    type: external_exports.literal("clear_tool_uses_20250919"),
+                    cleared_tool_uses: external_exports.number(),
+                    cleared_input_tokens: external_exports.number()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("clear_thinking_20251015"),
+                    cleared_thinking_turns: external_exports.number(),
+                    cleared_input_tokens: external_exports.number()
+                  }),
+                  external_exports.object({
+                    type: external_exports.literal("compact_20260112")
+                  })
+                ])
+              )
+            }).nullish()
+          }),
+          external_exports.object({
+            type: external_exports.literal("message_stop")
+          }),
+          external_exports.object({
+            type: external_exports.literal("ping")
+          })
+        ])
+      )
+    );
+    anthropicReasoningMetadataSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          signature: external_exports.string().optional(),
+          redactedData: external_exports.string().optional()
+        })
+      )
+    );
+    anthropicFilePartProviderOptions = external_exports.object({
+      /**
+       * Citation configuration for this document.
+       * When enabled, this document will generate citations in the response.
+       */
+      citations: external_exports.object({
+        /**
+         * Enable citations for this document
+         */
+        enabled: external_exports.boolean()
+      }).optional(),
+      /**
+       * Custom title for the document.
+       * If not provided, the filename will be used.
+       */
+      title: external_exports.string().optional(),
+      /**
+       * Context about the document that will be passed to the model
+       * but not used towards cited content.
+       * Useful for storing document metadata as text or stringified JSON.
+       */
+      context: external_exports.string().optional()
+    });
+    anthropicLanguageModelOptions = external_exports.object({
+      /**
+       * Whether to send reasoning to the model.
+       *
+       * This allows you to deactivate reasoning inputs for models that do not support them.
+       */
+      sendReasoning: external_exports.boolean().optional(),
+      /**
+       * Determines how structured outputs are generated.
+       *
+       * - `outputFormat`: Use the `output_format` parameter to specify the structured output format.
+       * - `jsonTool`: Use a special 'json' tool to specify the structured output format.
+       * - `auto`: Use 'outputFormat' when supported, otherwise use 'jsonTool' (default).
+       */
+      structuredOutputMode: external_exports.enum(["outputFormat", "jsonTool", "auto"]).optional(),
+      /**
+       * Configuration for enabling Claude's extended thinking.
+       *
+       * When enabled, responses include thinking content blocks showing Claude's thinking process before the final answer.
+       * Requires a minimum budget of 1,024 tokens and counts towards the `max_tokens` limit.
+       */
+      thinking: external_exports.discriminatedUnion("type", [
+        external_exports.object({
+          /** for Sonnet 4.6, Opus 4.6, and newer models */
+          type: external_exports.literal("adaptive")
+        }),
+        external_exports.object({
+          /** for models before Opus 4.6, except Sonnet 4.6 still supports it */
+          type: external_exports.literal("enabled"),
+          budgetTokens: external_exports.number().optional()
+        }),
+        external_exports.object({
+          type: external_exports.literal("disabled")
+        })
+      ]).optional(),
+      /**
+       * Whether to disable parallel function calling during tool use. Default is false.
+       * When set to true, Claude will use at most one tool per response.
+       */
+      disableParallelToolUse: external_exports.boolean().optional(),
+      /**
+       * Cache control settings for this message.
+       * See https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
+       */
+      cacheControl: external_exports.object({
+        type: external_exports.literal("ephemeral"),
+        ttl: external_exports.union([external_exports.literal("5m"), external_exports.literal("1h")]).optional()
+      }).optional(),
+      /**
+       * MCP servers to be utilized in this request.
+       */
+      mcpServers: external_exports.array(
+        external_exports.object({
+          type: external_exports.literal("url"),
+          name: external_exports.string(),
+          url: external_exports.string(),
+          authorizationToken: external_exports.string().nullish(),
+          toolConfiguration: external_exports.object({
+            enabled: external_exports.boolean().nullish(),
+            allowedTools: external_exports.array(external_exports.string()).nullish()
+          }).nullish()
+        })
+      ).optional(),
+      /**
+       * Agent Skills configuration. Skills enable Claude to perform specialized tasks
+       * like document processing (PPTX, DOCX, PDF, XLSX) and data analysis.
+       * Requires code execution tool to be enabled.
+       */
+      container: external_exports.object({
+        id: external_exports.string().optional(),
+        skills: external_exports.array(
+          external_exports.object({
+            type: external_exports.union([external_exports.literal("anthropic"), external_exports.literal("custom")]),
+            skillId: external_exports.string(),
+            version: external_exports.string().optional()
+          })
+        ).optional()
+      }).optional(),
+      /**
+       * Whether to enable tool streaming (and structured output streaming).
+       *
+       * When set to false, the model will return all tool calls and results
+       * at once after a delay.
+       *
+       * @default true
+       */
+      toolStreaming: external_exports.boolean().optional(),
+      /**
+       * @default 'high'
+       */
+      effort: external_exports.enum(["low", "medium", "high", "max"]).optional(),
+      /**
+       * Enable fast mode for faster inference (2.5x faster output token speeds).
+       * Only supported with claude-opus-4-6.
+       */
+      speed: external_exports.enum(["fast", "standard"]).optional(),
+      contextManagement: external_exports.object({
+        edits: external_exports.array(
+          external_exports.discriminatedUnion("type", [
+            external_exports.object({
+              type: external_exports.literal("clear_tool_uses_20250919"),
+              trigger: external_exports.discriminatedUnion("type", [
+                external_exports.object({
+                  type: external_exports.literal("input_tokens"),
+                  value: external_exports.number()
+                }),
+                external_exports.object({
+                  type: external_exports.literal("tool_uses"),
+                  value: external_exports.number()
+                })
+              ]).optional(),
+              keep: external_exports.object({
+                type: external_exports.literal("tool_uses"),
+                value: external_exports.number()
+              }).optional(),
+              clearAtLeast: external_exports.object({
+                type: external_exports.literal("input_tokens"),
+                value: external_exports.number()
+              }).optional(),
+              clearToolInputs: external_exports.boolean().optional(),
+              excludeTools: external_exports.array(external_exports.string()).optional()
+            }),
+            external_exports.object({
+              type: external_exports.literal("clear_thinking_20251015"),
+              keep: external_exports.union([
+                external_exports.literal("all"),
+                external_exports.object({
+                  type: external_exports.literal("thinking_turns"),
+                  value: external_exports.number()
+                })
+              ]).optional()
+            }),
+            external_exports.object({
+              type: external_exports.literal("compact_20260112"),
+              trigger: external_exports.object({
+                type: external_exports.literal("input_tokens"),
+                value: external_exports.number()
+              }).optional(),
+              pauseAfterCompaction: external_exports.boolean().optional(),
+              instructions: external_exports.string().optional()
+            })
+          ])
+        )
+      }).optional()
+    });
+    MAX_CACHE_BREAKPOINTS = 4;
+    CacheControlValidator = class {
+      constructor() {
+        this.breakpointCount = 0;
+        this.warnings = [];
+      }
+      getCacheControl(providerMetadata, context5) {
+        const cacheControlValue = getCacheControl(providerMetadata);
+        if (!cacheControlValue) {
+          return void 0;
+        }
+        if (!context5.canCache) {
+          this.warnings.push({
+            type: "unsupported",
+            feature: "cache_control on non-cacheable context",
+            details: `cache_control cannot be set on ${context5.type}. It will be ignored.`
+          });
+          return void 0;
+        }
+        this.breakpointCount++;
+        if (this.breakpointCount > MAX_CACHE_BREAKPOINTS) {
+          this.warnings.push({
+            type: "unsupported",
+            feature: "cacheControl breakpoint limit",
+            details: `Maximum ${MAX_CACHE_BREAKPOINTS} cache breakpoints exceeded (found ${this.breakpointCount}). This breakpoint will be ignored.`
+          });
+          return void 0;
+        }
+        return cacheControlValue;
+      }
+      getWarnings() {
+        return this.warnings;
+      }
+    };
+    textEditor_20250728ArgsSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          maxCharacters: external_exports.number().optional()
+        })
+      )
+    );
+    textEditor_20250728InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          command: external_exports.enum(["view", "create", "str_replace", "insert"]),
+          path: external_exports.string(),
+          file_text: external_exports.string().optional(),
+          insert_line: external_exports.number().int().optional(),
+          new_str: external_exports.string().optional(),
+          insert_text: external_exports.string().optional(),
+          old_str: external_exports.string().optional(),
+          view_range: external_exports.array(external_exports.number().int()).optional()
+        })
+      )
+    );
+    factory = createProviderToolFactory({
+      id: "anthropic.text_editor_20250728",
+      inputSchema: textEditor_20250728InputSchema
+    });
+    textEditor_20250728 = (args = {}) => {
+      return factory(args);
+    };
+    webSearch_20250305ArgsSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          maxUses: external_exports.number().optional(),
+          allowedDomains: external_exports.array(external_exports.string()).optional(),
+          blockedDomains: external_exports.array(external_exports.string()).optional(),
+          userLocation: external_exports.object({
+            type: external_exports.literal("approximate"),
+            city: external_exports.string().optional(),
+            region: external_exports.string().optional(),
+            country: external_exports.string().optional(),
+            timezone: external_exports.string().optional()
+          }).optional()
+        })
+      )
+    );
+    webSearch_20250305OutputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.array(
+          external_exports.object({
+            url: external_exports.string(),
+            title: external_exports.string().nullable(),
+            pageAge: external_exports.string().nullable(),
+            encryptedContent: external_exports.string(),
+            type: external_exports.literal("web_search_result")
+          })
+        )
+      )
+    );
+    webSearch_20250305InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          query: external_exports.string()
+        })
+      )
+    );
+    factory2 = createProviderToolFactoryWithOutputSchema({
+      id: "anthropic.web_search_20250305",
+      inputSchema: webSearch_20250305InputSchema,
+      outputSchema: webSearch_20250305OutputSchema,
+      supportsDeferredResults: true
+    });
+    webSearch_20250305 = (args = {}) => {
+      return factory2(args);
+    };
+    webFetch_20250910ArgsSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          maxUses: external_exports.number().optional(),
+          allowedDomains: external_exports.array(external_exports.string()).optional(),
+          blockedDomains: external_exports.array(external_exports.string()).optional(),
+          citations: external_exports.object({ enabled: external_exports.boolean() }).optional(),
+          maxContentTokens: external_exports.number().optional()
+        })
+      )
+    );
+    webFetch_20250910OutputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          type: external_exports.literal("web_fetch_result"),
+          url: external_exports.string(),
+          content: external_exports.object({
+            type: external_exports.literal("document"),
+            title: external_exports.string().nullable(),
+            citations: external_exports.object({ enabled: external_exports.boolean() }).optional(),
+            source: external_exports.union([
+              external_exports.object({
+                type: external_exports.literal("base64"),
+                mediaType: external_exports.literal("application/pdf"),
+                data: external_exports.string()
+              }),
+              external_exports.object({
+                type: external_exports.literal("text"),
+                mediaType: external_exports.literal("text/plain"),
+                data: external_exports.string()
+              })
+            ])
+          }),
+          retrievedAt: external_exports.string().nullable()
+        })
+      )
+    );
+    webFetch_20250910InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          url: external_exports.string()
+        })
+      )
+    );
+    factory3 = createProviderToolFactoryWithOutputSchema({
+      id: "anthropic.web_fetch_20250910",
+      inputSchema: webFetch_20250910InputSchema,
+      outputSchema: webFetch_20250910OutputSchema,
+      supportsDeferredResults: true
+    });
+    webFetch_20250910 = (args = {}) => {
+      return factory3(args);
+    };
+    codeExecution_20250522OutputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          type: external_exports.literal("code_execution_result"),
+          stdout: external_exports.string(),
+          stderr: external_exports.string(),
+          return_code: external_exports.number(),
+          content: external_exports.array(
+            external_exports.object({
+              type: external_exports.literal("code_execution_output"),
+              file_id: external_exports.string()
+            })
+          ).optional().default([])
+        })
+      )
+    );
+    codeExecution_20250522InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          code: external_exports.string()
+        })
+      )
+    );
+    factory4 = createProviderToolFactoryWithOutputSchema({
+      id: "anthropic.code_execution_20250522",
+      inputSchema: codeExecution_20250522InputSchema,
+      outputSchema: codeExecution_20250522OutputSchema
+    });
+    codeExecution_20250522 = (args = {}) => {
+      return factory4(args);
+    };
+    codeExecution_20250825OutputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.discriminatedUnion("type", [
+          external_exports.object({
+            type: external_exports.literal("code_execution_result"),
+            stdout: external_exports.string(),
+            stderr: external_exports.string(),
+            return_code: external_exports.number(),
+            content: external_exports.array(
+              external_exports.object({
+                type: external_exports.literal("code_execution_output"),
+                file_id: external_exports.string()
+              })
+            ).optional().default([])
+          }),
+          external_exports.object({
+            type: external_exports.literal("bash_code_execution_result"),
+            content: external_exports.array(
+              external_exports.object({
+                type: external_exports.literal("bash_code_execution_output"),
+                file_id: external_exports.string()
+              })
+            ),
+            stdout: external_exports.string(),
+            stderr: external_exports.string(),
+            return_code: external_exports.number()
+          }),
+          external_exports.object({
+            type: external_exports.literal("bash_code_execution_tool_result_error"),
+            error_code: external_exports.string()
+          }),
+          external_exports.object({
+            type: external_exports.literal("text_editor_code_execution_tool_result_error"),
+            error_code: external_exports.string()
+          }),
+          external_exports.object({
+            type: external_exports.literal("text_editor_code_execution_view_result"),
+            content: external_exports.string(),
+            file_type: external_exports.string(),
+            num_lines: external_exports.number().nullable(),
+            start_line: external_exports.number().nullable(),
+            total_lines: external_exports.number().nullable()
+          }),
+          external_exports.object({
+            type: external_exports.literal("text_editor_code_execution_create_result"),
+            is_file_update: external_exports.boolean()
+          }),
+          external_exports.object({
+            type: external_exports.literal("text_editor_code_execution_str_replace_result"),
+            lines: external_exports.array(external_exports.string()).nullable(),
+            new_lines: external_exports.number().nullable(),
+            new_start: external_exports.number().nullable(),
+            old_lines: external_exports.number().nullable(),
+            old_start: external_exports.number().nullable()
+          })
+        ])
+      )
+    );
+    codeExecution_20250825InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.discriminatedUnion("type", [
+          // Programmatic tool calling format (mapped from { code } by AI SDK)
+          external_exports.object({
+            type: external_exports.literal("programmatic-tool-call"),
+            code: external_exports.string()
+          }),
+          external_exports.object({
+            type: external_exports.literal("bash_code_execution"),
+            command: external_exports.string()
+          }),
+          external_exports.discriminatedUnion("command", [
+            external_exports.object({
+              type: external_exports.literal("text_editor_code_execution"),
+              command: external_exports.literal("view"),
+              path: external_exports.string()
+            }),
+            external_exports.object({
+              type: external_exports.literal("text_editor_code_execution"),
+              command: external_exports.literal("create"),
+              path: external_exports.string(),
+              file_text: external_exports.string().nullish()
+            }),
+            external_exports.object({
+              type: external_exports.literal("text_editor_code_execution"),
+              command: external_exports.literal("str_replace"),
+              path: external_exports.string(),
+              old_str: external_exports.string(),
+              new_str: external_exports.string()
+            })
+          ])
+        ])
+      )
+    );
+    factory5 = createProviderToolFactoryWithOutputSchema({
+      id: "anthropic.code_execution_20250825",
+      inputSchema: codeExecution_20250825InputSchema,
+      outputSchema: codeExecution_20250825OutputSchema,
+      // Programmatic tool calling: tool results may be deferred to a later turn
+      // when code execution triggers a client-executed tool that needs to be
+      // resolved before the code execution result can be returned.
+      supportsDeferredResults: true
+    });
+    codeExecution_20250825 = (args = {}) => {
+      return factory5(args);
+    };
+    toolSearchRegex_20251119OutputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.array(
+          external_exports.object({
+            type: external_exports.literal("tool_reference"),
+            toolName: external_exports.string()
+          })
+        )
+      )
+    );
+    toolSearchRegex_20251119InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          /**
+           * A regex pattern to search for tools.
+           * Uses Python re.search() syntax. Maximum 200 characters.
+           *
+           * Examples:
+           * - "weather" - matches tool names/descriptions containing "weather"
+           * - "get_.*_data" - matches tools like get_user_data, get_weather_data
+           * - "database.*query|query.*database" - OR patterns for flexibility
+           * - "(?i)slack" - case-insensitive search
+           */
+          pattern: external_exports.string(),
+          /**
+           * Maximum number of tools to return. Optional.
+           */
+          limit: external_exports.number().optional()
+        })
+      )
+    );
+    factory6 = createProviderToolFactoryWithOutputSchema({
+      id: "anthropic.tool_search_regex_20251119",
+      inputSchema: toolSearchRegex_20251119InputSchema,
+      outputSchema: toolSearchRegex_20251119OutputSchema,
+      supportsDeferredResults: true
+    });
+    toolSearchRegex_20251119 = (args = {}) => {
+      return factory6(args);
+    };
+    AnthropicMessagesLanguageModel = class {
+      constructor(modelId, config2) {
+        this.specificationVersion = "v3";
+        var _a21;
+        this.modelId = modelId;
+        this.config = config2;
+        this.generateId = (_a21 = config2.generateId) != null ? _a21 : generateId;
+      }
+      supportsUrl(url2) {
+        return url2.protocol === "https:";
+      }
+      get provider() {
+        return this.config.provider;
+      }
+      /**
+       * Extracts the dynamic provider name from the config.provider string.
+       * e.g., 'my-custom-anthropic.messages' -> 'my-custom-anthropic'
+       */
+      get providerOptionsName() {
+        const provider = this.config.provider;
+        const dotIndex = provider.indexOf(".");
+        return dotIndex === -1 ? provider : provider.substring(0, dotIndex);
+      }
+      get supportedUrls() {
+        var _a21, _b17, _c;
+        return (_c = (_b17 = (_a21 = this.config).supportedUrls) == null ? void 0 : _b17.call(_a21)) != null ? _c : {};
+      }
+      async getArgs({
+        userSuppliedBetas,
+        prompt,
+        maxOutputTokens,
+        temperature,
+        topP,
+        topK,
+        frequencyPenalty,
+        presencePenalty,
+        stopSequences,
+        responseFormat,
+        seed,
+        tools,
+        toolChoice,
+        providerOptions,
+        stream
+      }) {
+        var _a21, _b17, _c, _d, _e, _f;
+        const warnings = [];
+        if (frequencyPenalty != null) {
+          warnings.push({ type: "unsupported", feature: "frequencyPenalty" });
+        }
+        if (presencePenalty != null) {
+          warnings.push({ type: "unsupported", feature: "presencePenalty" });
+        }
+        if (seed != null) {
+          warnings.push({ type: "unsupported", feature: "seed" });
+        }
+        if (temperature != null && temperature > 1) {
+          warnings.push({
+            type: "unsupported",
+            feature: "temperature",
+            details: `${temperature} exceeds anthropic maximum of 1.0. clamped to 1.0`
+          });
+          temperature = 1;
+        } else if (temperature != null && temperature < 0) {
+          warnings.push({
+            type: "unsupported",
+            feature: "temperature",
+            details: `${temperature} is below anthropic minimum of 0. clamped to 0`
+          });
+          temperature = 0;
+        }
+        if ((responseFormat == null ? void 0 : responseFormat.type) === "json") {
+          if (responseFormat.schema == null) {
+            warnings.push({
+              type: "unsupported",
+              feature: "responseFormat",
+              details: "JSON response format requires a schema. The response format is ignored."
+            });
+          }
+        }
+        const providerOptionsName = this.providerOptionsName;
+        const canonicalOptions = await parseProviderOptions({
+          provider: "anthropic",
+          providerOptions,
+          schema: anthropicLanguageModelOptions
+        });
+        const customProviderOptions = providerOptionsName !== "anthropic" ? await parseProviderOptions({
+          provider: providerOptionsName,
+          providerOptions,
+          schema: anthropicLanguageModelOptions
+        }) : null;
+        const usedCustomProviderKey = customProviderOptions != null;
+        const anthropicOptions = Object.assign(
+          {},
+          canonicalOptions != null ? canonicalOptions : {},
+          customProviderOptions != null ? customProviderOptions : {}
+        );
+        const {
+          maxOutputTokens: maxOutputTokensForModel,
+          supportsStructuredOutput: modelSupportsStructuredOutput,
+          isKnownModel
+        } = getModelCapabilities(this.modelId);
+        const supportsStructuredOutput = ((_a21 = this.config.supportsNativeStructuredOutput) != null ? _a21 : true) && modelSupportsStructuredOutput;
+        const structureOutputMode = (_b17 = anthropicOptions == null ? void 0 : anthropicOptions.structuredOutputMode) != null ? _b17 : "auto";
+        const useStructuredOutput = structureOutputMode === "outputFormat" || structureOutputMode === "auto" && supportsStructuredOutput;
+        const jsonResponseTool = (responseFormat == null ? void 0 : responseFormat.type) === "json" && responseFormat.schema != null && !useStructuredOutput ? {
+          type: "function",
+          name: "json",
+          description: "Respond with a JSON object.",
+          inputSchema: responseFormat.schema
+        } : void 0;
+        const contextManagement = anthropicOptions == null ? void 0 : anthropicOptions.contextManagement;
+        const cacheControlValidator = new CacheControlValidator();
+        const toolNameMapping = createToolNameMapping({
+          tools,
+          providerToolNames: {
+            "anthropic.code_execution_20250522": "code_execution",
+            "anthropic.code_execution_20250825": "code_execution",
+            "anthropic.computer_20241022": "computer",
+            "anthropic.computer_20250124": "computer",
+            "anthropic.text_editor_20241022": "str_replace_editor",
+            "anthropic.text_editor_20250124": "str_replace_editor",
+            "anthropic.text_editor_20250429": "str_replace_based_edit_tool",
+            "anthropic.text_editor_20250728": "str_replace_based_edit_tool",
+            "anthropic.bash_20241022": "bash",
+            "anthropic.bash_20250124": "bash",
+            "anthropic.memory_20250818": "memory",
+            "anthropic.web_search_20250305": "web_search",
+            "anthropic.web_fetch_20250910": "web_fetch",
+            "anthropic.tool_search_regex_20251119": "tool_search_tool_regex",
+            "anthropic.tool_search_bm25_20251119": "tool_search_tool_bm25"
+          }
+        });
+        const { prompt: messagesPrompt, betas } = await convertToAnthropicMessagesPrompt({
+          prompt,
+          sendReasoning: (_c = anthropicOptions == null ? void 0 : anthropicOptions.sendReasoning) != null ? _c : true,
+          warnings,
+          cacheControlValidator,
+          toolNameMapping
+        });
+        const thinkingType = (_d = anthropicOptions == null ? void 0 : anthropicOptions.thinking) == null ? void 0 : _d.type;
+        const isThinking = thinkingType === "enabled" || thinkingType === "adaptive";
+        let thinkingBudget = thinkingType === "enabled" ? (_e = anthropicOptions == null ? void 0 : anthropicOptions.thinking) == null ? void 0 : _e.budgetTokens : void 0;
+        const maxTokens = maxOutputTokens != null ? maxOutputTokens : maxOutputTokensForModel;
+        const baseArgs = {
+          // model id:
+          model: this.modelId,
+          // standardized settings:
+          max_tokens: maxTokens,
+          temperature,
+          top_k: topK,
+          top_p: topP,
+          stop_sequences: stopSequences,
+          // provider specific settings:
+          ...isThinking && {
+            thinking: {
+              type: thinkingType,
+              ...thinkingBudget != null && { budget_tokens: thinkingBudget }
+            }
+          },
+          ...(anthropicOptions == null ? void 0 : anthropicOptions.effort) && {
+            output_config: { effort: anthropicOptions.effort }
+          },
+          ...(anthropicOptions == null ? void 0 : anthropicOptions.speed) && {
+            speed: anthropicOptions.speed
+          },
+          // structured output:
+          ...useStructuredOutput && (responseFormat == null ? void 0 : responseFormat.type) === "json" && responseFormat.schema != null && {
+            output_format: {
+              type: "json_schema",
+              schema: responseFormat.schema
+            }
+          },
+          // mcp servers:
+          ...(anthropicOptions == null ? void 0 : anthropicOptions.mcpServers) && anthropicOptions.mcpServers.length > 0 && {
+            mcp_servers: anthropicOptions.mcpServers.map((server) => ({
+              type: server.type,
+              name: server.name,
+              url: server.url,
+              authorization_token: server.authorizationToken,
+              tool_configuration: server.toolConfiguration ? {
+                allowed_tools: server.toolConfiguration.allowedTools,
+                enabled: server.toolConfiguration.enabled
+              } : void 0
+            }))
+          },
+          // container: For programmatic tool calling (just an ID string) or agent skills (object with id and skills)
+          ...(anthropicOptions == null ? void 0 : anthropicOptions.container) && {
+            container: anthropicOptions.container.skills && anthropicOptions.container.skills.length > 0 ? (
+              // Object format when skills are provided (agent skills feature)
+              {
+                id: anthropicOptions.container.id,
+                skills: anthropicOptions.container.skills.map((skill) => ({
+                  type: skill.type,
+                  skill_id: skill.skillId,
+                  version: skill.version
+                }))
+              }
+            ) : (
+              // String format for container ID only (programmatic tool calling)
+              anthropicOptions.container.id
+            )
+          },
+          // prompt:
+          system: messagesPrompt.system,
+          messages: messagesPrompt.messages,
+          ...contextManagement && {
+            context_management: {
+              edits: contextManagement.edits.map((edit) => {
+                const strategy = edit.type;
+                switch (strategy) {
+                  case "clear_tool_uses_20250919":
+                    return {
+                      type: edit.type,
+                      ...edit.trigger !== void 0 && {
+                        trigger: edit.trigger
+                      },
+                      ...edit.keep !== void 0 && { keep: edit.keep },
+                      ...edit.clearAtLeast !== void 0 && {
+                        clear_at_least: edit.clearAtLeast
+                      },
+                      ...edit.clearToolInputs !== void 0 && {
+                        clear_tool_inputs: edit.clearToolInputs
+                      },
+                      ...edit.excludeTools !== void 0 && {
+                        exclude_tools: edit.excludeTools
+                      }
+                    };
+                  case "clear_thinking_20251015":
+                    return {
+                      type: edit.type,
+                      ...edit.keep !== void 0 && { keep: edit.keep }
+                    };
+                  case "compact_20260112":
+                    return {
+                      type: edit.type,
+                      ...edit.trigger !== void 0 && {
+                        trigger: edit.trigger
+                      },
+                      ...edit.pauseAfterCompaction !== void 0 && {
+                        pause_after_compaction: edit.pauseAfterCompaction
+                      },
+                      ...edit.instructions !== void 0 && {
+                        instructions: edit.instructions
+                      }
+                    };
+                  default:
+                    warnings.push({
+                      type: "other",
+                      message: `Unknown context management strategy: ${strategy}`
+                    });
+                    return void 0;
+                }
+              }).filter((edit) => edit !== void 0)
+            }
+          }
+        };
+        if (isThinking) {
+          if (thinkingType === "enabled" && thinkingBudget == null) {
+            warnings.push({
+              type: "compatibility",
+              feature: "extended thinking",
+              details: "thinking budget is required when thinking is enabled. using default budget of 1024 tokens."
+            });
+            baseArgs.thinking = {
+              type: "enabled",
+              budget_tokens: 1024
+            };
+            thinkingBudget = 1024;
+          }
+          if (baseArgs.temperature != null) {
+            baseArgs.temperature = void 0;
+            warnings.push({
+              type: "unsupported",
+              feature: "temperature",
+              details: "temperature is not supported when thinking is enabled"
+            });
+          }
+          if (topK != null) {
+            baseArgs.top_k = void 0;
+            warnings.push({
+              type: "unsupported",
+              feature: "topK",
+              details: "topK is not supported when thinking is enabled"
+            });
+          }
+          if (topP != null) {
+            baseArgs.top_p = void 0;
+            warnings.push({
+              type: "unsupported",
+              feature: "topP",
+              details: "topP is not supported when thinking is enabled"
+            });
+          }
+          baseArgs.max_tokens = maxTokens + (thinkingBudget != null ? thinkingBudget : 0);
+        } else {
+          if (topP != null && temperature != null) {
+            warnings.push({
+              type: "unsupported",
+              feature: "topP",
+              details: `topP is not supported when temperature is set. topP is ignored.`
+            });
+            baseArgs.top_p = void 0;
+          }
+        }
+        if (isKnownModel && baseArgs.max_tokens > maxOutputTokensForModel) {
+          if (maxOutputTokens != null) {
+            warnings.push({
+              type: "unsupported",
+              feature: "maxOutputTokens",
+              details: `${baseArgs.max_tokens} (maxOutputTokens + thinkingBudget) is greater than ${this.modelId} ${maxOutputTokensForModel} max output tokens. The max output tokens have been limited to ${maxOutputTokensForModel}.`
+            });
+          }
+          baseArgs.max_tokens = maxOutputTokensForModel;
+        }
+        if ((anthropicOptions == null ? void 0 : anthropicOptions.mcpServers) && anthropicOptions.mcpServers.length > 0) {
+          betas.add("mcp-client-2025-04-04");
+        }
+        if (contextManagement) {
+          betas.add("context-management-2025-06-27");
+          if (contextManagement.edits.some((e) => e.type === "compact_20260112")) {
+            betas.add("compact-2026-01-12");
+          }
+        }
+        if ((anthropicOptions == null ? void 0 : anthropicOptions.container) && anthropicOptions.container.skills && anthropicOptions.container.skills.length > 0) {
+          betas.add("code-execution-2025-08-25");
+          betas.add("skills-2025-10-02");
+          betas.add("files-api-2025-04-14");
+          if (!(tools == null ? void 0 : tools.some(
+            (tool2) => tool2.type === "provider" && tool2.id === "anthropic.code_execution_20250825"
+          ))) {
+            warnings.push({
+              type: "other",
+              message: "code execution tool is required when using skills"
+            });
+          }
+        }
+        if (anthropicOptions == null ? void 0 : anthropicOptions.effort) {
+          betas.add("effort-2025-11-24");
+        }
+        if ((anthropicOptions == null ? void 0 : anthropicOptions.speed) === "fast") {
+          betas.add("fast-mode-2026-02-01");
+        }
+        if (stream && ((_f = anthropicOptions == null ? void 0 : anthropicOptions.toolStreaming) != null ? _f : true)) {
+          betas.add("fine-grained-tool-streaming-2025-05-14");
+        }
+        const usingNativeOutputFormat = useStructuredOutput && (responseFormat == null ? void 0 : responseFormat.type) === "json" && responseFormat.schema != null;
+        if (usingNativeOutputFormat) {
+          betas.add("structured-outputs-2025-11-13");
+        }
+        const {
+          tools: anthropicTools2,
+          toolChoice: anthropicToolChoice,
+          toolWarnings,
+          betas: toolsBetas
+        } = await prepareTools(
+          jsonResponseTool != null ? {
+            tools: [...tools != null ? tools : [], jsonResponseTool],
+            toolChoice: { type: "required" },
+            disableParallelToolUse: true,
+            cacheControlValidator,
+            supportsStructuredOutput: false
+          } : {
+            tools: tools != null ? tools : [],
+            toolChoice,
+            disableParallelToolUse: anthropicOptions == null ? void 0 : anthropicOptions.disableParallelToolUse,
+            cacheControlValidator,
+            supportsStructuredOutput
+          }
+        );
+        const cacheWarnings = cacheControlValidator.getWarnings();
+        return {
+          args: {
+            ...baseArgs,
+            tools: anthropicTools2,
+            tool_choice: anthropicToolChoice,
+            stream: stream === true ? true : void 0
+            // do not send when not streaming
+          },
+          warnings: [...warnings, ...toolWarnings, ...cacheWarnings],
+          betas: /* @__PURE__ */ new Set([...betas, ...toolsBetas, ...userSuppliedBetas]),
+          usesJsonResponseTool: jsonResponseTool != null,
+          toolNameMapping,
+          providerOptionsName,
+          usedCustomProviderKey
+        };
+      }
+      async getHeaders({
+        betas,
+        headers
+      }) {
+        return combineHeaders(
+          await resolve(this.config.headers),
+          headers,
+          betas.size > 0 ? { "anthropic-beta": Array.from(betas).join(",") } : {}
+        );
+      }
+      async getBetasFromHeaders(requestHeaders) {
+        var _a21, _b17;
+        const configHeaders = await resolve(this.config.headers);
+        const configBetaHeader = (_a21 = configHeaders["anthropic-beta"]) != null ? _a21 : "";
+        const requestBetaHeader = (_b17 = requestHeaders == null ? void 0 : requestHeaders["anthropic-beta"]) != null ? _b17 : "";
+        return new Set(
+          [
+            ...configBetaHeader.toLowerCase().split(","),
+            ...requestBetaHeader.toLowerCase().split(",")
+          ].map((beta) => beta.trim()).filter((beta) => beta !== "")
+        );
+      }
+      buildRequestUrl(isStreaming) {
+        var _a21, _b17, _c;
+        return (_c = (_b17 = (_a21 = this.config).buildRequestUrl) == null ? void 0 : _b17.call(_a21, this.config.baseURL, isStreaming)) != null ? _c : `${this.config.baseURL}/messages`;
+      }
+      transformRequestBody(args) {
+        var _a21, _b17, _c;
+        return (_c = (_b17 = (_a21 = this.config).transformRequestBody) == null ? void 0 : _b17.call(_a21, args)) != null ? _c : args;
+      }
+      extractCitationDocuments(prompt) {
+        const isCitationPart = (part) => {
+          var _a21, _b17;
+          if (part.type !== "file") {
+            return false;
+          }
+          if (part.mediaType !== "application/pdf" && part.mediaType !== "text/plain") {
+            return false;
+          }
+          const anthropic2 = (_a21 = part.providerOptions) == null ? void 0 : _a21.anthropic;
+          const citationsConfig = anthropic2 == null ? void 0 : anthropic2.citations;
+          return (_b17 = citationsConfig == null ? void 0 : citationsConfig.enabled) != null ? _b17 : false;
+        };
+        return prompt.filter((message) => message.role === "user").flatMap((message) => message.content).filter(isCitationPart).map((part) => {
+          var _a21;
+          const filePart = part;
+          return {
+            title: (_a21 = filePart.filename) != null ? _a21 : "Untitled Document",
+            filename: filePart.filename,
+            mediaType: filePart.mediaType
+          };
+        });
+      }
+      async doGenerate(options) {
+        var _a21, _b17, _c, _d, _e, _f;
+        const {
+          args,
+          warnings,
+          betas,
+          usesJsonResponseTool,
+          toolNameMapping,
+          providerOptionsName,
+          usedCustomProviderKey
+        } = await this.getArgs({
+          ...options,
+          stream: false,
+          userSuppliedBetas: await this.getBetasFromHeaders(options.headers)
+        });
+        const citationDocuments = [
+          ...this.extractCitationDocuments(options.prompt)
+        ];
+        const {
+          responseHeaders,
+          value: response,
+          rawValue: rawResponse
+        } = await postJsonToApi({
+          url: this.buildRequestUrl(false),
+          headers: await this.getHeaders({ betas, headers: options.headers }),
+          body: this.transformRequestBody(args),
+          failedResponseHandler: anthropicFailedResponseHandler,
+          successfulResponseHandler: createJsonResponseHandler(
+            anthropicMessagesResponseSchema
+          ),
+          abortSignal: options.abortSignal,
+          fetch: this.config.fetch
+        });
+        const content = [];
+        const mcpToolCalls = {};
+        const serverToolCalls = {};
+        let isJsonResponseFromTool = false;
+        for (const part of response.content) {
+          switch (part.type) {
+            case "text": {
+              if (!usesJsonResponseTool) {
+                content.push({ type: "text", text: part.text });
+                if (part.citations) {
+                  for (const citation of part.citations) {
+                    const source = createCitationSource(
+                      citation,
+                      citationDocuments,
+                      this.generateId
+                    );
+                    if (source) {
+                      content.push(source);
+                    }
+                  }
+                }
+              }
+              break;
+            }
+            case "thinking": {
+              content.push({
+                type: "reasoning",
+                text: part.thinking,
+                providerMetadata: {
+                  anthropic: {
+                    signature: part.signature
+                  }
+                }
+              });
+              break;
+            }
+            case "redacted_thinking": {
+              content.push({
+                type: "reasoning",
+                text: "",
+                providerMetadata: {
+                  anthropic: {
+                    redactedData: part.data
+                  }
+                }
+              });
+              break;
+            }
+            case "compaction": {
+              content.push({
+                type: "text",
+                text: part.content,
+                providerMetadata: {
+                  anthropic: {
+                    type: "compaction"
+                  }
+                }
+              });
+              break;
+            }
+            case "tool_use": {
+              const isJsonResponseTool = usesJsonResponseTool && part.name === "json";
+              if (isJsonResponseTool) {
+                isJsonResponseFromTool = true;
+                content.push({
+                  type: "text",
+                  text: JSON.stringify(part.input)
+                });
+              } else {
+                const caller = part.caller;
+                const callerInfo = caller ? {
+                  type: caller.type,
+                  toolId: "tool_id" in caller ? caller.tool_id : void 0
+                } : void 0;
+                content.push({
+                  type: "tool-call",
+                  toolCallId: part.id,
+                  toolName: part.name,
+                  input: JSON.stringify(part.input),
+                  ...callerInfo && {
+                    providerMetadata: {
+                      anthropic: {
+                        caller: callerInfo
+                      }
+                    }
+                  }
+                });
+              }
+              break;
+            }
+            case "server_tool_use": {
+              if (part.name === "text_editor_code_execution" || part.name === "bash_code_execution") {
+                content.push({
+                  type: "tool-call",
+                  toolCallId: part.id,
+                  toolName: toolNameMapping.toCustomToolName("code_execution"),
+                  input: JSON.stringify({ type: part.name, ...part.input }),
+                  providerExecuted: true
+                });
+              } else if (part.name === "web_search" || part.name === "code_execution" || part.name === "web_fetch") {
+                const inputToSerialize = part.name === "code_execution" && part.input != null && typeof part.input === "object" && "code" in part.input && !("type" in part.input) ? { type: "programmatic-tool-call", ...part.input } : part.input;
+                content.push({
+                  type: "tool-call",
+                  toolCallId: part.id,
+                  toolName: toolNameMapping.toCustomToolName(part.name),
+                  input: JSON.stringify(inputToSerialize),
+                  providerExecuted: true
+                });
+              } else if (part.name === "tool_search_tool_regex" || part.name === "tool_search_tool_bm25") {
+                serverToolCalls[part.id] = part.name;
+                content.push({
+                  type: "tool-call",
+                  toolCallId: part.id,
+                  toolName: toolNameMapping.toCustomToolName(part.name),
+                  input: JSON.stringify(part.input),
+                  providerExecuted: true
+                });
+              }
+              break;
+            }
+            case "mcp_tool_use": {
+              mcpToolCalls[part.id] = {
+                type: "tool-call",
+                toolCallId: part.id,
+                toolName: part.name,
+                input: JSON.stringify(part.input),
+                providerExecuted: true,
+                dynamic: true,
+                providerMetadata: {
+                  anthropic: {
+                    type: "mcp-tool-use",
+                    serverName: part.server_name
+                  }
+                }
+              };
+              content.push(mcpToolCalls[part.id]);
+              break;
+            }
+            case "mcp_tool_result": {
+              content.push({
+                type: "tool-result",
+                toolCallId: part.tool_use_id,
+                toolName: mcpToolCalls[part.tool_use_id].toolName,
+                isError: part.is_error,
+                result: part.content,
+                dynamic: true,
+                providerMetadata: mcpToolCalls[part.tool_use_id].providerMetadata
+              });
+              break;
+            }
+            case "web_fetch_tool_result": {
+              if (part.content.type === "web_fetch_result") {
+                citationDocuments.push({
+                  title: (_a21 = part.content.content.title) != null ? _a21 : part.content.url,
+                  mediaType: part.content.content.source.media_type
+                });
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName("web_fetch"),
+                  result: {
+                    type: "web_fetch_result",
+                    url: part.content.url,
+                    retrievedAt: part.content.retrieved_at,
+                    content: {
+                      type: part.content.content.type,
+                      title: part.content.content.title,
+                      citations: part.content.content.citations,
+                      source: {
+                        type: part.content.content.source.type,
+                        mediaType: part.content.content.source.media_type,
+                        data: part.content.content.source.data
+                      }
+                    }
+                  }
+                });
+              } else if (part.content.type === "web_fetch_tool_result_error") {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName("web_fetch"),
+                  isError: true,
+                  result: {
+                    type: "web_fetch_tool_result_error",
+                    errorCode: part.content.error_code
+                  }
+                });
+              }
+              break;
+            }
+            case "web_search_tool_result": {
+              if (Array.isArray(part.content)) {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName("web_search"),
+                  result: part.content.map((result) => {
+                    var _a24;
+                    return {
+                      url: result.url,
+                      title: result.title,
+                      pageAge: (_a24 = result.page_age) != null ? _a24 : null,
+                      encryptedContent: result.encrypted_content,
+                      type: result.type
+                    };
+                  })
+                });
+                for (const result of part.content) {
+                  content.push({
+                    type: "source",
+                    sourceType: "url",
+                    id: this.generateId(),
+                    url: result.url,
+                    title: result.title,
+                    providerMetadata: {
+                      anthropic: {
+                        pageAge: (_b17 = result.page_age) != null ? _b17 : null
+                      }
+                    }
+                  });
+                }
+              } else {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName("web_search"),
+                  isError: true,
+                  result: {
+                    type: "web_search_tool_result_error",
+                    errorCode: part.content.error_code
+                  }
+                });
+              }
+              break;
+            }
+            // code execution 20250522:
+            case "code_execution_tool_result": {
+              if (part.content.type === "code_execution_result") {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName("code_execution"),
+                  result: {
+                    type: part.content.type,
+                    stdout: part.content.stdout,
+                    stderr: part.content.stderr,
+                    return_code: part.content.return_code,
+                    content: (_c = part.content.content) != null ? _c : []
+                  }
+                });
+              } else if (part.content.type === "code_execution_tool_result_error") {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName("code_execution"),
+                  isError: true,
+                  result: {
+                    type: "code_execution_tool_result_error",
+                    errorCode: part.content.error_code
+                  }
+                });
+              }
+              break;
+            }
+            // code execution 20250825:
+            case "bash_code_execution_tool_result":
+            case "text_editor_code_execution_tool_result": {
+              content.push({
+                type: "tool-result",
+                toolCallId: part.tool_use_id,
+                toolName: toolNameMapping.toCustomToolName("code_execution"),
+                result: part.content
+              });
+              break;
+            }
+            // tool search tool results:
+            case "tool_search_tool_result": {
+              let providerToolName = serverToolCalls[part.tool_use_id];
+              if (providerToolName == null) {
+                const bm25CustomName = toolNameMapping.toCustomToolName(
+                  "tool_search_tool_bm25"
+                );
+                const regexCustomName = toolNameMapping.toCustomToolName(
+                  "tool_search_tool_regex"
+                );
+                if (bm25CustomName !== "tool_search_tool_bm25") {
+                  providerToolName = "tool_search_tool_bm25";
+                } else if (regexCustomName !== "tool_search_tool_regex") {
+                  providerToolName = "tool_search_tool_regex";
+                } else {
+                  providerToolName = "tool_search_tool_regex";
+                }
+              }
+              if (part.content.type === "tool_search_tool_search_result") {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName(providerToolName),
+                  result: part.content.tool_references.map((ref) => ({
+                    type: ref.type,
+                    toolName: ref.tool_name
+                  }))
+                });
+              } else {
+                content.push({
+                  type: "tool-result",
+                  toolCallId: part.tool_use_id,
+                  toolName: toolNameMapping.toCustomToolName(providerToolName),
+                  isError: true,
+                  result: {
+                    type: "tool_search_tool_result_error",
+                    errorCode: part.content.error_code
+                  }
+                });
+              }
+              break;
+            }
+          }
+        }
+        return {
+          content,
+          finishReason: {
+            unified: mapAnthropicStopReason({
+              finishReason: response.stop_reason,
+              isJsonResponseFromTool
+            }),
+            raw: (_d = response.stop_reason) != null ? _d : void 0
+          },
+          usage: convertAnthropicMessagesUsage({ usage: response.usage }),
+          request: { body: args },
+          response: {
+            id: (_e = response.id) != null ? _e : void 0,
+            modelId: (_f = response.model) != null ? _f : void 0,
+            headers: responseHeaders,
+            body: rawResponse
+          },
+          warnings,
+          providerMetadata: (() => {
+            var _a24, _b23, _c2, _d2, _e2;
+            const anthropicMetadata = {
+              usage: response.usage,
+              cacheCreationInputTokens: (_a24 = response.usage.cache_creation_input_tokens) != null ? _a24 : null,
+              stopSequence: (_b23 = response.stop_sequence) != null ? _b23 : null,
+              iterations: response.usage.iterations ? response.usage.iterations.map((iter) => ({
+                type: iter.type,
+                inputTokens: iter.input_tokens,
+                outputTokens: iter.output_tokens
+              })) : null,
+              container: response.container ? {
+                expiresAt: response.container.expires_at,
+                id: response.container.id,
+                skills: (_d2 = (_c2 = response.container.skills) == null ? void 0 : _c2.map((skill) => ({
+                  type: skill.type,
+                  skillId: skill.skill_id,
+                  version: skill.version
+                }))) != null ? _d2 : null
+              } : null,
+              contextManagement: (_e2 = mapAnthropicResponseContextManagement(
+                response.context_management
+              )) != null ? _e2 : null
+            };
+            const providerMetadata = {
+              anthropic: anthropicMetadata
+            };
+            if (usedCustomProviderKey && providerOptionsName !== "anthropic") {
+              providerMetadata[providerOptionsName] = anthropicMetadata;
+            }
+            return providerMetadata;
+          })()
+        };
+      }
+      async doStream(options) {
+        var _a21, _b17;
+        const {
+          args: body,
+          warnings,
+          betas,
+          usesJsonResponseTool,
+          toolNameMapping,
+          providerOptionsName,
+          usedCustomProviderKey
+        } = await this.getArgs({
+          ...options,
+          stream: true,
+          userSuppliedBetas: await this.getBetasFromHeaders(options.headers)
+        });
+        const citationDocuments = [
+          ...this.extractCitationDocuments(options.prompt)
+        ];
+        const url2 = this.buildRequestUrl(true);
+        const { responseHeaders, value: response } = await postJsonToApi({
+          url: url2,
+          headers: await this.getHeaders({ betas, headers: options.headers }),
+          body: this.transformRequestBody(body),
+          failedResponseHandler: anthropicFailedResponseHandler,
+          successfulResponseHandler: createEventSourceResponseHandler(
+            anthropicMessagesChunkSchema
+          ),
+          abortSignal: options.abortSignal,
+          fetch: this.config.fetch
+        });
+        let finishReason = {
+          unified: "other",
+          raw: void 0
+        };
+        const usage = {
+          input_tokens: 0,
+          output_tokens: 0,
+          cache_creation_input_tokens: 0,
+          cache_read_input_tokens: 0,
+          iterations: null
+        };
+        const contentBlocks = {};
+        const mcpToolCalls = {};
+        const serverToolCalls = {};
+        let contextManagement = null;
+        let rawUsage = void 0;
+        let cacheCreationInputTokens = null;
+        let stopSequence = null;
+        let container = null;
+        let isJsonResponseFromTool = false;
+        let blockType = void 0;
+        const generateId3 = this.generateId;
+        const transformedStream = response.pipeThrough(
+          new TransformStream({
+            start(controller) {
+              controller.enqueue({ type: "stream-start", warnings });
+            },
+            transform(chunk, controller) {
+              var _a24, _b23, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
+              if (options.includeRawChunks) {
+                controller.enqueue({ type: "raw", rawValue: chunk.rawValue });
+              }
+              if (!chunk.success) {
+                controller.enqueue({ type: "error", error: chunk.error });
+                return;
+              }
+              const value = chunk.value;
+              switch (value.type) {
+                case "ping": {
+                  return;
+                }
+                case "content_block_start": {
+                  const part = value.content_block;
+                  const contentBlockType = part.type;
+                  blockType = contentBlockType;
+                  switch (contentBlockType) {
+                    case "text": {
+                      if (usesJsonResponseTool) {
+                        return;
+                      }
+                      contentBlocks[value.index] = { type: "text" };
+                      controller.enqueue({
+                        type: "text-start",
+                        id: String(value.index)
+                      });
+                      return;
+                    }
+                    case "thinking": {
+                      contentBlocks[value.index] = { type: "reasoning" };
+                      controller.enqueue({
+                        type: "reasoning-start",
+                        id: String(value.index)
+                      });
+                      return;
+                    }
+                    case "redacted_thinking": {
+                      contentBlocks[value.index] = { type: "reasoning" };
+                      controller.enqueue({
+                        type: "reasoning-start",
+                        id: String(value.index),
+                        providerMetadata: {
+                          anthropic: {
+                            redactedData: part.data
+                          }
+                        }
+                      });
+                      return;
+                    }
+                    case "compaction": {
+                      contentBlocks[value.index] = { type: "text" };
+                      controller.enqueue({
+                        type: "text-start",
+                        id: String(value.index),
+                        providerMetadata: {
+                          anthropic: {
+                            type: "compaction"
+                          }
+                        }
+                      });
+                      return;
+                    }
+                    case "tool_use": {
+                      const isJsonResponseTool = usesJsonResponseTool && part.name === "json";
+                      if (isJsonResponseTool) {
+                        isJsonResponseFromTool = true;
+                        contentBlocks[value.index] = { type: "text" };
+                        controller.enqueue({
+                          type: "text-start",
+                          id: String(value.index)
+                        });
+                      } else {
+                        const caller = part.caller;
+                        const callerInfo = caller ? {
+                          type: caller.type,
+                          toolId: "tool_id" in caller ? caller.tool_id : void 0
+                        } : void 0;
+                        const hasNonEmptyInput = part.input && Object.keys(part.input).length > 0;
+                        const initialInput = hasNonEmptyInput ? JSON.stringify(part.input) : "";
+                        contentBlocks[value.index] = {
+                          type: "tool-call",
+                          toolCallId: part.id,
+                          toolName: part.name,
+                          input: initialInput,
+                          firstDelta: initialInput.length === 0,
+                          ...callerInfo && { caller: callerInfo }
+                        };
+                        controller.enqueue({
+                          type: "tool-input-start",
+                          id: part.id,
+                          toolName: part.name
+                        });
+                      }
+                      return;
+                    }
+                    case "server_tool_use": {
+                      if ([
+                        "web_fetch",
+                        "web_search",
+                        // code execution 20250825:
+                        "code_execution",
+                        // code execution 20250825 text editor:
+                        "text_editor_code_execution",
+                        // code execution 20250825 bash:
+                        "bash_code_execution"
+                      ].includes(part.name)) {
+                        const providerToolName = part.name === "text_editor_code_execution" || part.name === "bash_code_execution" ? "code_execution" : part.name;
+                        const customToolName = toolNameMapping.toCustomToolName(providerToolName);
+                        contentBlocks[value.index] = {
+                          type: "tool-call",
+                          toolCallId: part.id,
+                          toolName: customToolName,
+                          input: "",
+                          providerExecuted: true,
+                          firstDelta: true,
+                          providerToolName: part.name
+                        };
+                        controller.enqueue({
+                          type: "tool-input-start",
+                          id: part.id,
+                          toolName: customToolName,
+                          providerExecuted: true
+                        });
+                      } else if (part.name === "tool_search_tool_regex" || part.name === "tool_search_tool_bm25") {
+                        serverToolCalls[part.id] = part.name;
+                        const customToolName = toolNameMapping.toCustomToolName(
+                          part.name
+                        );
+                        contentBlocks[value.index] = {
+                          type: "tool-call",
+                          toolCallId: part.id,
+                          toolName: customToolName,
+                          input: "",
+                          providerExecuted: true,
+                          firstDelta: true,
+                          providerToolName: part.name
+                        };
+                        controller.enqueue({
+                          type: "tool-input-start",
+                          id: part.id,
+                          toolName: customToolName,
+                          providerExecuted: true
+                        });
+                      }
+                      return;
+                    }
+                    case "web_fetch_tool_result": {
+                      if (part.content.type === "web_fetch_result") {
+                        citationDocuments.push({
+                          title: (_a24 = part.content.content.title) != null ? _a24 : part.content.url,
+                          mediaType: part.content.content.source.media_type
+                        });
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName("web_fetch"),
+                          result: {
+                            type: "web_fetch_result",
+                            url: part.content.url,
+                            retrievedAt: part.content.retrieved_at,
+                            content: {
+                              type: part.content.content.type,
+                              title: part.content.content.title,
+                              citations: part.content.content.citations,
+                              source: {
+                                type: part.content.content.source.type,
+                                mediaType: part.content.content.source.media_type,
+                                data: part.content.content.source.data
+                              }
+                            }
+                          }
+                        });
+                      } else if (part.content.type === "web_fetch_tool_result_error") {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName("web_fetch"),
+                          isError: true,
+                          result: {
+                            type: "web_fetch_tool_result_error",
+                            errorCode: part.content.error_code
+                          }
+                        });
+                      }
+                      return;
+                    }
+                    case "web_search_tool_result": {
+                      if (Array.isArray(part.content)) {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName("web_search"),
+                          result: part.content.map((result) => {
+                            var _a34;
+                            return {
+                              url: result.url,
+                              title: result.title,
+                              pageAge: (_a34 = result.page_age) != null ? _a34 : null,
+                              encryptedContent: result.encrypted_content,
+                              type: result.type
+                            };
+                          })
+                        });
+                        for (const result of part.content) {
+                          controller.enqueue({
+                            type: "source",
+                            sourceType: "url",
+                            id: generateId3(),
+                            url: result.url,
+                            title: result.title,
+                            providerMetadata: {
+                              anthropic: {
+                                pageAge: (_b23 = result.page_age) != null ? _b23 : null
+                              }
+                            }
+                          });
+                        }
+                      } else {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName("web_search"),
+                          isError: true,
+                          result: {
+                            type: "web_search_tool_result_error",
+                            errorCode: part.content.error_code
+                          }
+                        });
+                      }
+                      return;
+                    }
+                    // code execution 20250522:
+                    case "code_execution_tool_result": {
+                      if (part.content.type === "code_execution_result") {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName("code_execution"),
+                          result: {
+                            type: part.content.type,
+                            stdout: part.content.stdout,
+                            stderr: part.content.stderr,
+                            return_code: part.content.return_code,
+                            content: (_c = part.content.content) != null ? _c : []
+                          }
+                        });
+                      } else if (part.content.type === "code_execution_tool_result_error") {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName("code_execution"),
+                          isError: true,
+                          result: {
+                            type: "code_execution_tool_result_error",
+                            errorCode: part.content.error_code
+                          }
+                        });
+                      }
+                      return;
+                    }
+                    // code execution 20250825:
+                    case "bash_code_execution_tool_result":
+                    case "text_editor_code_execution_tool_result": {
+                      controller.enqueue({
+                        type: "tool-result",
+                        toolCallId: part.tool_use_id,
+                        toolName: toolNameMapping.toCustomToolName("code_execution"),
+                        result: part.content
+                      });
+                      return;
+                    }
+                    // tool search tool results:
+                    case "tool_search_tool_result": {
+                      let providerToolName = serverToolCalls[part.tool_use_id];
+                      if (providerToolName == null) {
+                        const bm25CustomName = toolNameMapping.toCustomToolName(
+                          "tool_search_tool_bm25"
+                        );
+                        const regexCustomName = toolNameMapping.toCustomToolName(
+                          "tool_search_tool_regex"
+                        );
+                        if (bm25CustomName !== "tool_search_tool_bm25") {
+                          providerToolName = "tool_search_tool_bm25";
+                        } else if (regexCustomName !== "tool_search_tool_regex") {
+                          providerToolName = "tool_search_tool_regex";
+                        } else {
+                          providerToolName = "tool_search_tool_regex";
+                        }
+                      }
+                      if (part.content.type === "tool_search_tool_search_result") {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName(providerToolName),
+                          result: part.content.tool_references.map((ref) => ({
+                            type: ref.type,
+                            toolName: ref.tool_name
+                          }))
+                        });
+                      } else {
+                        controller.enqueue({
+                          type: "tool-result",
+                          toolCallId: part.tool_use_id,
+                          toolName: toolNameMapping.toCustomToolName(providerToolName),
+                          isError: true,
+                          result: {
+                            type: "tool_search_tool_result_error",
+                            errorCode: part.content.error_code
+                          }
+                        });
+                      }
+                      return;
+                    }
+                    case "mcp_tool_use": {
+                      mcpToolCalls[part.id] = {
+                        type: "tool-call",
+                        toolCallId: part.id,
+                        toolName: part.name,
+                        input: JSON.stringify(part.input),
+                        providerExecuted: true,
+                        dynamic: true,
+                        providerMetadata: {
+                          anthropic: {
+                            type: "mcp-tool-use",
+                            serverName: part.server_name
+                          }
+                        }
+                      };
+                      controller.enqueue(mcpToolCalls[part.id]);
+                      return;
+                    }
+                    case "mcp_tool_result": {
+                      controller.enqueue({
+                        type: "tool-result",
+                        toolCallId: part.tool_use_id,
+                        toolName: mcpToolCalls[part.tool_use_id].toolName,
+                        isError: part.is_error,
+                        result: part.content,
+                        dynamic: true,
+                        providerMetadata: mcpToolCalls[part.tool_use_id].providerMetadata
+                      });
+                      return;
+                    }
+                    default: {
+                      const _exhaustiveCheck = contentBlockType;
+                      throw new Error(
+                        `Unsupported content block type: ${_exhaustiveCheck}`
+                      );
+                    }
+                  }
+                }
+                case "content_block_stop": {
+                  if (contentBlocks[value.index] != null) {
+                    const contentBlock = contentBlocks[value.index];
+                    switch (contentBlock.type) {
+                      case "text": {
+                        controller.enqueue({
+                          type: "text-end",
+                          id: String(value.index)
+                        });
+                        break;
+                      }
+                      case "reasoning": {
+                        controller.enqueue({
+                          type: "reasoning-end",
+                          id: String(value.index)
+                        });
+                        break;
+                      }
+                      case "tool-call":
+                        const isJsonResponseTool = usesJsonResponseTool && contentBlock.toolName === "json";
+                        if (!isJsonResponseTool) {
+                          controller.enqueue({
+                            type: "tool-input-end",
+                            id: contentBlock.toolCallId
+                          });
+                          let finalInput = contentBlock.input === "" ? "{}" : contentBlock.input;
+                          if (contentBlock.providerToolName === "code_execution") {
+                            try {
+                              const parsed = JSON.parse(finalInput);
+                              if (parsed != null && typeof parsed === "object" && "code" in parsed && !("type" in parsed)) {
+                                finalInput = JSON.stringify({
+                                  type: "programmatic-tool-call",
+                                  ...parsed
+                                });
+                              }
+                            } catch (e) {
+                            }
+                          }
+                          controller.enqueue({
+                            type: "tool-call",
+                            toolCallId: contentBlock.toolCallId,
+                            toolName: contentBlock.toolName,
+                            input: finalInput,
+                            providerExecuted: contentBlock.providerExecuted,
+                            ...contentBlock.caller && {
+                              providerMetadata: {
+                                anthropic: {
+                                  caller: contentBlock.caller
+                                }
+                              }
+                            }
+                          });
+                        }
+                        break;
+                    }
+                    delete contentBlocks[value.index];
+                  }
+                  blockType = void 0;
+                  return;
+                }
+                case "content_block_delta": {
+                  const deltaType = value.delta.type;
+                  switch (deltaType) {
+                    case "text_delta": {
+                      if (usesJsonResponseTool) {
+                        return;
+                      }
+                      controller.enqueue({
+                        type: "text-delta",
+                        id: String(value.index),
+                        delta: value.delta.text
+                      });
+                      return;
+                    }
+                    case "thinking_delta": {
+                      controller.enqueue({
+                        type: "reasoning-delta",
+                        id: String(value.index),
+                        delta: value.delta.thinking
+                      });
+                      return;
+                    }
+                    case "signature_delta": {
+                      if (blockType === "thinking") {
+                        controller.enqueue({
+                          type: "reasoning-delta",
+                          id: String(value.index),
+                          delta: "",
+                          providerMetadata: {
+                            anthropic: {
+                              signature: value.delta.signature
+                            }
+                          }
+                        });
+                      }
+                      return;
+                    }
+                    case "compaction_delta": {
+                      controller.enqueue({
+                        type: "text-delta",
+                        id: String(value.index),
+                        delta: value.delta.content
+                      });
+                      return;
+                    }
+                    case "input_json_delta": {
+                      const contentBlock = contentBlocks[value.index];
+                      let delta = value.delta.partial_json;
+                      if (delta.length === 0) {
+                        return;
+                      }
+                      if (isJsonResponseFromTool) {
+                        if ((contentBlock == null ? void 0 : contentBlock.type) !== "text") {
+                          return;
+                        }
+                        controller.enqueue({
+                          type: "text-delta",
+                          id: String(value.index),
+                          delta
+                        });
+                      } else {
+                        if ((contentBlock == null ? void 0 : contentBlock.type) !== "tool-call") {
+                          return;
+                        }
+                        if (contentBlock.firstDelta && (contentBlock.providerToolName === "bash_code_execution" || contentBlock.providerToolName === "text_editor_code_execution")) {
+                          delta = `{"type": "${contentBlock.providerToolName}",${delta.substring(1)}`;
+                        }
+                        controller.enqueue({
+                          type: "tool-input-delta",
+                          id: contentBlock.toolCallId,
+                          delta
+                        });
+                        contentBlock.input += delta;
+                        contentBlock.firstDelta = false;
+                      }
+                      return;
+                    }
+                    case "citations_delta": {
+                      const citation = value.delta.citation;
+                      const source = createCitationSource(
+                        citation,
+                        citationDocuments,
+                        generateId3
+                      );
+                      if (source) {
+                        controller.enqueue(source);
+                      }
+                      return;
+                    }
+                    default: {
+                      const _exhaustiveCheck = deltaType;
+                      throw new Error(
+                        `Unsupported delta type: ${_exhaustiveCheck}`
+                      );
+                    }
+                  }
+                }
+                case "message_start": {
+                  usage.input_tokens = value.message.usage.input_tokens;
+                  usage.cache_read_input_tokens = (_d = value.message.usage.cache_read_input_tokens) != null ? _d : 0;
+                  usage.cache_creation_input_tokens = (_e = value.message.usage.cache_creation_input_tokens) != null ? _e : 0;
+                  rawUsage = {
+                    ...value.message.usage
+                  };
+                  cacheCreationInputTokens = (_f = value.message.usage.cache_creation_input_tokens) != null ? _f : null;
+                  if (value.message.container != null) {
+                    container = {
+                      expiresAt: value.message.container.expires_at,
+                      id: value.message.container.id,
+                      skills: null
+                    };
+                  }
+                  if (value.message.stop_reason != null) {
+                    finishReason = {
+                      unified: mapAnthropicStopReason({
+                        finishReason: value.message.stop_reason,
+                        isJsonResponseFromTool
+                      }),
+                      raw: value.message.stop_reason
+                    };
+                  }
+                  controller.enqueue({
+                    type: "response-metadata",
+                    id: (_g = value.message.id) != null ? _g : void 0,
+                    modelId: (_h = value.message.model) != null ? _h : void 0
+                  });
+                  if (value.message.content != null) {
+                    for (let contentIndex = 0; contentIndex < value.message.content.length; contentIndex++) {
+                      const part = value.message.content[contentIndex];
+                      if (part.type === "tool_use") {
+                        const caller = part.caller;
+                        const callerInfo = caller ? {
+                          type: caller.type,
+                          toolId: "tool_id" in caller ? caller.tool_id : void 0
+                        } : void 0;
+                        controller.enqueue({
+                          type: "tool-input-start",
+                          id: part.id,
+                          toolName: part.name
+                        });
+                        const inputStr = JSON.stringify((_i = part.input) != null ? _i : {});
+                        controller.enqueue({
+                          type: "tool-input-delta",
+                          id: part.id,
+                          delta: inputStr
+                        });
+                        controller.enqueue({
+                          type: "tool-input-end",
+                          id: part.id
+                        });
+                        controller.enqueue({
+                          type: "tool-call",
+                          toolCallId: part.id,
+                          toolName: part.name,
+                          input: inputStr,
+                          ...callerInfo && {
+                            providerMetadata: {
+                              anthropic: {
+                                caller: callerInfo
+                              }
+                            }
+                          }
+                        });
+                      }
+                    }
+                  }
+                  return;
+                }
+                case "message_delta": {
+                  if (value.usage.input_tokens != null && usage.input_tokens !== value.usage.input_tokens) {
+                    usage.input_tokens = value.usage.input_tokens;
+                  }
+                  usage.output_tokens = value.usage.output_tokens;
+                  if (value.usage.cache_read_input_tokens != null) {
+                    usage.cache_read_input_tokens = value.usage.cache_read_input_tokens;
+                  }
+                  if (value.usage.cache_creation_input_tokens != null) {
+                    usage.cache_creation_input_tokens = value.usage.cache_creation_input_tokens;
+                    cacheCreationInputTokens = value.usage.cache_creation_input_tokens;
+                  }
+                  if (value.usage.iterations != null) {
+                    usage.iterations = value.usage.iterations;
+                  }
+                  finishReason = {
+                    unified: mapAnthropicStopReason({
+                      finishReason: value.delta.stop_reason,
+                      isJsonResponseFromTool
+                    }),
+                    raw: (_j = value.delta.stop_reason) != null ? _j : void 0
+                  };
+                  stopSequence = (_k = value.delta.stop_sequence) != null ? _k : null;
+                  container = value.delta.container != null ? {
+                    expiresAt: value.delta.container.expires_at,
+                    id: value.delta.container.id,
+                    skills: (_m = (_l = value.delta.container.skills) == null ? void 0 : _l.map((skill) => ({
+                      type: skill.type,
+                      skillId: skill.skill_id,
+                      version: skill.version
+                    }))) != null ? _m : null
+                  } : null;
+                  if (value.context_management) {
+                    contextManagement = mapAnthropicResponseContextManagement(
+                      value.context_management
+                    );
+                  }
+                  rawUsage = {
+                    ...rawUsage,
+                    ...value.usage
+                  };
+                  return;
+                }
+                case "message_stop": {
+                  const anthropicMetadata = {
+                    usage: rawUsage != null ? rawUsage : null,
+                    cacheCreationInputTokens,
+                    stopSequence,
+                    iterations: usage.iterations ? usage.iterations.map((iter) => ({
+                      type: iter.type,
+                      inputTokens: iter.input_tokens,
+                      outputTokens: iter.output_tokens
+                    })) : null,
+                    container,
+                    contextManagement
+                  };
+                  const providerMetadata = {
+                    anthropic: anthropicMetadata
+                  };
+                  if (usedCustomProviderKey && providerOptionsName !== "anthropic") {
+                    providerMetadata[providerOptionsName] = anthropicMetadata;
+                  }
+                  controller.enqueue({
+                    type: "finish",
+                    finishReason,
+                    usage: convertAnthropicMessagesUsage({ usage, rawUsage }),
+                    providerMetadata
+                  });
+                  return;
+                }
+                case "error": {
+                  controller.enqueue({ type: "error", error: value.error });
+                  return;
+                }
+                default: {
+                  const _exhaustiveCheck = value;
+                  throw new Error(`Unsupported chunk type: ${_exhaustiveCheck}`);
+                }
+              }
+            }
+          })
+        );
+        const [streamForFirstChunk, streamForConsumer] = transformedStream.tee();
+        const firstChunkReader = streamForFirstChunk.getReader();
+        try {
+          await firstChunkReader.read();
+          let result = await firstChunkReader.read();
+          if (((_a21 = result.value) == null ? void 0 : _a21.type) === "raw") {
+            result = await firstChunkReader.read();
+          }
+          if (((_b17 = result.value) == null ? void 0 : _b17.type) === "error") {
+            const error41 = result.value.error;
+            throw new APICallError({
+              message: error41.message,
+              url: url2,
+              requestBodyValues: body,
+              statusCode: error41.type === "overloaded_error" ? 529 : 500,
+              responseHeaders,
+              responseBody: JSON.stringify(error41),
+              isRetryable: error41.type === "overloaded_error"
+            });
+          }
+        } finally {
+          firstChunkReader.cancel().catch(() => {
+          });
+          firstChunkReader.releaseLock();
+        }
+        return {
+          stream: streamForConsumer,
+          request: { body },
+          response: { headers: responseHeaders }
+        };
+      }
+    };
+    bash_20241022InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          command: external_exports.string(),
+          restart: external_exports.boolean().optional()
+        })
+      )
+    );
+    bash_20241022 = createProviderToolFactory({
+      id: "anthropic.bash_20241022",
+      inputSchema: bash_20241022InputSchema
+    });
+    bash_20250124InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          command: external_exports.string(),
+          restart: external_exports.boolean().optional()
+        })
+      )
+    );
+    bash_20250124 = createProviderToolFactory({
+      id: "anthropic.bash_20250124",
+      inputSchema: bash_20250124InputSchema
+    });
+    computer_20241022InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          action: external_exports.enum([
+            "key",
+            "type",
+            "mouse_move",
+            "left_click",
+            "left_click_drag",
+            "right_click",
+            "middle_click",
+            "double_click",
+            "screenshot",
+            "cursor_position"
+          ]),
+          coordinate: external_exports.array(external_exports.number().int()).optional(),
+          text: external_exports.string().optional()
+        })
+      )
+    );
+    computer_20241022 = createProviderToolFactory({
+      id: "anthropic.computer_20241022",
+      inputSchema: computer_20241022InputSchema
+    });
+    computer_20250124InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          action: external_exports.enum([
+            "key",
+            "hold_key",
+            "type",
+            "cursor_position",
+            "mouse_move",
+            "left_mouse_down",
+            "left_mouse_up",
+            "left_click",
+            "left_click_drag",
+            "right_click",
+            "middle_click",
+            "double_click",
+            "triple_click",
+            "scroll",
+            "wait",
+            "screenshot"
+          ]),
+          coordinate: external_exports.tuple([external_exports.number().int(), external_exports.number().int()]).optional(),
+          duration: external_exports.number().optional(),
+          scroll_amount: external_exports.number().optional(),
+          scroll_direction: external_exports.enum(["up", "down", "left", "right"]).optional(),
+          start_coordinate: external_exports.tuple([external_exports.number().int(), external_exports.number().int()]).optional(),
+          text: external_exports.string().optional()
+        })
+      )
+    );
+    computer_20250124 = createProviderToolFactory({
+      id: "anthropic.computer_20250124",
+      inputSchema: computer_20250124InputSchema
+    });
+    computer_20251124InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          action: external_exports.enum([
+            "key",
+            "hold_key",
+            "type",
+            "cursor_position",
+            "mouse_move",
+            "left_mouse_down",
+            "left_mouse_up",
+            "left_click",
+            "left_click_drag",
+            "right_click",
+            "middle_click",
+            "double_click",
+            "triple_click",
+            "scroll",
+            "wait",
+            "screenshot",
+            "zoom"
+          ]),
+          coordinate: external_exports.tuple([external_exports.number().int(), external_exports.number().int()]).optional(),
+          duration: external_exports.number().optional(),
+          region: external_exports.tuple([
+            external_exports.number().int(),
+            external_exports.number().int(),
+            external_exports.number().int(),
+            external_exports.number().int()
+          ]).optional(),
+          scroll_amount: external_exports.number().optional(),
+          scroll_direction: external_exports.enum(["up", "down", "left", "right"]).optional(),
+          start_coordinate: external_exports.tuple([external_exports.number().int(), external_exports.number().int()]).optional(),
+          text: external_exports.string().optional()
+        })
+      )
+    );
+    computer_20251124 = createProviderToolFactory({
+      id: "anthropic.computer_20251124",
+      inputSchema: computer_20251124InputSchema
+    });
+    memory_20250818InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.discriminatedUnion("command", [
+          external_exports.object({
+            command: external_exports.literal("view"),
+            path: external_exports.string(),
+            view_range: external_exports.tuple([external_exports.number(), external_exports.number()]).optional()
+          }),
+          external_exports.object({
+            command: external_exports.literal("create"),
+            path: external_exports.string(),
+            file_text: external_exports.string()
+          }),
+          external_exports.object({
+            command: external_exports.literal("str_replace"),
+            path: external_exports.string(),
+            old_str: external_exports.string(),
+            new_str: external_exports.string()
+          }),
+          external_exports.object({
+            command: external_exports.literal("insert"),
+            path: external_exports.string(),
+            insert_line: external_exports.number(),
+            insert_text: external_exports.string()
+          }),
+          external_exports.object({
+            command: external_exports.literal("delete"),
+            path: external_exports.string()
+          }),
+          external_exports.object({
+            command: external_exports.literal("rename"),
+            old_path: external_exports.string(),
+            new_path: external_exports.string()
+          })
+        ])
+      )
+    );
+    memory_20250818 = createProviderToolFactory({
+      id: "anthropic.memory_20250818",
+      inputSchema: memory_20250818InputSchema
+    });
+    textEditor_20241022InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          command: external_exports.enum(["view", "create", "str_replace", "insert", "undo_edit"]),
+          path: external_exports.string(),
+          file_text: external_exports.string().optional(),
+          insert_line: external_exports.number().int().optional(),
+          new_str: external_exports.string().optional(),
+          insert_text: external_exports.string().optional(),
+          old_str: external_exports.string().optional(),
+          view_range: external_exports.array(external_exports.number().int()).optional()
+        })
+      )
+    );
+    textEditor_20241022 = createProviderToolFactory({
+      id: "anthropic.text_editor_20241022",
+      inputSchema: textEditor_20241022InputSchema
+    });
+    textEditor_20250124InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          command: external_exports.enum(["view", "create", "str_replace", "insert", "undo_edit"]),
+          path: external_exports.string(),
+          file_text: external_exports.string().optional(),
+          insert_line: external_exports.number().int().optional(),
+          new_str: external_exports.string().optional(),
+          insert_text: external_exports.string().optional(),
+          old_str: external_exports.string().optional(),
+          view_range: external_exports.array(external_exports.number().int()).optional()
+        })
+      )
+    );
+    textEditor_20250124 = createProviderToolFactory({
+      id: "anthropic.text_editor_20250124",
+      inputSchema: textEditor_20250124InputSchema
+    });
+    textEditor_20250429InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          command: external_exports.enum(["view", "create", "str_replace", "insert"]),
+          path: external_exports.string(),
+          file_text: external_exports.string().optional(),
+          insert_line: external_exports.number().int().optional(),
+          new_str: external_exports.string().optional(),
+          insert_text: external_exports.string().optional(),
+          old_str: external_exports.string().optional(),
+          view_range: external_exports.array(external_exports.number().int()).optional()
+        })
+      )
+    );
+    textEditor_20250429 = createProviderToolFactory({
+      id: "anthropic.text_editor_20250429",
+      inputSchema: textEditor_20250429InputSchema
+    });
+    toolSearchBm25_20251119OutputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.array(
+          external_exports.object({
+            type: external_exports.literal("tool_reference"),
+            toolName: external_exports.string()
+          })
+        )
+      )
+    );
+    toolSearchBm25_20251119InputSchema = lazySchema(
+      () => zodSchema(
+        external_exports.object({
+          /**
+           * A natural language query to search for tools.
+           * Claude will use BM25 text search to find relevant tools.
+           */
+          query: external_exports.string(),
+          /**
+           * Maximum number of tools to return. Optional.
+           */
+          limit: external_exports.number().optional()
+        })
+      )
+    );
+    factory7 = createProviderToolFactoryWithOutputSchema({
+      id: "anthropic.tool_search_bm25_20251119",
+      inputSchema: toolSearchBm25_20251119InputSchema,
+      outputSchema: toolSearchBm25_20251119OutputSchema,
+      supportsDeferredResults: true
+    });
+    toolSearchBm25_20251119 = (args = {}) => {
+      return factory7(args);
+    };
+    anthropicTools = {
+      /**
+       * The bash tool enables Claude to execute shell commands in a persistent bash session,
+       * allowing system operations, script execution, and command-line automation.
+       *
+       * Image results are supported.
+       */
+      bash_20241022,
+      /**
+       * The bash tool enables Claude to execute shell commands in a persistent bash session,
+       * allowing system operations, script execution, and command-line automation.
+       *
+       * Image results are supported.
+       */
+      bash_20250124,
+      /**
+       * Claude can analyze data, create visualizations, perform complex calculations,
+       * run system commands, create and edit files, and process uploaded files directly within
+       * the API conversation.
+       *
+       * The code execution tool allows Claude to run Bash commands and manipulate files,
+       * including writing code, in a secure, sandboxed environment.
+       */
+      codeExecution_20250522,
+      /**
+       * Claude can analyze data, create visualizations, perform complex calculations,
+       * run system commands, create and edit files, and process uploaded files directly within
+       * the API conversation.
+       *
+       * The code execution tool allows Claude to run both Python and Bash commands and manipulate files,
+       * including writing code, in a secure, sandboxed environment.
+       *
+       * This is the latest version with enhanced Bash support and file operations.
+       */
+      codeExecution_20250825,
+      /**
+       * Claude can interact with computer environments through the computer use tool, which
+       * provides screenshot capabilities and mouse/keyboard control for autonomous desktop interaction.
+       *
+       * Image results are supported.
+       *
+       * @param displayWidthPx - The width of the display being controlled by the model in pixels.
+       * @param displayHeightPx - The height of the display being controlled by the model in pixels.
+       * @param displayNumber - The display number to control (only relevant for X11 environments). If specified, the tool will be provided a display number in the tool definition.
+       */
+      computer_20241022,
+      /**
+       * Claude can interact with computer environments through the computer use tool, which
+       * provides screenshot capabilities and mouse/keyboard control for autonomous desktop interaction.
+       *
+       * Image results are supported.
+       *
+       * @param displayWidthPx - The width of the display being controlled by the model in pixels.
+       * @param displayHeightPx - The height of the display being controlled by the model in pixels.
+       * @param displayNumber - The display number to control (only relevant for X11 environments). If specified, the tool will be provided a display number in the tool definition.
+       */
+      computer_20250124,
+      /**
+       * Claude can interact with computer environments through the computer use tool, which
+       * provides screenshot capabilities and mouse/keyboard control for autonomous desktop interaction.
+       *
+       * This version adds the zoom action for detailed screen region inspection.
+       *
+       * Image results are supported.
+       *
+       * Supported models: Claude Opus 4.5
+       *
+       * @param displayWidthPx - The width of the display being controlled by the model in pixels.
+       * @param displayHeightPx - The height of the display being controlled by the model in pixels.
+       * @param displayNumber - The display number to control (only relevant for X11 environments). If specified, the tool will be provided a display number in the tool definition.
+       * @param enableZoom - Enable zoom action. Set to true to allow Claude to zoom into specific screen regions. Default: false.
+       */
+      computer_20251124,
+      /**
+       * The memory tool enables Claude to store and retrieve information across conversations through a memory file directory.
+       * Claude can create, read, update, and delete files that persist between sessions,
+       * allowing it to build knowledge over time without keeping everything in the context window.
+       * The memory tool operates client-side—you control where and how the data is stored through your own infrastructure.
+       *
+       * Supported models: Claude Sonnet 4.5, Claude Sonnet 4, Claude Opus 4.1, Claude Opus 4.
+       */
+      memory_20250818,
+      /**
+       * Claude can use an Anthropic-defined text editor tool to view and modify text files,
+       * helping you debug, fix, and improve your code or other text documents. This allows Claude
+       * to directly interact with your files, providing hands-on assistance rather than just suggesting changes.
+       *
+       * Supported models: Claude Sonnet 3.5
+       */
+      textEditor_20241022,
+      /**
+       * Claude can use an Anthropic-defined text editor tool to view and modify text files,
+       * helping you debug, fix, and improve your code or other text documents. This allows Claude
+       * to directly interact with your files, providing hands-on assistance rather than just suggesting changes.
+       *
+       * Supported models: Claude Sonnet 3.7
+       */
+      textEditor_20250124,
+      /**
+       * Claude can use an Anthropic-defined text editor tool to view and modify text files,
+       * helping you debug, fix, and improve your code or other text documents. This allows Claude
+       * to directly interact with your files, providing hands-on assistance rather than just suggesting changes.
+       *
+       * Note: This version does not support the "undo_edit" command.
+       *
+       * @deprecated Use textEditor_20250728 instead
+       */
+      textEditor_20250429,
+      /**
+       * Claude can use an Anthropic-defined text editor tool to view and modify text files,
+       * helping you debug, fix, and improve your code or other text documents. This allows Claude
+       * to directly interact with your files, providing hands-on assistance rather than just suggesting changes.
+       *
+       * Note: This version does not support the "undo_edit" command and adds optional max_characters parameter.
+       *
+       * Supported models: Claude Sonnet 4, Opus 4, and Opus 4.1
+       *
+       * @param maxCharacters - Optional maximum number of characters to view in the file
+       */
+      textEditor_20250728,
+      /**
+       * Creates a web fetch tool that gives Claude direct access to real-time web content.
+       *
+       * @param maxUses - The max_uses parameter limits the number of web fetches performed
+       * @param allowedDomains - Only fetch from these domains
+       * @param blockedDomains - Never fetch from these domains
+       * @param citations - Unlike web search where citations are always enabled, citations are optional for web fetch. Set "citations": {"enabled": true} to enable Claude to cite specific passages from fetched documents.
+       * @param maxContentTokens - The max_content_tokens parameter limits the amount of content that will be included in the context.
+       */
+      webFetch_20250910,
+      /**
+       * Creates a web search tool that gives Claude direct access to real-time web content.
+       *
+       * @param maxUses - Maximum number of web searches Claude can perform during the conversation.
+       * @param allowedDomains - Optional list of domains that Claude is allowed to search.
+       * @param blockedDomains - Optional list of domains that Claude should avoid when searching.
+       * @param userLocation - Optional user location information to provide geographically relevant search results.
+       */
+      webSearch_20250305,
+      /**
+       * Creates a tool search tool that uses regex patterns to find tools.
+       *
+       * The tool search tool enables Claude to work with hundreds or thousands of tools
+       * by dynamically discovering and loading them on-demand. Instead of loading all
+       * tool definitions into the context window upfront, Claude searches your tool
+       * catalog and loads only the tools it needs.
+       *
+       * Use `providerOptions: { anthropic: { deferLoading: true } }` on other tools
+       * to mark them for deferred loading.
+       *
+       * Supported models: Claude Opus 4.5, Claude Sonnet 4.5
+       */
+      toolSearchRegex_20251119,
+      /**
+       * Creates a tool search tool that uses BM25 (natural language) to find tools.
+       *
+       * The tool search tool enables Claude to work with hundreds or thousands of tools
+       * by dynamically discovering and loading them on-demand. Instead of loading all
+       * tool definitions into the context window upfront, Claude searches your tool
+       * catalog and loads only the tools it needs.
+       *
+       * Use `providerOptions: { anthropic: { deferLoading: true } }` on other tools
+       * to mark them for deferred loading.
+       *
+       * Supported models: Claude Opus 4.5, Claude Sonnet 4.5
+       */
+      toolSearchBm25_20251119
+    };
+    anthropic = createAnthropic();
+  }
+});
+
+// ../../node_modules/.pnpm/@ai-sdk+openai@3.0.29_zod@3.25.76/node_modules/@ai-sdk/openai/dist/index.mjs
+var dist_exports3 = {};
+__export(dist_exports3, {
+  VERSION: () => VERSION6,
   createOpenAI: () => createOpenAI,
   openai: () => openai
 });
@@ -59069,7 +63725,7 @@ function createOpenAI(options = {}) {
       "OpenAI-Project": options.project,
       ...options.headers
     },
-    `ai-sdk/openai/${VERSION5}`
+    `ai-sdk/openai/${VERSION6}`
   );
   const createChatModel = (modelId) => new OpenAIChatLanguageModel(modelId, {
     provider: `${providerName}.chat`,
@@ -59145,8 +63801,8 @@ function createOpenAI(options = {}) {
   provider.tools = openaiTools;
   return provider;
 }
-var openaiErrorDataSchema, openaiFailedResponseHandler, openaiChatResponseSchema, openaiChatChunkSchema, openaiLanguageModelChatOptions, OpenAIChatLanguageModel, openaiCompletionResponseSchema, openaiCompletionChunkSchema, openaiLanguageModelCompletionOptions, OpenAICompletionLanguageModel, openaiEmbeddingModelOptions, openaiTextEmbeddingResponseSchema, OpenAIEmbeddingModel, openaiImageResponseSchema, modelMaxImagesPerCall, defaultResponseFormatPrefixes, OpenAIImageModel, applyPatchInputSchema, applyPatchOutputSchema, applyPatchArgsSchema, applyPatchToolFactory, applyPatch, codeInterpreterInputSchema, codeInterpreterOutputSchema, codeInterpreterArgsSchema, codeInterpreterToolFactory, codeInterpreter, comparisonFilterSchema, compoundFilterSchema, fileSearchArgsSchema, fileSearchOutputSchema, fileSearch, imageGenerationArgsSchema, imageGenerationInputSchema, imageGenerationOutputSchema, imageGenerationToolFactory, imageGeneration, localShellInputSchema, localShellOutputSchema, localShell, shellInputSchema, shellOutputSchema, shell, webSearchArgsSchema, webSearchInputSchema, webSearchOutputSchema, webSearchToolFactory, webSearch, webSearchPreviewArgsSchema, webSearchPreviewInputSchema, webSearchPreviewOutputSchema, webSearchPreview, jsonValueSchema2, mcpArgsSchema, mcpInputSchema, mcpOutputSchema, mcpToolFactory, mcp, openaiTools, openaiResponsesReasoningProviderOptionsSchema, openaiResponsesChunkSchema, openaiResponsesResponseSchema, TOP_LOGPROBS_MAX, openaiResponsesReasoningModelIds, openaiResponsesModelIds, openaiLanguageModelResponsesOptionsSchema, OpenAIResponsesLanguageModel, openaiSpeechModelOptionsSchema, OpenAISpeechModel, openaiTranscriptionResponseSchema, openAITranscriptionModelOptions, languageMap, OpenAITranscriptionModel, VERSION5, openai;
-var init_dist6 = __esm({
+var openaiErrorDataSchema, openaiFailedResponseHandler, openaiChatResponseSchema, openaiChatChunkSchema, openaiLanguageModelChatOptions, OpenAIChatLanguageModel, openaiCompletionResponseSchema, openaiCompletionChunkSchema, openaiLanguageModelCompletionOptions, OpenAICompletionLanguageModel, openaiEmbeddingModelOptions, openaiTextEmbeddingResponseSchema, OpenAIEmbeddingModel, openaiImageResponseSchema, modelMaxImagesPerCall, defaultResponseFormatPrefixes, OpenAIImageModel, applyPatchInputSchema, applyPatchOutputSchema, applyPatchArgsSchema, applyPatchToolFactory, applyPatch, codeInterpreterInputSchema, codeInterpreterOutputSchema, codeInterpreterArgsSchema, codeInterpreterToolFactory, codeInterpreter, comparisonFilterSchema, compoundFilterSchema, fileSearchArgsSchema, fileSearchOutputSchema, fileSearch, imageGenerationArgsSchema, imageGenerationInputSchema, imageGenerationOutputSchema, imageGenerationToolFactory, imageGeneration, localShellInputSchema, localShellOutputSchema, localShell, shellInputSchema, shellOutputSchema, shell, webSearchArgsSchema, webSearchInputSchema, webSearchOutputSchema, webSearchToolFactory, webSearch, webSearchPreviewArgsSchema, webSearchPreviewInputSchema, webSearchPreviewOutputSchema, webSearchPreview, jsonValueSchema2, mcpArgsSchema, mcpInputSchema, mcpOutputSchema, mcpToolFactory, mcp, openaiTools, openaiResponsesReasoningProviderOptionsSchema, openaiResponsesChunkSchema, openaiResponsesResponseSchema, TOP_LOGPROBS_MAX, openaiResponsesReasoningModelIds, openaiResponsesModelIds, openaiLanguageModelResponsesOptionsSchema, OpenAIResponsesLanguageModel, openaiSpeechModelOptionsSchema, OpenAISpeechModel, openaiTranscriptionResponseSchema, openAITranscriptionModelOptions, languageMap, OpenAITranscriptionModel, VERSION6, openai;
+var init_dist7 = __esm({
   "../../node_modules/.pnpm/@ai-sdk+openai@3.0.29_zod@3.25.76/node_modules/@ai-sdk/openai/dist/index.mjs"() {
     init_dist3();
     init_dist();
@@ -63627,7 +68283,7 @@ var init_dist6 = __esm({
         };
       }
     };
-    VERSION5 = true ? "3.0.29" : "0.0.0-test";
+    VERSION6 = true ? "3.0.29" : "0.0.0-test";
     openai = createOpenAI();
   }
 });
@@ -80289,8 +84945,8 @@ var require_requestPolicyFactoryPolicy = __commonJS({
               return (0, response_js_1.toCompatResponse)(response2, { createProxy: true });
             }
           };
-          for (const factory of orderedFactories) {
-            httpPipeline = factory.create(httpPipeline, mockRequestPolicyOptions);
+          for (const factory8 of orderedFactories) {
+            httpPipeline = factory8.create(httpPipeline, mockRequestPolicyOptions);
           }
           const webResourceLike = (0, util_js_1.toWebResourceLike)(request, { createProxy: true });
           const response = await httpPipeline.sendRequest(webResourceLike);
@@ -82840,9 +87496,9 @@ var require_StorageSharedKeyCredentialPolicy = __commonJS({
        * @param options -
        * @param factory -
        */
-      constructor(nextPolicy, options, factory) {
+      constructor(nextPolicy, options, factory8) {
         super(nextPolicy, options);
-        this.factory = factory;
+        this.factory = factory8;
       }
       /**
        * Signs request.
@@ -83980,11 +88636,11 @@ var require_Pipeline = __commonJS({
         isCoreHttpPolicyFactory
       ];
       if (pipeline.factories.length) {
-        const novelFactories = pipeline.factories.filter((factory) => {
-          return !knownFactoryFunctions.some((knownFactory) => knownFactory(factory));
+        const novelFactories = pipeline.factories.filter((factory8) => {
+          return !knownFactoryFunctions.some((knownFactory) => knownFactory(factory8));
         });
         if (novelFactories.length) {
-          const hasInjector = novelFactories.some((factory) => isInjectorPolicyFactory(factory));
+          const hasInjector = novelFactories.some((factory8) => isInjectorPolicyFactory(factory8));
           return {
             wrappedPolicies: (0, core_http_compat_1.createRequestPolicyFactoryPolicy)(novelFactories),
             afterRetry: hasInjector
@@ -84072,49 +88728,49 @@ var require_Pipeline = __commonJS({
         return pipeline._credential;
       }
       let credential = new storage_common_1.AnonymousCredential();
-      for (const factory of pipeline.factories) {
-        if ((0, core_auth_1.isTokenCredential)(factory.credential)) {
-          credential = factory.credential;
-        } else if (isStorageSharedKeyCredential(factory)) {
-          return factory;
+      for (const factory8 of pipeline.factories) {
+        if ((0, core_auth_1.isTokenCredential)(factory8.credential)) {
+          credential = factory8.credential;
+        } else if (isStorageSharedKeyCredential(factory8)) {
+          return factory8;
         }
       }
       return credential;
     }
-    function isStorageSharedKeyCredential(factory) {
-      if (factory instanceof storage_common_1.StorageSharedKeyCredential) {
+    function isStorageSharedKeyCredential(factory8) {
+      if (factory8 instanceof storage_common_1.StorageSharedKeyCredential) {
         return true;
       }
-      return factory.constructor.name === "StorageSharedKeyCredential";
+      return factory8.constructor.name === "StorageSharedKeyCredential";
     }
-    function isAnonymousCredential(factory) {
-      if (factory instanceof storage_common_1.AnonymousCredential) {
+    function isAnonymousCredential(factory8) {
+      if (factory8 instanceof storage_common_1.AnonymousCredential) {
         return true;
       }
-      return factory.constructor.name === "AnonymousCredential";
+      return factory8.constructor.name === "AnonymousCredential";
     }
-    function isCoreHttpBearerTokenFactory(factory) {
-      return (0, core_auth_1.isTokenCredential)(factory.credential);
+    function isCoreHttpBearerTokenFactory(factory8) {
+      return (0, core_auth_1.isTokenCredential)(factory8.credential);
     }
-    function isStorageBrowserPolicyFactory(factory) {
-      if (factory instanceof storage_common_1.StorageBrowserPolicyFactory) {
+    function isStorageBrowserPolicyFactory(factory8) {
+      if (factory8 instanceof storage_common_1.StorageBrowserPolicyFactory) {
         return true;
       }
-      return factory.constructor.name === "StorageBrowserPolicyFactory";
+      return factory8.constructor.name === "StorageBrowserPolicyFactory";
     }
-    function isStorageRetryPolicyFactory(factory) {
-      if (factory instanceof storage_common_1.StorageRetryPolicyFactory) {
+    function isStorageRetryPolicyFactory(factory8) {
+      if (factory8 instanceof storage_common_1.StorageRetryPolicyFactory) {
         return true;
       }
-      return factory.constructor.name === "StorageRetryPolicyFactory";
+      return factory8.constructor.name === "StorageRetryPolicyFactory";
     }
-    function isStorageTelemetryPolicyFactory(factory) {
-      return factory.constructor.name === "TelemetryPolicyFactory";
+    function isStorageTelemetryPolicyFactory(factory8) {
+      return factory8.constructor.name === "TelemetryPolicyFactory";
     }
-    function isInjectorPolicyFactory(factory) {
-      return factory.constructor.name === "InjectorPolicyFactory";
+    function isInjectorPolicyFactory(factory8) {
+      return factory8.constructor.name === "InjectorPolicyFactory";
     }
-    function isCoreHttpPolicyFactory(factory) {
+    function isCoreHttpPolicyFactory(factory8) {
       const knownPolicies = [
         "GenerateClientRequestIdPolicy",
         "TracingPolicy",
@@ -84140,7 +88796,7 @@ var require_Pipeline = __commonJS({
           return false;
         }
       };
-      const policyInstance = factory.create(mockHttpClient, mockRequestPolicyOptions);
+      const policyInstance = factory8.create(mockHttpClient, mockRequestPolicyOptions);
       const policyName = policyInstance.constructor.name;
       return knownPolicies.some((knownPolicyName) => {
         return policyName.startsWith(knownPolicyName);
@@ -109859,8 +114515,8 @@ var require_readdir_glob = __commonJS({
 // ../../node_modules/.pnpm/async@3.2.6/node_modules/async/dist/async.js
 var require_async = __commonJS({
   "../../node_modules/.pnpm/async@3.2.6/node_modules/async/dist/async.js"(exports, module) {
-    (function(global2, factory) {
-      typeof exports === "object" && typeof module !== "undefined" ? factory(exports) : typeof define === "function" && define.amd ? define(["exports"], factory) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory(global2.async = {}));
+    (function(global2, factory8) {
+      typeof exports === "object" && typeof module !== "undefined" ? factory8(exports) : typeof define === "function" && define.amd ? define(["exports"], factory8) : (global2 = typeof globalThis !== "undefined" ? globalThis : global2 || self, factory8(global2.async = {}));
     })(exports, (function(exports2) {
       "use strict";
       function apply(fn, ...args) {
@@ -130540,21 +135196,21 @@ var require_archive_output_stream = __commonJS({
 var require_crc32 = __commonJS({
   "../../node_modules/.pnpm/crc-32@1.2.2/node_modules/crc-32/crc32.js"(exports) {
     var CRC32;
-    (function(factory) {
+    (function(factory8) {
       if (typeof DO_NOT_EXPORT_CRC === "undefined") {
         if ("object" === typeof exports) {
-          factory(exports);
+          factory8(exports);
         } else if ("function" === typeof define && define.amd) {
           define(function() {
             var module2 = {};
-            factory(module2);
+            factory8(module2);
             return module2;
           });
         } else {
-          factory(CRC32 = {});
+          factory8(CRC32 = {});
         }
       } else {
-        factory(CRC32 = {});
+        factory8(CRC32 = {});
       }
     })(function(CRC322) {
       CRC322.version = "1.2.2";
@@ -134619,8 +139275,8 @@ var require_dist_node11 = __commonJS({
         parse: parse3
       });
     }
-    var VERSION6 = "6.0.12";
-    var userAgent = `octokit-endpoint.js/${VERSION6} ${universalUserAgent.getUserAgent()}`;
+    var VERSION7 = "6.0.12";
+    var userAgent = `octokit-endpoint.js/${VERSION7} ${universalUserAgent.getUserAgent()}`;
     var DEFAULTS = {
       method: "GET",
       baseUrl: "https://api.github.com",
@@ -137713,7 +142369,7 @@ var require_dist_node13 = __commonJS({
     var isPlainObject2 = require_is_plain_object();
     var nodeFetch = _interopDefault(require_lib4());
     var requestError = require_dist_node12();
-    var VERSION6 = "5.6.3";
+    var VERSION7 = "5.6.3";
     function getBufferResponse(response) {
       return response.arrayBuffer();
     }
@@ -137846,7 +142502,7 @@ var require_dist_node13 = __commonJS({
     }
     var request = withDefaults(endpoint.endpoint, {
       headers: {
-        "user-agent": `octokit-request.js/${VERSION6} ${universalUserAgent.getUserAgent()}`
+        "user-agent": `octokit-request.js/${VERSION7} ${universalUserAgent.getUserAgent()}`
       }
     });
     exports.request = request;
@@ -137860,7 +142516,7 @@ var require_dist_node14 = __commonJS({
     Object.defineProperty(exports, "__esModule", { value: true });
     var request = require_dist_node13();
     var universalUserAgent = require_dist_node();
-    var VERSION6 = "4.8.0";
+    var VERSION7 = "4.8.0";
     function _buildMessageForResponseErrors(data) {
       return `Request failed due to following response errors:
 ` + data.errors.map((e) => ` - ${e.message}`).join("\n");
@@ -137933,7 +142589,7 @@ var require_dist_node14 = __commonJS({
     }
     var graphql$1 = withDefaults(request.request, {
       headers: {
-        "user-agent": `octokit-graphql.js/${VERSION6} ${universalUserAgent.getUserAgent()}`
+        "user-agent": `octokit-graphql.js/${VERSION7} ${universalUserAgent.getUserAgent()}`
       },
       method: "POST",
       url: "/graphql"
@@ -138033,7 +142689,7 @@ var require_dist_node16 = __commonJS({
       }
       return target;
     }
-    var VERSION6 = "3.6.0";
+    var VERSION7 = "3.6.0";
     var _excluded = ["authStrategy"];
     var Octokit = class {
       constructor(options = {}) {
@@ -138050,7 +142706,7 @@ var require_dist_node16 = __commonJS({
             format: ""
           }
         };
-        requestDefaults.headers["user-agent"] = [options.userAgent, `octokit-core.js/${VERSION6} ${universalUserAgent.getUserAgent()}`].filter(Boolean).join(" ");
+        requestDefaults.headers["user-agent"] = [options.userAgent, `octokit-core.js/${VERSION7} ${universalUserAgent.getUserAgent()}`].filter(Boolean).join(" ");
         if (options.baseUrl) {
           requestDefaults.baseUrl = options.baseUrl;
         }
@@ -138133,7 +142789,7 @@ var require_dist_node16 = __commonJS({
         return NewOctokit;
       }
     };
-    Octokit.VERSION = VERSION6;
+    Octokit.VERSION = VERSION7;
     Octokit.plugins = [];
     exports.Octokit = Octokit;
   }
@@ -139135,7 +143791,7 @@ var require_dist_node17 = __commonJS({
         updateAuthenticated: ["PATCH /user"]
       }
     };
-    var VERSION6 = "5.16.2";
+    var VERSION7 = "5.16.2";
     function endpointsToMethods(octokit, endpointsMap) {
       const newMethods = {};
       for (const [scope, endpoints] of Object.entries(endpointsMap)) {
@@ -139200,14 +143856,14 @@ var require_dist_node17 = __commonJS({
         rest: api
       };
     }
-    restEndpointMethods.VERSION = VERSION6;
+    restEndpointMethods.VERSION = VERSION7;
     function legacyRestEndpointMethods(octokit) {
       const api = endpointsToMethods(octokit, Endpoints);
       return _objectSpread2(_objectSpread2({}, api), {}, {
         rest: api
       });
     }
-    legacyRestEndpointMethods.VERSION = VERSION6;
+    legacyRestEndpointMethods.VERSION = VERSION7;
     exports.legacyRestEndpointMethods = legacyRestEndpointMethods;
     exports.restEndpointMethods = restEndpointMethods;
   }
@@ -139218,7 +143874,7 @@ var require_dist_node18 = __commonJS({
   "../../node_modules/.pnpm/@octokit+plugin-paginate-rest@2.21.3_@octokit+core@3.6.0/node_modules/@octokit/plugin-paginate-rest/dist-node/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var VERSION6 = "2.21.3";
+    var VERSION7 = "2.21.3";
     function ownKeys2(object3, enumerableOnly) {
       var keys = Object.keys(object3);
       if (Object.getOwnPropertySymbols) {
@@ -139358,7 +144014,7 @@ var require_dist_node18 = __commonJS({
         })
       };
     }
-    paginateRest.VERSION = VERSION6;
+    paginateRest.VERSION = VERSION7;
     exports.composePaginateRest = composePaginateRest;
     exports.isPaginatingEndpoint = isPaginatingEndpoint;
     exports.paginateRest = paginateRest;
@@ -141645,7 +146301,7 @@ var require_dist_node19 = __commonJS({
   "../../node_modules/.pnpm/@octokit+plugin-request-log@1.0.4_@octokit+core@3.6.0/node_modules/@octokit/plugin-request-log/dist-node/index.js"(exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var VERSION6 = "1.0.4";
+    var VERSION7 = "1.0.4";
     function requestLog(octokit) {
       octokit.hook.wrap("request", (request, options) => {
         octokit.log.debug("request", options);
@@ -141661,7 +146317,7 @@ var require_dist_node19 = __commonJS({
         });
       });
     }
-    requestLog.VERSION = VERSION6;
+    requestLog.VERSION = VERSION7;
     exports.requestLog = requestLog;
   }
 });
@@ -141669,8 +146325,8 @@ var require_dist_node19 = __commonJS({
 // ../../node_modules/.pnpm/bottleneck@2.19.5/node_modules/bottleneck/light.js
 var require_light = __commonJS({
   "../../node_modules/.pnpm/bottleneck@2.19.5/node_modules/bottleneck/light.js"(exports, module) {
-    (function(global2, factory) {
-      typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory() : typeof define === "function" && define.amd ? define(factory) : global2.Bottleneck = factory();
+    (function(global2, factory8) {
+      typeof exports === "object" && typeof module !== "undefined" ? module.exports = factory8() : typeof define === "function" && define.amd ? define(factory8) : global2.Bottleneck = factory8();
     })(exports, (function() {
       "use strict";
       var commonjsGlobal = typeof globalThis !== "undefined" ? globalThis : typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : {};
@@ -143017,7 +147673,7 @@ var require_dist_node20 = __commonJS({
       });
       return limiter.schedule(request, options);
     }
-    var VERSION6 = "3.0.9";
+    var VERSION7 = "3.0.9";
     function retry(octokit, octokitOptions) {
       const state = Object.assign({
         enabled: true,
@@ -143041,8 +147697,8 @@ var require_dist_node20 = __commonJS({
         }
       };
     }
-    retry.VERSION = VERSION6;
-    exports.VERSION = VERSION6;
+    retry.VERSION = VERSION7;
+    exports.VERSION = VERSION7;
     exports.retry = retry;
   }
 });
@@ -143656,6 +148312,2662 @@ var require_artifact2 = __commonJS({
   }
 });
 
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/constants.js
+var require_constants13 = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/constants.js"(exports, module) {
+    module.exports = {
+      /* The local file header */
+      LOCHDR: 30,
+      // LOC header size
+      LOCSIG: 67324752,
+      // "PK\003\004"
+      LOCVER: 4,
+      // version needed to extract
+      LOCFLG: 6,
+      // general purpose bit flag
+      LOCHOW: 8,
+      // compression method
+      LOCTIM: 10,
+      // modification time (2 bytes time, 2 bytes date)
+      LOCCRC: 14,
+      // uncompressed file crc-32 value
+      LOCSIZ: 18,
+      // compressed size
+      LOCLEN: 22,
+      // uncompressed size
+      LOCNAM: 26,
+      // filename length
+      LOCEXT: 28,
+      // extra field length
+      /* The Data descriptor */
+      EXTSIG: 134695760,
+      // "PK\007\008"
+      EXTHDR: 16,
+      // EXT header size
+      EXTCRC: 4,
+      // uncompressed file crc-32 value
+      EXTSIZ: 8,
+      // compressed size
+      EXTLEN: 12,
+      // uncompressed size
+      /* The central directory file header */
+      CENHDR: 46,
+      // CEN header size
+      CENSIG: 33639248,
+      // "PK\001\002"
+      CENVEM: 4,
+      // version made by
+      CENVER: 6,
+      // version needed to extract
+      CENFLG: 8,
+      // encrypt, decrypt flags
+      CENHOW: 10,
+      // compression method
+      CENTIM: 12,
+      // modification time (2 bytes time, 2 bytes date)
+      CENCRC: 16,
+      // uncompressed file crc-32 value
+      CENSIZ: 20,
+      // compressed size
+      CENLEN: 24,
+      // uncompressed size
+      CENNAM: 28,
+      // filename length
+      CENEXT: 30,
+      // extra field length
+      CENCOM: 32,
+      // file comment length
+      CENDSK: 34,
+      // volume number start
+      CENATT: 36,
+      // internal file attributes
+      CENATX: 38,
+      // external file attributes (host system dependent)
+      CENOFF: 42,
+      // LOC header offset
+      /* The entries in the end of central directory */
+      ENDHDR: 22,
+      // END header size
+      ENDSIG: 101010256,
+      // "PK\005\006"
+      ENDSUB: 8,
+      // number of entries on this disk
+      ENDTOT: 10,
+      // total number of entries
+      ENDSIZ: 12,
+      // central directory size in bytes
+      ENDOFF: 16,
+      // offset of first CEN header
+      ENDCOM: 20,
+      // zip file comment length
+      END64HDR: 20,
+      // zip64 END header size
+      END64SIG: 117853008,
+      // zip64 Locator signature, "PK\006\007"
+      END64START: 4,
+      // number of the disk with the start of the zip64
+      END64OFF: 8,
+      // relative offset of the zip64 end of central directory
+      END64NUMDISKS: 16,
+      // total number of disks
+      ZIP64SIG: 101075792,
+      // zip64 signature, "PK\006\006"
+      ZIP64HDR: 56,
+      // zip64 record minimum size
+      ZIP64LEAD: 12,
+      // leading bytes at the start of the record, not counted by the value stored in ZIP64SIZE
+      ZIP64SIZE: 4,
+      // zip64 size of the central directory record
+      ZIP64VEM: 12,
+      // zip64 version made by
+      ZIP64VER: 14,
+      // zip64 version needed to extract
+      ZIP64DSK: 16,
+      // zip64 number of this disk
+      ZIP64DSKDIR: 20,
+      // number of the disk with the start of the record directory
+      ZIP64SUB: 24,
+      // number of entries on this disk
+      ZIP64TOT: 32,
+      // total number of entries
+      ZIP64SIZB: 40,
+      // zip64 central directory size in bytes
+      ZIP64OFF: 48,
+      // offset of start of central directory with respect to the starting disk number
+      ZIP64EXTRA: 56,
+      // extensible data sector
+      /* Compression methods */
+      STORED: 0,
+      // no compression
+      SHRUNK: 1,
+      // shrunk
+      REDUCED1: 2,
+      // reduced with compression factor 1
+      REDUCED2: 3,
+      // reduced with compression factor 2
+      REDUCED3: 4,
+      // reduced with compression factor 3
+      REDUCED4: 5,
+      // reduced with compression factor 4
+      IMPLODED: 6,
+      // imploded
+      // 7 reserved for Tokenizing compression algorithm
+      DEFLATED: 8,
+      // deflated
+      ENHANCED_DEFLATED: 9,
+      // enhanced deflated
+      PKWARE: 10,
+      // PKWare DCL imploded
+      // 11 reserved by PKWARE
+      BZIP2: 12,
+      //  compressed using BZIP2
+      // 13 reserved by PKWARE
+      LZMA: 14,
+      // LZMA
+      // 15-17 reserved by PKWARE
+      IBM_TERSE: 18,
+      // compressed using IBM TERSE
+      IBM_LZ77: 19,
+      // IBM LZ77 z
+      AES_ENCRYPT: 99,
+      // WinZIP AES encryption method
+      /* General purpose bit flag */
+      // values can obtained with expression 2**bitnr
+      FLG_ENC: 1,
+      // Bit 0: encrypted file
+      FLG_COMP1: 2,
+      // Bit 1, compression option
+      FLG_COMP2: 4,
+      // Bit 2, compression option
+      FLG_DESC: 8,
+      // Bit 3, data descriptor
+      FLG_ENH: 16,
+      // Bit 4, enhanced deflating
+      FLG_PATCH: 32,
+      // Bit 5, indicates that the file is compressed patched data.
+      FLG_STR: 64,
+      // Bit 6, strong encryption (patented)
+      // Bits 7-10: Currently unused.
+      FLG_EFS: 2048,
+      // Bit 11: Language encoding flag (EFS)
+      // Bit 12: Reserved by PKWARE for enhanced compression.
+      // Bit 13: encrypted the Central Directory (patented).
+      // Bits 14-15: Reserved by PKWARE.
+      FLG_MSK: 4096,
+      // mask header values
+      /* Load type */
+      FILE: 2,
+      BUFFER: 1,
+      NONE: 0,
+      /* 4.5 Extensible data fields */
+      EF_ID: 0,
+      EF_SIZE: 2,
+      /* Header IDs */
+      ID_ZIP64: 1,
+      ID_AVINFO: 7,
+      ID_PFS: 8,
+      ID_OS2: 9,
+      ID_NTFS: 10,
+      ID_OPENVMS: 12,
+      ID_UNIX: 13,
+      ID_FORK: 14,
+      ID_PATCH: 15,
+      ID_X509_PKCS7: 20,
+      ID_X509_CERTID_F: 21,
+      ID_X509_CERTID_C: 22,
+      ID_STRONGENC: 23,
+      ID_RECORD_MGT: 24,
+      ID_X509_PKCS7_RL: 25,
+      ID_IBM1: 101,
+      ID_IBM2: 102,
+      ID_POSZIP: 18064,
+      EF_ZIP64_OR_32: 4294967295,
+      EF_ZIP64_OR_16: 65535,
+      EF_ZIP64_SUNCOMP: 0,
+      EF_ZIP64_SCOMP: 8,
+      EF_ZIP64_RHO: 16,
+      EF_ZIP64_DSN: 24
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/errors.js
+var require_errors4 = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/errors.js"(exports) {
+    var errors = {
+      /* Header error messages */
+      INVALID_LOC: "Invalid LOC header (bad signature)",
+      INVALID_CEN: "Invalid CEN header (bad signature)",
+      INVALID_END: "Invalid END header (bad signature)",
+      /* Descriptor */
+      DESCRIPTOR_NOT_EXIST: "No descriptor present",
+      DESCRIPTOR_UNKNOWN: "Unknown descriptor format",
+      DESCRIPTOR_FAULTY: "Descriptor data is malformed",
+      /* ZipEntry error messages*/
+      NO_DATA: "Nothing to decompress",
+      BAD_CRC: "CRC32 checksum failed {0}",
+      FILE_IN_THE_WAY: "There is a file in the way: {0}",
+      UNKNOWN_METHOD: "Invalid/unsupported compression method",
+      /* Inflater error messages */
+      AVAIL_DATA: "inflate::Available inflate data did not terminate",
+      INVALID_DISTANCE: "inflate::Invalid literal/length or distance code in fixed or dynamic block",
+      TO_MANY_CODES: "inflate::Dynamic block code description: too many length or distance codes",
+      INVALID_REPEAT_LEN: "inflate::Dynamic block code description: repeat more than specified lengths",
+      INVALID_REPEAT_FIRST: "inflate::Dynamic block code description: repeat lengths with no first length",
+      INCOMPLETE_CODES: "inflate::Dynamic block code description: code lengths codes incomplete",
+      INVALID_DYN_DISTANCE: "inflate::Dynamic block code description: invalid distance code lengths",
+      INVALID_CODES_LEN: "inflate::Dynamic block code description: invalid literal/length code lengths",
+      INVALID_STORE_BLOCK: "inflate::Stored block length did not match one's complement",
+      INVALID_BLOCK_TYPE: "inflate::Invalid block type (type == 3)",
+      /* ADM-ZIP error messages */
+      CANT_EXTRACT_FILE: "Could not extract the file",
+      CANT_OVERRIDE: "Target file already exists",
+      DISK_ENTRY_TOO_LARGE: "Number of disk entries is too large",
+      NO_ZIP: "No zip file was loaded",
+      NO_ENTRY: "Entry doesn't exist",
+      DIRECTORY_CONTENT_ERROR: "A directory cannot have content",
+      FILE_NOT_FOUND: 'File not found: "{0}"',
+      NOT_IMPLEMENTED: "Not implemented",
+      INVALID_FILENAME: "Invalid filename",
+      INVALID_FORMAT: "Invalid or unsupported zip format. No END header found",
+      INVALID_PASS_PARAM: "Incompatible password parameter",
+      WRONG_PASSWORD: "Wrong Password",
+      /* ADM-ZIP */
+      COMMENT_TOO_LONG: "Comment is too long",
+      // Comment can be max 65535 bytes long (NOTE: some non-US characters may take more space)
+      EXTRA_FIELD_PARSE_ERROR: "Extra field parsing error"
+    };
+    function E(message) {
+      return function(...args) {
+        if (args.length) {
+          message = message.replace(/\{(\d)\}/g, (_2, n) => args[n] || "");
+        }
+        return new Error("ADM-ZIP: " + message);
+      };
+    }
+    for (const msg of Object.keys(errors)) {
+      exports[msg] = E(errors[msg]);
+    }
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/utils.js
+var require_utils11 = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/utils.js"(exports, module) {
+    var fsystem = __require("fs");
+    var pth = __require("path");
+    var Constants = require_constants13();
+    var Errors = require_errors4();
+    var isWin = typeof process === "object" && "win32" === process.platform;
+    var is_Obj = (obj) => typeof obj === "object" && obj !== null;
+    var crcTable = new Uint32Array(256).map((t, c) => {
+      for (let k = 0; k < 8; k++) {
+        if ((c & 1) !== 0) {
+          c = 3988292384 ^ c >>> 1;
+        } else {
+          c >>>= 1;
+        }
+      }
+      return c >>> 0;
+    });
+    function Utils(opts) {
+      this.sep = pth.sep;
+      this.fs = fsystem;
+      if (is_Obj(opts)) {
+        if (is_Obj(opts.fs) && typeof opts.fs.statSync === "function") {
+          this.fs = opts.fs;
+        }
+      }
+    }
+    module.exports = Utils;
+    Utils.prototype.makeDir = function(folder) {
+      const self2 = this;
+      function mkdirSync2(fpath) {
+        let resolvedPath = fpath.split(self2.sep)[0];
+        fpath.split(self2.sep).forEach(function(name21) {
+          if (!name21 || name21.substr(-1, 1) === ":") return;
+          resolvedPath += self2.sep + name21;
+          var stat;
+          try {
+            stat = self2.fs.statSync(resolvedPath);
+          } catch (e) {
+            self2.fs.mkdirSync(resolvedPath);
+          }
+          if (stat && stat.isFile()) throw Errors.FILE_IN_THE_WAY(`"${resolvedPath}"`);
+        });
+      }
+      mkdirSync2(folder);
+    };
+    Utils.prototype.writeFileTo = function(path, content, overwrite, attr) {
+      const self2 = this;
+      if (self2.fs.existsSync(path)) {
+        if (!overwrite) return false;
+        var stat = self2.fs.statSync(path);
+        if (stat.isDirectory()) {
+          return false;
+        }
+      }
+      var folder = pth.dirname(path);
+      if (!self2.fs.existsSync(folder)) {
+        self2.makeDir(folder);
+      }
+      var fd;
+      try {
+        fd = self2.fs.openSync(path, "w", 438);
+      } catch (e) {
+        self2.fs.chmodSync(path, 438);
+        fd = self2.fs.openSync(path, "w", 438);
+      }
+      if (fd) {
+        try {
+          self2.fs.writeSync(fd, content, 0, content.length, 0);
+        } finally {
+          self2.fs.closeSync(fd);
+        }
+      }
+      self2.fs.chmodSync(path, attr || 438);
+      return true;
+    };
+    Utils.prototype.writeFileToAsync = function(path, content, overwrite, attr, callback) {
+      if (typeof attr === "function") {
+        callback = attr;
+        attr = void 0;
+      }
+      const self2 = this;
+      self2.fs.exists(path, function(exist) {
+        if (exist && !overwrite) return callback(false);
+        self2.fs.stat(path, function(err, stat) {
+          if (exist && stat.isDirectory()) {
+            return callback(false);
+          }
+          var folder = pth.dirname(path);
+          self2.fs.exists(folder, function(exists) {
+            if (!exists) self2.makeDir(folder);
+            self2.fs.open(path, "w", 438, function(err2, fd) {
+              if (err2) {
+                self2.fs.chmod(path, 438, function() {
+                  self2.fs.open(path, "w", 438, function(err3, fd2) {
+                    self2.fs.write(fd2, content, 0, content.length, 0, function() {
+                      self2.fs.close(fd2, function() {
+                        self2.fs.chmod(path, attr || 438, function() {
+                          callback(true);
+                        });
+                      });
+                    });
+                  });
+                });
+              } else if (fd) {
+                self2.fs.write(fd, content, 0, content.length, 0, function() {
+                  self2.fs.close(fd, function() {
+                    self2.fs.chmod(path, attr || 438, function() {
+                      callback(true);
+                    });
+                  });
+                });
+              } else {
+                self2.fs.chmod(path, attr || 438, function() {
+                  callback(true);
+                });
+              }
+            });
+          });
+        });
+      });
+    };
+    Utils.prototype.findFiles = function(path) {
+      const self2 = this;
+      function findSync(dir, pattern, recursive) {
+        if (typeof pattern === "boolean") {
+          recursive = pattern;
+          pattern = void 0;
+        }
+        let files = [];
+        self2.fs.readdirSync(dir).forEach(function(file2) {
+          const path2 = pth.join(dir, file2);
+          const stat = self2.fs.statSync(path2);
+          if (!pattern || pattern.test(path2)) {
+            files.push(pth.normalize(path2) + (stat.isDirectory() ? self2.sep : ""));
+          }
+          if (stat.isDirectory() && recursive) files = files.concat(findSync(path2, pattern, recursive));
+        });
+        return files;
+      }
+      return findSync(path, void 0, true);
+    };
+    Utils.prototype.findFilesAsync = function(dir, cb) {
+      const self2 = this;
+      let results = [];
+      self2.fs.readdir(dir, function(err, list) {
+        if (err) return cb(err);
+        let list_length = list.length;
+        if (!list_length) return cb(null, results);
+        list.forEach(function(file2) {
+          file2 = pth.join(dir, file2);
+          self2.fs.stat(file2, function(err2, stat) {
+            if (err2) return cb(err2);
+            if (stat) {
+              results.push(pth.normalize(file2) + (stat.isDirectory() ? self2.sep : ""));
+              if (stat.isDirectory()) {
+                self2.findFilesAsync(file2, function(err3, res) {
+                  if (err3) return cb(err3);
+                  results = results.concat(res);
+                  if (!--list_length) cb(null, results);
+                });
+              } else {
+                if (!--list_length) cb(null, results);
+              }
+            }
+          });
+        });
+      });
+    };
+    Utils.prototype.getAttributes = function() {
+    };
+    Utils.prototype.setAttributes = function() {
+    };
+    Utils.crc32update = function(crc, byte) {
+      return crcTable[(crc ^ byte) & 255] ^ crc >>> 8;
+    };
+    Utils.crc32 = function(buf) {
+      if (typeof buf === "string") {
+        buf = Buffer.from(buf, "utf8");
+      }
+      let len = buf.length;
+      let crc = ~0;
+      for (let off = 0; off < len; ) crc = Utils.crc32update(crc, buf[off++]);
+      return ~crc >>> 0;
+    };
+    Utils.methodToString = function(method) {
+      switch (method) {
+        case Constants.STORED:
+          return "STORED (" + method + ")";
+        case Constants.DEFLATED:
+          return "DEFLATED (" + method + ")";
+        default:
+          return "UNSUPPORTED (" + method + ")";
+      }
+    };
+    Utils.canonical = function(path) {
+      if (!path) return "";
+      const safeSuffix = pth.posix.normalize("/" + path.split("\\").join("/"));
+      return pth.join(".", safeSuffix);
+    };
+    Utils.zipnamefix = function(path) {
+      if (!path) return "";
+      const safeSuffix = pth.posix.normalize("/" + path.split("\\").join("/"));
+      return pth.posix.join(".", safeSuffix);
+    };
+    Utils.findLast = function(arr, callback) {
+      if (!Array.isArray(arr)) throw new TypeError("arr is not array");
+      const len = arr.length >>> 0;
+      for (let i = len - 1; i >= 0; i--) {
+        if (callback(arr[i], i, arr)) {
+          return arr[i];
+        }
+      }
+      return void 0;
+    };
+    Utils.sanitize = function(prefix, name21) {
+      prefix = pth.resolve(pth.normalize(prefix));
+      var parts = name21.split("/");
+      for (var i = 0, l = parts.length; i < l; i++) {
+        var path = pth.normalize(pth.join(prefix, parts.slice(i, l).join(pth.sep)));
+        if (path.indexOf(prefix) === 0) {
+          return path;
+        }
+      }
+      return pth.normalize(pth.join(prefix, pth.basename(name21)));
+    };
+    Utils.toBuffer = function toBuffer(input, encoder) {
+      if (Buffer.isBuffer(input)) {
+        return input;
+      } else if (input instanceof Uint8Array) {
+        return Buffer.from(input);
+      } else {
+        return typeof input === "string" ? encoder(input) : Buffer.alloc(0);
+      }
+    };
+    Utils.readBigUInt64LE = function(buffer, index) {
+      var slice = Buffer.from(buffer.slice(index, index + 8));
+      slice.swap64();
+      return parseInt(`0x${slice.toString("hex")}`);
+    };
+    Utils.fromDOS2Date = function(val) {
+      return new Date((val >> 25 & 127) + 1980, Math.max((val >> 21 & 15) - 1, 0), Math.max(val >> 16 & 31, 1), val >> 11 & 31, val >> 5 & 63, (val & 31) << 1);
+    };
+    Utils.fromDate2DOS = function(val) {
+      let date5 = 0;
+      let time3 = 0;
+      if (val.getFullYear() > 1979) {
+        date5 = (val.getFullYear() - 1980 & 127) << 9 | val.getMonth() + 1 << 5 | val.getDate();
+        time3 = val.getHours() << 11 | val.getMinutes() << 5 | val.getSeconds() >> 1;
+      }
+      return date5 << 16 | time3;
+    };
+    Utils.isWin = isWin;
+    Utils.crcTable = crcTable;
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/fattr.js
+var require_fattr = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/fattr.js"(exports, module) {
+    var pth = __require("path");
+    module.exports = function(path, { fs }) {
+      var _path = path || "", _obj = newAttr(), _stat = null;
+      function newAttr() {
+        return {
+          directory: false,
+          readonly: false,
+          hidden: false,
+          executable: false,
+          mtime: 0,
+          atime: 0
+        };
+      }
+      if (_path && fs.existsSync(_path)) {
+        _stat = fs.statSync(_path);
+        _obj.directory = _stat.isDirectory();
+        _obj.mtime = _stat.mtime;
+        _obj.atime = _stat.atime;
+        _obj.executable = (73 & _stat.mode) !== 0;
+        _obj.readonly = (128 & _stat.mode) === 0;
+        _obj.hidden = pth.basename(_path)[0] === ".";
+      } else {
+        console.warn("Invalid path: " + _path);
+      }
+      return {
+        get directory() {
+          return _obj.directory;
+        },
+        get readOnly() {
+          return _obj.readonly;
+        },
+        get hidden() {
+          return _obj.hidden;
+        },
+        get mtime() {
+          return _obj.mtime;
+        },
+        get atime() {
+          return _obj.atime;
+        },
+        get executable() {
+          return _obj.executable;
+        },
+        decodeAttributes: function() {
+        },
+        encodeAttributes: function() {
+        },
+        toJSON: function() {
+          return {
+            path: _path,
+            isDirectory: _obj.directory,
+            isReadOnly: _obj.readonly,
+            isHidden: _obj.hidden,
+            isExecutable: _obj.executable,
+            mTime: _obj.mtime,
+            aTime: _obj.atime
+          };
+        },
+        toString: function() {
+          return JSON.stringify(this.toJSON(), null, "	");
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/decoder.js
+var require_decoder = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/decoder.js"(exports, module) {
+    module.exports = {
+      efs: true,
+      encode: (data) => Buffer.from(data, "utf8"),
+      decode: (data) => data.toString("utf8")
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/index.js
+var require_util14 = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/util/index.js"(exports, module) {
+    module.exports = require_utils11();
+    module.exports.Constants = require_constants13();
+    module.exports.Errors = require_errors4();
+    module.exports.FileAttr = require_fattr();
+    module.exports.decoder = require_decoder();
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/headers/entryHeader.js
+var require_entryHeader = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/headers/entryHeader.js"(exports, module) {
+    var Utils = require_util14();
+    var Constants = Utils.Constants;
+    module.exports = function() {
+      var _verMade = 20, _version = 10, _flags = 0, _method = 0, _time = 0, _crc = 0, _compressedSize = 0, _size2 = 0, _fnameLen = 0, _extraLen = 0, _comLen = 0, _diskStart = 0, _inattr = 0, _attr = 0, _offset = 0;
+      _verMade |= Utils.isWin ? 2560 : 768;
+      _flags |= Constants.FLG_EFS;
+      const _localHeader = {
+        extraLen: 0
+      };
+      const uint322 = (val) => Math.max(0, val) >>> 0;
+      const uint16 = (val) => Math.max(0, val) & 65535;
+      const uint8 = (val) => Math.max(0, val) & 255;
+      _time = Utils.fromDate2DOS(/* @__PURE__ */ new Date());
+      return {
+        get made() {
+          return _verMade;
+        },
+        set made(val) {
+          _verMade = val;
+        },
+        get version() {
+          return _version;
+        },
+        set version(val) {
+          _version = val;
+        },
+        get flags() {
+          return _flags;
+        },
+        set flags(val) {
+          _flags = val;
+        },
+        get flags_efs() {
+          return (_flags & Constants.FLG_EFS) > 0;
+        },
+        set flags_efs(val) {
+          if (val) {
+            _flags |= Constants.FLG_EFS;
+          } else {
+            _flags &= ~Constants.FLG_EFS;
+          }
+        },
+        get flags_desc() {
+          return (_flags & Constants.FLG_DESC) > 0;
+        },
+        set flags_desc(val) {
+          if (val) {
+            _flags |= Constants.FLG_DESC;
+          } else {
+            _flags &= ~Constants.FLG_DESC;
+          }
+        },
+        get method() {
+          return _method;
+        },
+        set method(val) {
+          switch (val) {
+            case Constants.STORED:
+              this.version = 10;
+            case Constants.DEFLATED:
+            default:
+              this.version = 20;
+          }
+          _method = val;
+        },
+        get time() {
+          return Utils.fromDOS2Date(this.timeval);
+        },
+        set time(val) {
+          this.timeval = Utils.fromDate2DOS(val);
+        },
+        get timeval() {
+          return _time;
+        },
+        set timeval(val) {
+          _time = uint322(val);
+        },
+        get timeHighByte() {
+          return uint8(_time >>> 8);
+        },
+        get crc() {
+          return _crc;
+        },
+        set crc(val) {
+          _crc = uint322(val);
+        },
+        get compressedSize() {
+          return _compressedSize;
+        },
+        set compressedSize(val) {
+          _compressedSize = uint322(val);
+        },
+        get size() {
+          return _size2;
+        },
+        set size(val) {
+          _size2 = uint322(val);
+        },
+        get fileNameLength() {
+          return _fnameLen;
+        },
+        set fileNameLength(val) {
+          _fnameLen = val;
+        },
+        get extraLength() {
+          return _extraLen;
+        },
+        set extraLength(val) {
+          _extraLen = val;
+        },
+        get extraLocalLength() {
+          return _localHeader.extraLen;
+        },
+        set extraLocalLength(val) {
+          _localHeader.extraLen = val;
+        },
+        get commentLength() {
+          return _comLen;
+        },
+        set commentLength(val) {
+          _comLen = val;
+        },
+        get diskNumStart() {
+          return _diskStart;
+        },
+        set diskNumStart(val) {
+          _diskStart = uint322(val);
+        },
+        get inAttr() {
+          return _inattr;
+        },
+        set inAttr(val) {
+          _inattr = uint322(val);
+        },
+        get attr() {
+          return _attr;
+        },
+        set attr(val) {
+          _attr = uint322(val);
+        },
+        // get Unix file permissions
+        get fileAttr() {
+          return (_attr || 0) >> 16 & 4095;
+        },
+        get offset() {
+          return _offset;
+        },
+        set offset(val) {
+          _offset = uint322(val);
+        },
+        get encrypted() {
+          return (_flags & Constants.FLG_ENC) === Constants.FLG_ENC;
+        },
+        get centralHeaderSize() {
+          return Constants.CENHDR + _fnameLen + _extraLen + _comLen;
+        },
+        get realDataOffset() {
+          return _offset + Constants.LOCHDR + _localHeader.fnameLen + _localHeader.extraLen;
+        },
+        get localHeader() {
+          return _localHeader;
+        },
+        loadLocalHeaderFromBinary: function(input) {
+          var data = input.slice(_offset, _offset + Constants.LOCHDR);
+          if (data.readUInt32LE(0) !== Constants.LOCSIG) {
+            throw Utils.Errors.INVALID_LOC();
+          }
+          _localHeader.version = data.readUInt16LE(Constants.LOCVER);
+          _localHeader.flags = data.readUInt16LE(Constants.LOCFLG);
+          _localHeader.method = data.readUInt16LE(Constants.LOCHOW);
+          _localHeader.time = data.readUInt32LE(Constants.LOCTIM);
+          _localHeader.crc = data.readUInt32LE(Constants.LOCCRC);
+          _localHeader.compressedSize = data.readUInt32LE(Constants.LOCSIZ);
+          _localHeader.size = data.readUInt32LE(Constants.LOCLEN);
+          _localHeader.fnameLen = data.readUInt16LE(Constants.LOCNAM);
+          _localHeader.extraLen = data.readUInt16LE(Constants.LOCEXT);
+          const extraStart = _offset + Constants.LOCHDR + _localHeader.fnameLen;
+          const extraEnd = extraStart + _localHeader.extraLen;
+          return input.slice(extraStart, extraEnd);
+        },
+        loadFromBinary: function(data) {
+          if (data.length !== Constants.CENHDR || data.readUInt32LE(0) !== Constants.CENSIG) {
+            throw Utils.Errors.INVALID_CEN();
+          }
+          _verMade = data.readUInt16LE(Constants.CENVEM);
+          _version = data.readUInt16LE(Constants.CENVER);
+          _flags = data.readUInt16LE(Constants.CENFLG);
+          _method = data.readUInt16LE(Constants.CENHOW);
+          _time = data.readUInt32LE(Constants.CENTIM);
+          _crc = data.readUInt32LE(Constants.CENCRC);
+          _compressedSize = data.readUInt32LE(Constants.CENSIZ);
+          _size2 = data.readUInt32LE(Constants.CENLEN);
+          _fnameLen = data.readUInt16LE(Constants.CENNAM);
+          _extraLen = data.readUInt16LE(Constants.CENEXT);
+          _comLen = data.readUInt16LE(Constants.CENCOM);
+          _diskStart = data.readUInt16LE(Constants.CENDSK);
+          _inattr = data.readUInt16LE(Constants.CENATT);
+          _attr = data.readUInt32LE(Constants.CENATX);
+          _offset = data.readUInt32LE(Constants.CENOFF);
+        },
+        localHeaderToBinary: function() {
+          var data = Buffer.alloc(Constants.LOCHDR);
+          data.writeUInt32LE(Constants.LOCSIG, 0);
+          data.writeUInt16LE(_version, Constants.LOCVER);
+          data.writeUInt16LE(_flags, Constants.LOCFLG);
+          data.writeUInt16LE(_method, Constants.LOCHOW);
+          data.writeUInt32LE(_time, Constants.LOCTIM);
+          data.writeUInt32LE(_crc, Constants.LOCCRC);
+          data.writeUInt32LE(_compressedSize, Constants.LOCSIZ);
+          data.writeUInt32LE(_size2, Constants.LOCLEN);
+          data.writeUInt16LE(_fnameLen, Constants.LOCNAM);
+          data.writeUInt16LE(_localHeader.extraLen, Constants.LOCEXT);
+          return data;
+        },
+        centralHeaderToBinary: function() {
+          var data = Buffer.alloc(Constants.CENHDR + _fnameLen + _extraLen + _comLen);
+          data.writeUInt32LE(Constants.CENSIG, 0);
+          data.writeUInt16LE(_verMade, Constants.CENVEM);
+          data.writeUInt16LE(_version, Constants.CENVER);
+          data.writeUInt16LE(_flags, Constants.CENFLG);
+          data.writeUInt16LE(_method, Constants.CENHOW);
+          data.writeUInt32LE(_time, Constants.CENTIM);
+          data.writeUInt32LE(_crc, Constants.CENCRC);
+          data.writeUInt32LE(_compressedSize, Constants.CENSIZ);
+          data.writeUInt32LE(_size2, Constants.CENLEN);
+          data.writeUInt16LE(_fnameLen, Constants.CENNAM);
+          data.writeUInt16LE(_extraLen, Constants.CENEXT);
+          data.writeUInt16LE(_comLen, Constants.CENCOM);
+          data.writeUInt16LE(_diskStart, Constants.CENDSK);
+          data.writeUInt16LE(_inattr, Constants.CENATT);
+          data.writeUInt32LE(_attr, Constants.CENATX);
+          data.writeUInt32LE(_offset, Constants.CENOFF);
+          return data;
+        },
+        toJSON: function() {
+          const bytes = function(nr) {
+            return nr + " bytes";
+          };
+          return {
+            made: _verMade,
+            version: _version,
+            flags: _flags,
+            method: Utils.methodToString(_method),
+            time: this.time,
+            crc: "0x" + _crc.toString(16).toUpperCase(),
+            compressedSize: bytes(_compressedSize),
+            size: bytes(_size2),
+            fileNameLength: bytes(_fnameLen),
+            extraLength: bytes(_extraLen),
+            commentLength: bytes(_comLen),
+            diskNumStart: _diskStart,
+            inAttr: _inattr,
+            attr: _attr,
+            offset: _offset,
+            centralHeaderSize: bytes(Constants.CENHDR + _fnameLen + _extraLen + _comLen)
+          };
+        },
+        toString: function() {
+          return JSON.stringify(this.toJSON(), null, "	");
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/headers/mainHeader.js
+var require_mainHeader = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/headers/mainHeader.js"(exports, module) {
+    var Utils = require_util14();
+    var Constants = Utils.Constants;
+    module.exports = function() {
+      var _volumeEntries = 0, _totalEntries = 0, _size2 = 0, _offset = 0, _commentLength = 0;
+      return {
+        get diskEntries() {
+          return _volumeEntries;
+        },
+        set diskEntries(val) {
+          _volumeEntries = _totalEntries = val;
+        },
+        get totalEntries() {
+          return _totalEntries;
+        },
+        set totalEntries(val) {
+          _totalEntries = _volumeEntries = val;
+        },
+        get size() {
+          return _size2;
+        },
+        set size(val) {
+          _size2 = val;
+        },
+        get offset() {
+          return _offset;
+        },
+        set offset(val) {
+          _offset = val;
+        },
+        get commentLength() {
+          return _commentLength;
+        },
+        set commentLength(val) {
+          _commentLength = val;
+        },
+        get mainHeaderSize() {
+          return Constants.ENDHDR + _commentLength;
+        },
+        loadFromBinary: function(data) {
+          if ((data.length !== Constants.ENDHDR || data.readUInt32LE(0) !== Constants.ENDSIG) && (data.length < Constants.ZIP64HDR || data.readUInt32LE(0) !== Constants.ZIP64SIG)) {
+            throw Utils.Errors.INVALID_END();
+          }
+          if (data.readUInt32LE(0) === Constants.ENDSIG) {
+            _volumeEntries = data.readUInt16LE(Constants.ENDSUB);
+            _totalEntries = data.readUInt16LE(Constants.ENDTOT);
+            _size2 = data.readUInt32LE(Constants.ENDSIZ);
+            _offset = data.readUInt32LE(Constants.ENDOFF);
+            _commentLength = data.readUInt16LE(Constants.ENDCOM);
+          } else {
+            _volumeEntries = Utils.readBigUInt64LE(data, Constants.ZIP64SUB);
+            _totalEntries = Utils.readBigUInt64LE(data, Constants.ZIP64TOT);
+            _size2 = Utils.readBigUInt64LE(data, Constants.ZIP64SIZE);
+            _offset = Utils.readBigUInt64LE(data, Constants.ZIP64OFF);
+            _commentLength = 0;
+          }
+        },
+        toBinary: function() {
+          var b = Buffer.alloc(Constants.ENDHDR + _commentLength);
+          b.writeUInt32LE(Constants.ENDSIG, 0);
+          b.writeUInt32LE(0, 4);
+          b.writeUInt16LE(_volumeEntries, Constants.ENDSUB);
+          b.writeUInt16LE(_totalEntries, Constants.ENDTOT);
+          b.writeUInt32LE(_size2, Constants.ENDSIZ);
+          b.writeUInt32LE(_offset, Constants.ENDOFF);
+          b.writeUInt16LE(_commentLength, Constants.ENDCOM);
+          b.fill(" ", Constants.ENDHDR);
+          return b;
+        },
+        toJSON: function() {
+          const offset = function(nr, len) {
+            let offs = nr.toString(16).toUpperCase();
+            while (offs.length < len) offs = "0" + offs;
+            return "0x" + offs;
+          };
+          return {
+            diskEntries: _volumeEntries,
+            totalEntries: _totalEntries,
+            size: _size2 + " bytes",
+            offset: offset(_offset, 4),
+            commentLength: _commentLength
+          };
+        },
+        toString: function() {
+          return JSON.stringify(this.toJSON(), null, "	");
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/headers/index.js
+var require_headers3 = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/headers/index.js"(exports) {
+    exports.EntryHeader = require_entryHeader();
+    exports.MainHeader = require_mainHeader();
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/deflater.js
+var require_deflater = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/deflater.js"(exports, module) {
+    module.exports = function(inbuf) {
+      var zlib = __require("zlib");
+      var opts = { chunkSize: (parseInt(inbuf.length / 1024) + 1) * 1024 };
+      return {
+        deflate: function() {
+          return zlib.deflateRawSync(inbuf, opts);
+        },
+        deflateAsync: function(callback) {
+          var tmp = zlib.createDeflateRaw(opts), parts = [], total = 0;
+          tmp.on("data", function(data) {
+            parts.push(data);
+            total += data.length;
+          });
+          tmp.on("end", function() {
+            var buf = Buffer.alloc(total), written = 0;
+            buf.fill(0);
+            for (var i = 0; i < parts.length; i++) {
+              var part = parts[i];
+              part.copy(buf, written);
+              written += part.length;
+            }
+            callback && callback(buf);
+          });
+          tmp.end(inbuf);
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/inflater.js
+var require_inflater = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/inflater.js"(exports, module) {
+    var version2 = +(process.versions ? process.versions.node : "").split(".")[0] || 0;
+    module.exports = function(inbuf, expectedLength) {
+      var zlib = __require("zlib");
+      const option = version2 >= 15 && expectedLength > 0 ? { maxOutputLength: expectedLength } : {};
+      return {
+        inflate: function() {
+          return zlib.inflateRawSync(inbuf, option);
+        },
+        inflateAsync: function(callback) {
+          var tmp = zlib.createInflateRaw(option), parts = [], total = 0;
+          tmp.on("data", function(data) {
+            parts.push(data);
+            total += data.length;
+          });
+          tmp.on("end", function() {
+            var buf = Buffer.alloc(total), written = 0;
+            buf.fill(0);
+            for (var i = 0; i < parts.length; i++) {
+              var part = parts[i];
+              part.copy(buf, written);
+              written += part.length;
+            }
+            callback && callback(buf);
+          });
+          tmp.end(inbuf);
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/zipcrypto.js
+var require_zipcrypto = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/zipcrypto.js"(exports, module) {
+    "use strict";
+    var { randomFillSync } = __require("crypto");
+    var Errors = require_errors4();
+    var crctable = new Uint32Array(256).map((t, crc) => {
+      for (let j = 0; j < 8; j++) {
+        if (0 !== (crc & 1)) {
+          crc = crc >>> 1 ^ 3988292384;
+        } else {
+          crc >>>= 1;
+        }
+      }
+      return crc >>> 0;
+    });
+    var uMul = (a, b) => Math.imul(a, b) >>> 0;
+    var crc32update = (pCrc32, bval) => {
+      return crctable[(pCrc32 ^ bval) & 255] ^ pCrc32 >>> 8;
+    };
+    var genSalt = () => {
+      if ("function" === typeof randomFillSync) {
+        return randomFillSync(Buffer.alloc(12));
+      } else {
+        return genSalt.node();
+      }
+    };
+    genSalt.node = () => {
+      const salt = Buffer.alloc(12);
+      const len = salt.length;
+      for (let i = 0; i < len; i++) salt[i] = Math.random() * 256 & 255;
+      return salt;
+    };
+    var config2 = {
+      genSalt
+    };
+    function Initkeys(pw) {
+      const pass = Buffer.isBuffer(pw) ? pw : Buffer.from(pw);
+      this.keys = new Uint32Array([305419896, 591751049, 878082192]);
+      for (let i = 0; i < pass.length; i++) {
+        this.updateKeys(pass[i]);
+      }
+    }
+    Initkeys.prototype.updateKeys = function(byteValue) {
+      const keys = this.keys;
+      keys[0] = crc32update(keys[0], byteValue);
+      keys[1] += keys[0] & 255;
+      keys[1] = uMul(keys[1], 134775813) + 1;
+      keys[2] = crc32update(keys[2], keys[1] >>> 24);
+      return byteValue;
+    };
+    Initkeys.prototype.next = function() {
+      const k = (this.keys[2] | 2) >>> 0;
+      return uMul(k, k ^ 1) >> 8 & 255;
+    };
+    function make_decrypter(pwd) {
+      const keys = new Initkeys(pwd);
+      return function(data) {
+        const result = Buffer.alloc(data.length);
+        let pos = 0;
+        for (let c of data) {
+          result[pos++] = keys.updateKeys(c ^ keys.next());
+        }
+        return result;
+      };
+    }
+    function make_encrypter(pwd) {
+      const keys = new Initkeys(pwd);
+      return function(data, result, pos = 0) {
+        if (!result) result = Buffer.alloc(data.length);
+        for (let c of data) {
+          const k = keys.next();
+          result[pos++] = c ^ k;
+          keys.updateKeys(c);
+        }
+        return result;
+      };
+    }
+    function decrypt(data, header, pwd) {
+      if (!data || !Buffer.isBuffer(data) || data.length < 12) {
+        return Buffer.alloc(0);
+      }
+      const decrypter = make_decrypter(pwd);
+      const salt = decrypter(data.slice(0, 12));
+      const verifyByte = (header.flags & 8) === 8 ? header.timeHighByte : header.crc >>> 24;
+      if (salt[11] !== verifyByte) {
+        throw Errors.WRONG_PASSWORD();
+      }
+      return decrypter(data.slice(12));
+    }
+    function _salter(data) {
+      if (Buffer.isBuffer(data) && data.length >= 12) {
+        config2.genSalt = function() {
+          return data.slice(0, 12);
+        };
+      } else if (data === "node") {
+        config2.genSalt = genSalt.node;
+      } else {
+        config2.genSalt = genSalt;
+      }
+    }
+    function encrypt(data, header, pwd, oldlike = false) {
+      if (data == null) data = Buffer.alloc(0);
+      if (!Buffer.isBuffer(data)) data = Buffer.from(data.toString());
+      const encrypter = make_encrypter(pwd);
+      const salt = config2.genSalt();
+      salt[11] = header.crc >>> 24 & 255;
+      if (oldlike) salt[10] = header.crc >>> 16 & 255;
+      const result = Buffer.alloc(data.length + 12);
+      encrypter(salt, result);
+      return encrypter(data, result, 12);
+    }
+    module.exports = { decrypt, encrypt, _salter };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/index.js
+var require_methods = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/methods/index.js"(exports) {
+    exports.Deflater = require_deflater();
+    exports.Inflater = require_inflater();
+    exports.ZipCrypto = require_zipcrypto();
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/zipEntry.js
+var require_zipEntry = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/zipEntry.js"(exports, module) {
+    var Utils = require_util14();
+    var Headers2 = require_headers3();
+    var Constants = Utils.Constants;
+    var Methods = require_methods();
+    module.exports = function(options, input) {
+      var _centralHeader = new Headers2.EntryHeader(), _entryName = Buffer.alloc(0), _comment = Buffer.alloc(0), _isDirectory = false, uncompressedData = null, _extra = Buffer.alloc(0), _extralocal = Buffer.alloc(0), _efs = true;
+      const opts = options;
+      const decoder = typeof opts.decoder === "object" ? opts.decoder : Utils.decoder;
+      _efs = decoder.hasOwnProperty("efs") ? decoder.efs : false;
+      function getCompressedDataFromZip() {
+        if (!input || !(input instanceof Uint8Array)) {
+          return Buffer.alloc(0);
+        }
+        _extralocal = _centralHeader.loadLocalHeaderFromBinary(input);
+        return input.slice(_centralHeader.realDataOffset, _centralHeader.realDataOffset + _centralHeader.compressedSize);
+      }
+      function crc32OK(data) {
+        if (!_centralHeader.flags_desc) {
+          if (Utils.crc32(data) !== _centralHeader.localHeader.crc) {
+            return false;
+          }
+        } else {
+          const descriptor = {};
+          const dataEndOffset = _centralHeader.realDataOffset + _centralHeader.compressedSize;
+          if (input.readUInt32LE(dataEndOffset) == Constants.LOCSIG || input.readUInt32LE(dataEndOffset) == Constants.CENSIG) {
+            throw Utils.Errors.DESCRIPTOR_NOT_EXIST();
+          }
+          if (input.readUInt32LE(dataEndOffset) == Constants.EXTSIG) {
+            descriptor.crc = input.readUInt32LE(dataEndOffset + Constants.EXTCRC);
+            descriptor.compressedSize = input.readUInt32LE(dataEndOffset + Constants.EXTSIZ);
+            descriptor.size = input.readUInt32LE(dataEndOffset + Constants.EXTLEN);
+          } else if (input.readUInt16LE(dataEndOffset + 12) === 19280) {
+            descriptor.crc = input.readUInt32LE(dataEndOffset + Constants.EXTCRC - 4);
+            descriptor.compressedSize = input.readUInt32LE(dataEndOffset + Constants.EXTSIZ - 4);
+            descriptor.size = input.readUInt32LE(dataEndOffset + Constants.EXTLEN - 4);
+          } else {
+            throw Utils.Errors.DESCRIPTOR_UNKNOWN();
+          }
+          if (descriptor.compressedSize !== _centralHeader.compressedSize || descriptor.size !== _centralHeader.size || descriptor.crc !== _centralHeader.crc) {
+            throw Utils.Errors.DESCRIPTOR_FAULTY();
+          }
+          if (Utils.crc32(data) !== descriptor.crc) {
+            return false;
+          }
+        }
+        return true;
+      }
+      function decompress(async, callback, pass) {
+        if (typeof callback === "undefined" && typeof async === "string") {
+          pass = async;
+          async = void 0;
+        }
+        if (_isDirectory) {
+          if (async && callback) {
+            callback(Buffer.alloc(0), Utils.Errors.DIRECTORY_CONTENT_ERROR());
+          }
+          return Buffer.alloc(0);
+        }
+        var compressedData = getCompressedDataFromZip();
+        if (compressedData.length === 0) {
+          if (async && callback) callback(compressedData);
+          return compressedData;
+        }
+        if (_centralHeader.encrypted) {
+          if ("string" !== typeof pass && !Buffer.isBuffer(pass)) {
+            throw Utils.Errors.INVALID_PASS_PARAM();
+          }
+          compressedData = Methods.ZipCrypto.decrypt(compressedData, _centralHeader, pass);
+        }
+        var data = Buffer.alloc(_centralHeader.size);
+        switch (_centralHeader.method) {
+          case Utils.Constants.STORED:
+            compressedData.copy(data);
+            if (!crc32OK(data)) {
+              if (async && callback) callback(data, Utils.Errors.BAD_CRC());
+              throw Utils.Errors.BAD_CRC();
+            } else {
+              if (async && callback) callback(data);
+              return data;
+            }
+          case Utils.Constants.DEFLATED:
+            var inflater = new Methods.Inflater(compressedData, _centralHeader.size);
+            if (!async) {
+              const result = inflater.inflate(data);
+              result.copy(data, 0);
+              if (!crc32OK(data)) {
+                throw Utils.Errors.BAD_CRC(`"${decoder.decode(_entryName)}"`);
+              }
+              return data;
+            } else {
+              inflater.inflateAsync(function(result) {
+                result.copy(result, 0);
+                if (callback) {
+                  if (!crc32OK(result)) {
+                    callback(result, Utils.Errors.BAD_CRC());
+                  } else {
+                    callback(result);
+                  }
+                }
+              });
+            }
+            break;
+          default:
+            if (async && callback) callback(Buffer.alloc(0), Utils.Errors.UNKNOWN_METHOD());
+            throw Utils.Errors.UNKNOWN_METHOD();
+        }
+      }
+      function compress(async, callback) {
+        if ((!uncompressedData || !uncompressedData.length) && Buffer.isBuffer(input)) {
+          if (async && callback) callback(getCompressedDataFromZip());
+          return getCompressedDataFromZip();
+        }
+        if (uncompressedData.length && !_isDirectory) {
+          var compressedData;
+          switch (_centralHeader.method) {
+            case Utils.Constants.STORED:
+              _centralHeader.compressedSize = _centralHeader.size;
+              compressedData = Buffer.alloc(uncompressedData.length);
+              uncompressedData.copy(compressedData);
+              if (async && callback) callback(compressedData);
+              return compressedData;
+            default:
+            case Utils.Constants.DEFLATED:
+              var deflater = new Methods.Deflater(uncompressedData);
+              if (!async) {
+                var deflated = deflater.deflate();
+                _centralHeader.compressedSize = deflated.length;
+                return deflated;
+              } else {
+                deflater.deflateAsync(function(data) {
+                  compressedData = Buffer.alloc(data.length);
+                  _centralHeader.compressedSize = data.length;
+                  data.copy(compressedData);
+                  callback && callback(compressedData);
+                });
+              }
+              deflater = null;
+              break;
+          }
+        } else if (async && callback) {
+          callback(Buffer.alloc(0));
+        } else {
+          return Buffer.alloc(0);
+        }
+      }
+      function readUInt64LE(buffer, offset) {
+        return (buffer.readUInt32LE(offset + 4) << 4) + buffer.readUInt32LE(offset);
+      }
+      function parseExtra(data) {
+        try {
+          var offset = 0;
+          var signature, size, part;
+          while (offset + 4 < data.length) {
+            signature = data.readUInt16LE(offset);
+            offset += 2;
+            size = data.readUInt16LE(offset);
+            offset += 2;
+            part = data.slice(offset, offset + size);
+            offset += size;
+            if (Constants.ID_ZIP64 === signature) {
+              parseZip64ExtendedInformation(part);
+            }
+          }
+        } catch (error41) {
+          throw Utils.Errors.EXTRA_FIELD_PARSE_ERROR();
+        }
+      }
+      function parseZip64ExtendedInformation(data) {
+        var size, compressedSize, offset, diskNumStart;
+        if (data.length >= Constants.EF_ZIP64_SCOMP) {
+          size = readUInt64LE(data, Constants.EF_ZIP64_SUNCOMP);
+          if (_centralHeader.size === Constants.EF_ZIP64_OR_32) {
+            _centralHeader.size = size;
+          }
+        }
+        if (data.length >= Constants.EF_ZIP64_RHO) {
+          compressedSize = readUInt64LE(data, Constants.EF_ZIP64_SCOMP);
+          if (_centralHeader.compressedSize === Constants.EF_ZIP64_OR_32) {
+            _centralHeader.compressedSize = compressedSize;
+          }
+        }
+        if (data.length >= Constants.EF_ZIP64_DSN) {
+          offset = readUInt64LE(data, Constants.EF_ZIP64_RHO);
+          if (_centralHeader.offset === Constants.EF_ZIP64_OR_32) {
+            _centralHeader.offset = offset;
+          }
+        }
+        if (data.length >= Constants.EF_ZIP64_DSN + 4) {
+          diskNumStart = data.readUInt32LE(Constants.EF_ZIP64_DSN);
+          if (_centralHeader.diskNumStart === Constants.EF_ZIP64_OR_16) {
+            _centralHeader.diskNumStart = diskNumStart;
+          }
+        }
+      }
+      return {
+        get entryName() {
+          return decoder.decode(_entryName);
+        },
+        get rawEntryName() {
+          return _entryName;
+        },
+        set entryName(val) {
+          _entryName = Utils.toBuffer(val, decoder.encode);
+          var lastChar = _entryName[_entryName.length - 1];
+          _isDirectory = lastChar === 47 || lastChar === 92;
+          _centralHeader.fileNameLength = _entryName.length;
+        },
+        get efs() {
+          if (typeof _efs === "function") {
+            return _efs(this.entryName);
+          } else {
+            return _efs;
+          }
+        },
+        get extra() {
+          return _extra;
+        },
+        set extra(val) {
+          _extra = val;
+          _centralHeader.extraLength = val.length;
+          parseExtra(val);
+        },
+        get comment() {
+          return decoder.decode(_comment);
+        },
+        set comment(val) {
+          _comment = Utils.toBuffer(val, decoder.encode);
+          _centralHeader.commentLength = _comment.length;
+          if (_comment.length > 65535) throw Utils.Errors.COMMENT_TOO_LONG();
+        },
+        get name() {
+          var n = decoder.decode(_entryName);
+          return _isDirectory ? n.substr(n.length - 1).split("/").pop() : n.split("/").pop();
+        },
+        get isDirectory() {
+          return _isDirectory;
+        },
+        getCompressedData: function() {
+          return compress(false, null);
+        },
+        getCompressedDataAsync: function(callback) {
+          compress(true, callback);
+        },
+        setData: function(value) {
+          uncompressedData = Utils.toBuffer(value, Utils.decoder.encode);
+          if (!_isDirectory && uncompressedData.length) {
+            _centralHeader.size = uncompressedData.length;
+            _centralHeader.method = Utils.Constants.DEFLATED;
+            _centralHeader.crc = Utils.crc32(value);
+            _centralHeader.changed = true;
+          } else {
+            _centralHeader.method = Utils.Constants.STORED;
+          }
+        },
+        getData: function(pass) {
+          if (_centralHeader.changed) {
+            return uncompressedData;
+          } else {
+            return decompress(false, null, pass);
+          }
+        },
+        getDataAsync: function(callback, pass) {
+          if (_centralHeader.changed) {
+            callback(uncompressedData);
+          } else {
+            decompress(true, callback, pass);
+          }
+        },
+        set attr(attr) {
+          _centralHeader.attr = attr;
+        },
+        get attr() {
+          return _centralHeader.attr;
+        },
+        set header(data) {
+          _centralHeader.loadFromBinary(data);
+        },
+        get header() {
+          return _centralHeader;
+        },
+        packCentralHeader: function() {
+          _centralHeader.flags_efs = this.efs;
+          _centralHeader.extraLength = _extra.length;
+          var header = _centralHeader.centralHeaderToBinary();
+          var addpos = Utils.Constants.CENHDR;
+          _entryName.copy(header, addpos);
+          addpos += _entryName.length;
+          _extra.copy(header, addpos);
+          addpos += _centralHeader.extraLength;
+          _comment.copy(header, addpos);
+          return header;
+        },
+        packLocalHeader: function() {
+          let addpos = 0;
+          _centralHeader.flags_efs = this.efs;
+          _centralHeader.extraLocalLength = _extralocal.length;
+          const localHeaderBuf = _centralHeader.localHeaderToBinary();
+          const localHeader = Buffer.alloc(localHeaderBuf.length + _entryName.length + _centralHeader.extraLocalLength);
+          localHeaderBuf.copy(localHeader, addpos);
+          addpos += localHeaderBuf.length;
+          _entryName.copy(localHeader, addpos);
+          addpos += _entryName.length;
+          _extralocal.copy(localHeader, addpos);
+          addpos += _extralocal.length;
+          return localHeader;
+        },
+        toJSON: function() {
+          const bytes = function(nr) {
+            return "<" + (nr && nr.length + " bytes buffer" || "null") + ">";
+          };
+          return {
+            entryName: this.entryName,
+            name: this.name,
+            comment: this.comment,
+            isDirectory: this.isDirectory,
+            header: _centralHeader.toJSON(),
+            compressedData: bytes(input),
+            data: bytes(uncompressedData)
+          };
+        },
+        toString: function() {
+          return JSON.stringify(this.toJSON(), null, "	");
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/zipFile.js
+var require_zipFile = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/zipFile.js"(exports, module) {
+    var ZipEntry = require_zipEntry();
+    var Headers2 = require_headers3();
+    var Utils = require_util14();
+    module.exports = function(inBuffer, options) {
+      var entryList = [], entryTable = {}, _comment = Buffer.alloc(0), mainHeader = new Headers2.MainHeader(), loadedEntries = false;
+      var password = null;
+      const temporary = /* @__PURE__ */ new Set();
+      const opts = options;
+      const { noSort, decoder } = opts;
+      if (inBuffer) {
+        readMainHeader(opts.readEntries);
+      } else {
+        loadedEntries = true;
+      }
+      function makeTemporaryFolders() {
+        const foldersList = /* @__PURE__ */ new Set();
+        for (const elem of Object.keys(entryTable)) {
+          const elements = elem.split("/");
+          elements.pop();
+          if (!elements.length) continue;
+          for (let i = 0; i < elements.length; i++) {
+            const sub = elements.slice(0, i + 1).join("/") + "/";
+            foldersList.add(sub);
+          }
+        }
+        for (const elem of foldersList) {
+          if (!(elem in entryTable)) {
+            const tempfolder = new ZipEntry(opts);
+            tempfolder.entryName = elem;
+            tempfolder.attr = 16;
+            tempfolder.temporary = true;
+            entryList.push(tempfolder);
+            entryTable[tempfolder.entryName] = tempfolder;
+            temporary.add(tempfolder);
+          }
+        }
+      }
+      function readEntries() {
+        loadedEntries = true;
+        entryTable = {};
+        if (mainHeader.diskEntries > (inBuffer.length - mainHeader.offset) / Utils.Constants.CENHDR) {
+          throw Utils.Errors.DISK_ENTRY_TOO_LARGE();
+        }
+        entryList = new Array(mainHeader.diskEntries);
+        var index = mainHeader.offset;
+        for (var i = 0; i < entryList.length; i++) {
+          var tmp = index, entry = new ZipEntry(opts, inBuffer);
+          entry.header = inBuffer.slice(tmp, tmp += Utils.Constants.CENHDR);
+          entry.entryName = inBuffer.slice(tmp, tmp += entry.header.fileNameLength);
+          if (entry.header.extraLength) {
+            entry.extra = inBuffer.slice(tmp, tmp += entry.header.extraLength);
+          }
+          if (entry.header.commentLength) entry.comment = inBuffer.slice(tmp, tmp + entry.header.commentLength);
+          index += entry.header.centralHeaderSize;
+          entryList[i] = entry;
+          entryTable[entry.entryName] = entry;
+        }
+        temporary.clear();
+        makeTemporaryFolders();
+      }
+      function readMainHeader(readNow) {
+        var i = inBuffer.length - Utils.Constants.ENDHDR, max = Math.max(0, i - 65535), n = max, endStart = inBuffer.length, endOffset = -1, commentEnd = 0;
+        const trailingSpace = typeof opts.trailingSpace === "boolean" ? opts.trailingSpace : false;
+        if (trailingSpace) max = 0;
+        for (i; i >= n; i--) {
+          if (inBuffer[i] !== 80) continue;
+          if (inBuffer.readUInt32LE(i) === Utils.Constants.ENDSIG) {
+            endOffset = i;
+            commentEnd = i;
+            endStart = i + Utils.Constants.ENDHDR;
+            n = i - Utils.Constants.END64HDR;
+            continue;
+          }
+          if (inBuffer.readUInt32LE(i) === Utils.Constants.END64SIG) {
+            n = max;
+            continue;
+          }
+          if (inBuffer.readUInt32LE(i) === Utils.Constants.ZIP64SIG) {
+            endOffset = i;
+            endStart = i + Utils.readBigUInt64LE(inBuffer, i + Utils.Constants.ZIP64SIZE) + Utils.Constants.ZIP64LEAD;
+            break;
+          }
+        }
+        if (endOffset == -1) throw Utils.Errors.INVALID_FORMAT();
+        mainHeader.loadFromBinary(inBuffer.slice(endOffset, endStart));
+        if (mainHeader.commentLength) {
+          _comment = inBuffer.slice(commentEnd + Utils.Constants.ENDHDR);
+        }
+        if (readNow) readEntries();
+      }
+      function sortEntries() {
+        if (entryList.length > 1 && !noSort) {
+          entryList.sort((a, b) => a.entryName.toLowerCase().localeCompare(b.entryName.toLowerCase()));
+        }
+      }
+      return {
+        /**
+         * Returns an array of ZipEntry objects existent in the current opened archive
+         * @return Array
+         */
+        get entries() {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          return entryList.filter((e) => !temporary.has(e));
+        },
+        /**
+         * Archive comment
+         * @return {String}
+         */
+        get comment() {
+          return decoder.decode(_comment);
+        },
+        set comment(val) {
+          _comment = Utils.toBuffer(val, decoder.encode);
+          mainHeader.commentLength = _comment.length;
+        },
+        getEntryCount: function() {
+          if (!loadedEntries) {
+            return mainHeader.diskEntries;
+          }
+          return entryList.length;
+        },
+        forEach: function(callback) {
+          this.entries.forEach(callback);
+        },
+        /**
+         * Returns a reference to the entry with the given name or null if entry is inexistent
+         *
+         * @param entryName
+         * @return ZipEntry
+         */
+        getEntry: function(entryName) {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          return entryTable[entryName] || null;
+        },
+        /**
+         * Adds the given entry to the entry list
+         *
+         * @param entry
+         */
+        setEntry: function(entry) {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          entryList.push(entry);
+          entryTable[entry.entryName] = entry;
+          mainHeader.totalEntries = entryList.length;
+        },
+        /**
+         * Removes the file with the given name from the entry list.
+         *
+         * If the entry is a directory, then all nested files and directories will be removed
+         * @param entryName
+         * @returns {void}
+         */
+        deleteFile: function(entryName, withsubfolders = true) {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          const entry = entryTable[entryName];
+          const list = this.getEntryChildren(entry, withsubfolders).map((child) => child.entryName);
+          list.forEach(this.deleteEntry);
+        },
+        /**
+         * Removes the entry with the given name from the entry list.
+         *
+         * @param {string} entryName
+         * @returns {void}
+         */
+        deleteEntry: function(entryName) {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          const entry = entryTable[entryName];
+          const index = entryList.indexOf(entry);
+          if (index >= 0) {
+            entryList.splice(index, 1);
+            delete entryTable[entryName];
+            mainHeader.totalEntries = entryList.length;
+          }
+        },
+        /**
+         *  Iterates and returns all nested files and directories of the given entry
+         *
+         * @param entry
+         * @return Array
+         */
+        getEntryChildren: function(entry, subfolders = true) {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          if (typeof entry === "object") {
+            if (entry.isDirectory && subfolders) {
+              const list = [];
+              const name21 = entry.entryName;
+              for (const zipEntry of entryList) {
+                if (zipEntry.entryName.startsWith(name21)) {
+                  list.push(zipEntry);
+                }
+              }
+              return list;
+            } else {
+              return [entry];
+            }
+          }
+          return [];
+        },
+        /**
+         *  How many child elements entry has
+         *
+         * @param {ZipEntry} entry
+         * @return {integer}
+         */
+        getChildCount: function(entry) {
+          if (entry && entry.isDirectory) {
+            const list = this.getEntryChildren(entry);
+            return list.includes(entry) ? list.length - 1 : list.length;
+          }
+          return 0;
+        },
+        /**
+         * Returns the zip file
+         *
+         * @return Buffer
+         */
+        compressToBuffer: function() {
+          if (!loadedEntries) {
+            readEntries();
+          }
+          sortEntries();
+          const dataBlock = [];
+          const headerBlocks = [];
+          let totalSize = 0;
+          let dindex = 0;
+          mainHeader.size = 0;
+          mainHeader.offset = 0;
+          let totalEntries = 0;
+          for (const entry of this.entries) {
+            const compressedData = entry.getCompressedData();
+            entry.header.offset = dindex;
+            const localHeader = entry.packLocalHeader();
+            const dataLength = localHeader.length + compressedData.length;
+            dindex += dataLength;
+            dataBlock.push(localHeader);
+            dataBlock.push(compressedData);
+            const centralHeader = entry.packCentralHeader();
+            headerBlocks.push(centralHeader);
+            mainHeader.size += centralHeader.length;
+            totalSize += dataLength + centralHeader.length;
+            totalEntries++;
+          }
+          totalSize += mainHeader.mainHeaderSize;
+          mainHeader.offset = dindex;
+          mainHeader.totalEntries = totalEntries;
+          dindex = 0;
+          const outBuffer = Buffer.alloc(totalSize);
+          for (const content of dataBlock) {
+            content.copy(outBuffer, dindex);
+            dindex += content.length;
+          }
+          for (const content of headerBlocks) {
+            content.copy(outBuffer, dindex);
+            dindex += content.length;
+          }
+          const mh = mainHeader.toBinary();
+          if (_comment) {
+            _comment.copy(mh, Utils.Constants.ENDHDR);
+          }
+          mh.copy(outBuffer, dindex);
+          inBuffer = outBuffer;
+          loadedEntries = false;
+          return outBuffer;
+        },
+        toAsyncBuffer: function(onSuccess, onFail, onItemStart, onItemEnd) {
+          try {
+            if (!loadedEntries) {
+              readEntries();
+            }
+            sortEntries();
+            const dataBlock = [];
+            const centralHeaders = [];
+            let totalSize = 0;
+            let dindex = 0;
+            let totalEntries = 0;
+            mainHeader.size = 0;
+            mainHeader.offset = 0;
+            const compress2Buffer = function(entryLists) {
+              if (entryLists.length > 0) {
+                const entry = entryLists.shift();
+                const name21 = entry.entryName + entry.extra.toString();
+                if (onItemStart) onItemStart(name21);
+                entry.getCompressedDataAsync(function(compressedData) {
+                  if (onItemEnd) onItemEnd(name21);
+                  entry.header.offset = dindex;
+                  const localHeader = entry.packLocalHeader();
+                  const dataLength = localHeader.length + compressedData.length;
+                  dindex += dataLength;
+                  dataBlock.push(localHeader);
+                  dataBlock.push(compressedData);
+                  const centalHeader = entry.packCentralHeader();
+                  centralHeaders.push(centalHeader);
+                  mainHeader.size += centalHeader.length;
+                  totalSize += dataLength + centalHeader.length;
+                  totalEntries++;
+                  compress2Buffer(entryLists);
+                });
+              } else {
+                totalSize += mainHeader.mainHeaderSize;
+                mainHeader.offset = dindex;
+                mainHeader.totalEntries = totalEntries;
+                dindex = 0;
+                const outBuffer = Buffer.alloc(totalSize);
+                dataBlock.forEach(function(content) {
+                  content.copy(outBuffer, dindex);
+                  dindex += content.length;
+                });
+                centralHeaders.forEach(function(content) {
+                  content.copy(outBuffer, dindex);
+                  dindex += content.length;
+                });
+                const mh = mainHeader.toBinary();
+                if (_comment) {
+                  _comment.copy(mh, Utils.Constants.ENDHDR);
+                }
+                mh.copy(outBuffer, dindex);
+                inBuffer = outBuffer;
+                loadedEntries = false;
+                onSuccess(outBuffer);
+              }
+            };
+            compress2Buffer(Array.from(this.entries));
+          } catch (e) {
+            onFail(e);
+          }
+        }
+      };
+    };
+  }
+});
+
+// ../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/adm-zip.js
+var require_adm_zip = __commonJS({
+  "../../node_modules/.pnpm/adm-zip@0.5.16/node_modules/adm-zip/adm-zip.js"(exports, module) {
+    var Utils = require_util14();
+    var pth = __require("path");
+    var ZipEntry = require_zipEntry();
+    var ZipFile = require_zipFile();
+    var get_Bool = (...val) => Utils.findLast(val, (c) => typeof c === "boolean");
+    var get_Str = (...val) => Utils.findLast(val, (c) => typeof c === "string");
+    var get_Fun = (...val) => Utils.findLast(val, (c) => typeof c === "function");
+    var defaultOptions2 = {
+      // option "noSort" : if true it disables files sorting
+      noSort: false,
+      // read entries during load (initial loading may be slower)
+      readEntries: false,
+      // default method is none
+      method: Utils.Constants.NONE,
+      // file system
+      fs: null
+    };
+    module.exports = function(input, options) {
+      let inBuffer = null;
+      const opts = Object.assign(/* @__PURE__ */ Object.create(null), defaultOptions2);
+      if (input && "object" === typeof input) {
+        if (!(input instanceof Uint8Array)) {
+          Object.assign(opts, input);
+          input = opts.input ? opts.input : void 0;
+          if (opts.input) delete opts.input;
+        }
+        if (Buffer.isBuffer(input)) {
+          inBuffer = input;
+          opts.method = Utils.Constants.BUFFER;
+          input = void 0;
+        }
+      }
+      Object.assign(opts, options);
+      const filetools = new Utils(opts);
+      if (typeof opts.decoder !== "object" || typeof opts.decoder.encode !== "function" || typeof opts.decoder.decode !== "function") {
+        opts.decoder = Utils.decoder;
+      }
+      if (input && "string" === typeof input) {
+        if (filetools.fs.existsSync(input)) {
+          opts.method = Utils.Constants.FILE;
+          opts.filename = input;
+          inBuffer = filetools.fs.readFileSync(input);
+        } else {
+          throw Utils.Errors.INVALID_FILENAME();
+        }
+      }
+      const _zip = new ZipFile(inBuffer, opts);
+      const { canonical, sanitize, zipnamefix } = Utils;
+      function getEntry(entry) {
+        if (entry && _zip) {
+          var item;
+          if (typeof entry === "string") item = _zip.getEntry(pth.posix.normalize(entry));
+          if (typeof entry === "object" && typeof entry.entryName !== "undefined" && typeof entry.header !== "undefined") item = _zip.getEntry(entry.entryName);
+          if (item) {
+            return item;
+          }
+        }
+        return null;
+      }
+      function fixPath(zipPath) {
+        const { join: join2, normalize, sep } = pth.posix;
+        return join2(".", normalize(sep + zipPath.split("\\").join(sep) + sep));
+      }
+      function filenameFilter(filterfn) {
+        if (filterfn instanceof RegExp) {
+          return /* @__PURE__ */ (function(rx) {
+            return function(filename) {
+              return rx.test(filename);
+            };
+          })(filterfn);
+        } else if ("function" !== typeof filterfn) {
+          return () => true;
+        }
+        return filterfn;
+      }
+      const relativePath = (local, entry) => {
+        let lastChar = entry.slice(-1);
+        lastChar = lastChar === filetools.sep ? filetools.sep : "";
+        return pth.relative(local, entry) + lastChar;
+      };
+      return {
+        /**
+         * Extracts the given entry from the archive and returns the content as a Buffer object
+         * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
+         * @param {Buffer|string} [pass] - password
+         * @return Buffer or Null in case of error
+         */
+        readFile: function(entry, pass) {
+          var item = getEntry(entry);
+          return item && item.getData(pass) || null;
+        },
+        /**
+         * Returns how many child elements has on entry (directories) on files it is always 0
+         * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
+         * @returns {integer}
+         */
+        childCount: function(entry) {
+          const item = getEntry(entry);
+          if (item) {
+            return _zip.getChildCount(item);
+          }
+        },
+        /**
+         * Asynchronous readFile
+         * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
+         * @param {callback} callback
+         *
+         * @return Buffer or Null in case of error
+         */
+        readFileAsync: function(entry, callback) {
+          var item = getEntry(entry);
+          if (item) {
+            item.getDataAsync(callback);
+          } else {
+            callback(null, "getEntry failed for:" + entry);
+          }
+        },
+        /**
+         * Extracts the given entry from the archive and returns the content as plain text in the given encoding
+         * @param {ZipEntry|string} entry - ZipEntry object or String with the full path of the entry
+         * @param {string} encoding - Optional. If no encoding is specified utf8 is used
+         *
+         * @return String
+         */
+        readAsText: function(entry, encoding) {
+          var item = getEntry(entry);
+          if (item) {
+            var data = item.getData();
+            if (data && data.length) {
+              return data.toString(encoding || "utf8");
+            }
+          }
+          return "";
+        },
+        /**
+         * Asynchronous readAsText
+         * @param {ZipEntry|string} entry ZipEntry object or String with the full path of the entry
+         * @param {callback} callback
+         * @param {string} [encoding] - Optional. If no encoding is specified utf8 is used
+         *
+         * @return String
+         */
+        readAsTextAsync: function(entry, callback, encoding) {
+          var item = getEntry(entry);
+          if (item) {
+            item.getDataAsync(function(data, err) {
+              if (err) {
+                callback(data, err);
+                return;
+              }
+              if (data && data.length) {
+                callback(data.toString(encoding || "utf8"));
+              } else {
+                callback("");
+              }
+            });
+          } else {
+            callback("");
+          }
+        },
+        /**
+         * Remove the entry from the file or the entry and all it's nested directories and files if the given entry is a directory
+         *
+         * @param {ZipEntry|string} entry
+         * @returns {void}
+         */
+        deleteFile: function(entry, withsubfolders = true) {
+          var item = getEntry(entry);
+          if (item) {
+            _zip.deleteFile(item.entryName, withsubfolders);
+          }
+        },
+        /**
+         * Remove the entry from the file or directory without affecting any nested entries
+         *
+         * @param {ZipEntry|string} entry
+         * @returns {void}
+         */
+        deleteEntry: function(entry) {
+          var item = getEntry(entry);
+          if (item) {
+            _zip.deleteEntry(item.entryName);
+          }
+        },
+        /**
+         * Adds a comment to the zip. The zip must be rewritten after adding the comment.
+         *
+         * @param {string} comment
+         */
+        addZipComment: function(comment) {
+          _zip.comment = comment;
+        },
+        /**
+         * Returns the zip comment
+         *
+         * @return String
+         */
+        getZipComment: function() {
+          return _zip.comment || "";
+        },
+        /**
+         * Adds a comment to a specified zipEntry. The zip must be rewritten after adding the comment
+         * The comment cannot exceed 65535 characters in length
+         *
+         * @param {ZipEntry} entry
+         * @param {string} comment
+         */
+        addZipEntryComment: function(entry, comment) {
+          var item = getEntry(entry);
+          if (item) {
+            item.comment = comment;
+          }
+        },
+        /**
+         * Returns the comment of the specified entry
+         *
+         * @param {ZipEntry} entry
+         * @return String
+         */
+        getZipEntryComment: function(entry) {
+          var item = getEntry(entry);
+          if (item) {
+            return item.comment || "";
+          }
+          return "";
+        },
+        /**
+         * Updates the content of an existing entry inside the archive. The zip must be rewritten after updating the content
+         *
+         * @param {ZipEntry} entry
+         * @param {Buffer} content
+         */
+        updateFile: function(entry, content) {
+          var item = getEntry(entry);
+          if (item) {
+            item.setData(content);
+          }
+        },
+        /**
+         * Adds a file from the disk to the archive
+         *
+         * @param {string} localPath File to add to zip
+         * @param {string} [zipPath] Optional path inside the zip
+         * @param {string} [zipName] Optional name for the file
+         * @param {string} [comment] Optional file comment
+         */
+        addLocalFile: function(localPath2, zipPath, zipName, comment) {
+          if (filetools.fs.existsSync(localPath2)) {
+            zipPath = zipPath ? fixPath(zipPath) : "";
+            const p = pth.win32.basename(pth.win32.normalize(localPath2));
+            zipPath += zipName ? zipName : p;
+            const _attr = filetools.fs.statSync(localPath2);
+            const data = _attr.isFile() ? filetools.fs.readFileSync(localPath2) : Buffer.alloc(0);
+            if (_attr.isDirectory()) zipPath += filetools.sep;
+            this.addFile(zipPath, data, comment, _attr);
+          } else {
+            throw Utils.Errors.FILE_NOT_FOUND(localPath2);
+          }
+        },
+        /**
+         * Callback for showing if everything was done.
+         *
+         * @callback doneCallback
+         * @param {Error} err - Error object
+         * @param {boolean} done - was request fully completed
+         */
+        /**
+         * Adds a file from the disk to the archive
+         *
+         * @param {(object|string)} options - options object, if it is string it us used as localPath.
+         * @param {string} options.localPath - Local path to the file.
+         * @param {string} [options.comment] - Optional file comment.
+         * @param {string} [options.zipPath] - Optional path inside the zip
+         * @param {string} [options.zipName] - Optional name for the file
+         * @param {doneCallback} callback - The callback that handles the response.
+         */
+        addLocalFileAsync: function(options2, callback) {
+          options2 = typeof options2 === "object" ? options2 : { localPath: options2 };
+          const localPath2 = pth.resolve(options2.localPath);
+          const { comment } = options2;
+          let { zipPath, zipName } = options2;
+          const self2 = this;
+          filetools.fs.stat(localPath2, function(err, stats) {
+            if (err) return callback(err, false);
+            zipPath = zipPath ? fixPath(zipPath) : "";
+            const p = pth.win32.basename(pth.win32.normalize(localPath2));
+            zipPath += zipName ? zipName : p;
+            if (stats.isFile()) {
+              filetools.fs.readFile(localPath2, function(err2, data) {
+                if (err2) return callback(err2, false);
+                self2.addFile(zipPath, data, comment, stats);
+                return setImmediate(callback, void 0, true);
+              });
+            } else if (stats.isDirectory()) {
+              zipPath += filetools.sep;
+              self2.addFile(zipPath, Buffer.alloc(0), comment, stats);
+              return setImmediate(callback, void 0, true);
+            }
+          });
+        },
+        /**
+         * Adds a local directory and all its nested files and directories to the archive
+         *
+         * @param {string} localPath - local path to the folder
+         * @param {string} [zipPath] - optional path inside zip
+         * @param {(RegExp|function)} [filter] - optional RegExp or Function if files match will be included.
+         */
+        addLocalFolder: function(localPath2, zipPath, filter2) {
+          filter2 = filenameFilter(filter2);
+          zipPath = zipPath ? fixPath(zipPath) : "";
+          localPath2 = pth.normalize(localPath2);
+          if (filetools.fs.existsSync(localPath2)) {
+            const items = filetools.findFiles(localPath2);
+            const self2 = this;
+            if (items.length) {
+              for (const filepath of items) {
+                const p = pth.join(zipPath, relativePath(localPath2, filepath));
+                if (filter2(p)) {
+                  self2.addLocalFile(filepath, pth.dirname(p));
+                }
+              }
+            }
+          } else {
+            throw Utils.Errors.FILE_NOT_FOUND(localPath2);
+          }
+        },
+        /**
+         * Asynchronous addLocalFolder
+         * @param {string} localPath
+         * @param {callback} callback
+         * @param {string} [zipPath] optional path inside zip
+         * @param {RegExp|function} [filter] optional RegExp or Function if files match will
+         *               be included.
+         */
+        addLocalFolderAsync: function(localPath2, callback, zipPath, filter2) {
+          filter2 = filenameFilter(filter2);
+          zipPath = zipPath ? fixPath(zipPath) : "";
+          localPath2 = pth.normalize(localPath2);
+          var self2 = this;
+          filetools.fs.open(localPath2, "r", function(err) {
+            if (err && err.code === "ENOENT") {
+              callback(void 0, Utils.Errors.FILE_NOT_FOUND(localPath2));
+            } else if (err) {
+              callback(void 0, err);
+            } else {
+              var items = filetools.findFiles(localPath2);
+              var i = -1;
+              var next = function() {
+                i += 1;
+                if (i < items.length) {
+                  var filepath = items[i];
+                  var p = relativePath(localPath2, filepath).split("\\").join("/");
+                  p = p.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "");
+                  if (filter2(p)) {
+                    filetools.fs.stat(filepath, function(er0, stats) {
+                      if (er0) callback(void 0, er0);
+                      if (stats.isFile()) {
+                        filetools.fs.readFile(filepath, function(er1, data) {
+                          if (er1) {
+                            callback(void 0, er1);
+                          } else {
+                            self2.addFile(zipPath + p, data, "", stats);
+                            next();
+                          }
+                        });
+                      } else {
+                        self2.addFile(zipPath + p + "/", Buffer.alloc(0), "", stats);
+                        next();
+                      }
+                    });
+                  } else {
+                    process.nextTick(() => {
+                      next();
+                    });
+                  }
+                } else {
+                  callback(true, void 0);
+                }
+              };
+              next();
+            }
+          });
+        },
+        /**
+         * Adds a local directory and all its nested files and directories to the archive
+         *
+         * @param {object | string} options - options object, if it is string it us used as localPath.
+         * @param {string} options.localPath - Local path to the folder.
+         * @param {string} [options.zipPath] - optional path inside zip.
+         * @param {RegExp|function} [options.filter] - optional RegExp or Function if files match will be included.
+         * @param {function|string} [options.namefix] - optional function to help fix filename
+         * @param {doneCallback} callback - The callback that handles the response.
+         *
+         */
+        addLocalFolderAsync2: function(options2, callback) {
+          const self2 = this;
+          options2 = typeof options2 === "object" ? options2 : { localPath: options2 };
+          localPath = pth.resolve(fixPath(options2.localPath));
+          let { zipPath, filter: filter2, namefix } = options2;
+          if (filter2 instanceof RegExp) {
+            filter2 = /* @__PURE__ */ (function(rx) {
+              return function(filename) {
+                return rx.test(filename);
+              };
+            })(filter2);
+          } else if ("function" !== typeof filter2) {
+            filter2 = function() {
+              return true;
+            };
+          }
+          zipPath = zipPath ? fixPath(zipPath) : "";
+          if (namefix == "latin1") {
+            namefix = (str) => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\x20-\x7E]/g, "");
+          }
+          if (typeof namefix !== "function") namefix = (str) => str;
+          const relPathFix = (entry) => pth.join(zipPath, namefix(relativePath(localPath, entry)));
+          const fileNameFix = (entry) => pth.win32.basename(pth.win32.normalize(namefix(entry)));
+          filetools.fs.open(localPath, "r", function(err) {
+            if (err && err.code === "ENOENT") {
+              callback(void 0, Utils.Errors.FILE_NOT_FOUND(localPath));
+            } else if (err) {
+              callback(void 0, err);
+            } else {
+              filetools.findFilesAsync(localPath, function(err2, fileEntries) {
+                if (err2) return callback(err2);
+                fileEntries = fileEntries.filter((dir) => filter2(relPathFix(dir)));
+                if (!fileEntries.length) callback(void 0, false);
+                setImmediate(
+                  fileEntries.reverse().reduce(function(next, entry) {
+                    return function(err3, done) {
+                      if (err3 || done === false) return setImmediate(next, err3, false);
+                      self2.addLocalFileAsync(
+                        {
+                          localPath: entry,
+                          zipPath: pth.dirname(relPathFix(entry)),
+                          zipName: fileNameFix(entry)
+                        },
+                        next
+                      );
+                    };
+                  }, callback)
+                );
+              });
+            }
+          });
+        },
+        /**
+         * Adds a local directory and all its nested files and directories to the archive
+         *
+         * @param {string} localPath - path where files will be extracted
+         * @param {object} props - optional properties
+         * @param {string} [props.zipPath] - optional path inside zip
+         * @param {RegExp|function} [props.filter] - optional RegExp or Function if files match will be included.
+         * @param {function|string} [props.namefix] - optional function to help fix filename
+         */
+        addLocalFolderPromise: function(localPath2, props) {
+          return new Promise((resolve4, reject) => {
+            this.addLocalFolderAsync2(Object.assign({ localPath: localPath2 }, props), (err, done) => {
+              if (err) reject(err);
+              if (done) resolve4(this);
+            });
+          });
+        },
+        /**
+         * Allows you to create a entry (file or directory) in the zip file.
+         * If you want to create a directory the entryName must end in / and a null buffer should be provided.
+         * Comment and attributes are optional
+         *
+         * @param {string} entryName
+         * @param {Buffer | string} content - file content as buffer or utf8 coded string
+         * @param {string} [comment] - file comment
+         * @param {number | object} [attr] - number as unix file permissions, object as filesystem Stats object
+         */
+        addFile: function(entryName, content, comment, attr) {
+          entryName = zipnamefix(entryName);
+          let entry = getEntry(entryName);
+          const update = entry != null;
+          if (!update) {
+            entry = new ZipEntry(opts);
+            entry.entryName = entryName;
+          }
+          entry.comment = comment || "";
+          const isStat = "object" === typeof attr && attr instanceof filetools.fs.Stats;
+          if (isStat) {
+            entry.header.time = attr.mtime;
+          }
+          var fileattr = entry.isDirectory ? 16 : 0;
+          let unix = entry.isDirectory ? 16384 : 32768;
+          if (isStat) {
+            unix |= 4095 & attr.mode;
+          } else if ("number" === typeof attr) {
+            unix |= 4095 & attr;
+          } else {
+            unix |= entry.isDirectory ? 493 : 420;
+          }
+          fileattr = (fileattr | unix << 16) >>> 0;
+          entry.attr = fileattr;
+          entry.setData(content);
+          if (!update) _zip.setEntry(entry);
+          return entry;
+        },
+        /**
+         * Returns an array of ZipEntry objects representing the files and folders inside the archive
+         *
+         * @param {string} [password]
+         * @returns Array
+         */
+        getEntries: function(password) {
+          _zip.password = password;
+          return _zip ? _zip.entries : [];
+        },
+        /**
+         * Returns a ZipEntry object representing the file or folder specified by ``name``.
+         *
+         * @param {string} name
+         * @return ZipEntry
+         */
+        getEntry: function(name21) {
+          return getEntry(name21);
+        },
+        getEntryCount: function() {
+          return _zip.getEntryCount();
+        },
+        forEach: function(callback) {
+          return _zip.forEach(callback);
+        },
+        /**
+         * Extracts the given entry to the given targetPath
+         * If the entry is a directory inside the archive, the entire directory and it's subdirectories will be extracted
+         *
+         * @param {string|ZipEntry} entry - ZipEntry object or String with the full path of the entry
+         * @param {string} targetPath - Target folder where to write the file
+         * @param {boolean} [maintainEntryPath=true] - If maintainEntryPath is true and the entry is inside a folder, the entry folder will be created in targetPath as well. Default is TRUE
+         * @param {boolean} [overwrite=false] - If the file already exists at the target path, the file will be overwriten if this is true.
+         * @param {boolean} [keepOriginalPermission=false] - The file will be set as the permission from the entry if this is true.
+         * @param {string} [outFileName] - String If set will override the filename of the extracted file (Only works if the entry is a file)
+         *
+         * @return Boolean
+         */
+        extractEntryTo: function(entry, targetPath, maintainEntryPath, overwrite, keepOriginalPermission, outFileName) {
+          overwrite = get_Bool(false, overwrite);
+          keepOriginalPermission = get_Bool(false, keepOriginalPermission);
+          maintainEntryPath = get_Bool(true, maintainEntryPath);
+          outFileName = get_Str(keepOriginalPermission, outFileName);
+          var item = getEntry(entry);
+          if (!item) {
+            throw Utils.Errors.NO_ENTRY();
+          }
+          var entryName = canonical(item.entryName);
+          var target = sanitize(targetPath, outFileName && !item.isDirectory ? outFileName : maintainEntryPath ? entryName : pth.basename(entryName));
+          if (item.isDirectory) {
+            var children = _zip.getEntryChildren(item);
+            children.forEach(function(child) {
+              if (child.isDirectory) return;
+              var content2 = child.getData();
+              if (!content2) {
+                throw Utils.Errors.CANT_EXTRACT_FILE();
+              }
+              var name21 = canonical(child.entryName);
+              var childName = sanitize(targetPath, maintainEntryPath ? name21 : pth.basename(name21));
+              const fileAttr2 = keepOriginalPermission ? child.header.fileAttr : void 0;
+              filetools.writeFileTo(childName, content2, overwrite, fileAttr2);
+            });
+            return true;
+          }
+          var content = item.getData(_zip.password);
+          if (!content) throw Utils.Errors.CANT_EXTRACT_FILE();
+          if (filetools.fs.existsSync(target) && !overwrite) {
+            throw Utils.Errors.CANT_OVERRIDE();
+          }
+          const fileAttr = keepOriginalPermission ? entry.header.fileAttr : void 0;
+          filetools.writeFileTo(target, content, overwrite, fileAttr);
+          return true;
+        },
+        /**
+         * Test the archive
+         * @param {string} [pass]
+         */
+        test: function(pass) {
+          if (!_zip) {
+            return false;
+          }
+          for (var entry in _zip.entries) {
+            try {
+              if (entry.isDirectory) {
+                continue;
+              }
+              var content = _zip.entries[entry].getData(pass);
+              if (!content) {
+                return false;
+              }
+            } catch (err) {
+              return false;
+            }
+          }
+          return true;
+        },
+        /**
+         * Extracts the entire archive to the given location
+         *
+         * @param {string} targetPath Target location
+         * @param {boolean} [overwrite=false] If the file already exists at the target path, the file will be overwriten if this is true.
+         *                  Default is FALSE
+         * @param {boolean} [keepOriginalPermission=false] The file will be set as the permission from the entry if this is true.
+         *                  Default is FALSE
+         * @param {string|Buffer} [pass] password
+         */
+        extractAllTo: function(targetPath, overwrite, keepOriginalPermission, pass) {
+          keepOriginalPermission = get_Bool(false, keepOriginalPermission);
+          pass = get_Str(keepOriginalPermission, pass);
+          overwrite = get_Bool(false, overwrite);
+          if (!_zip) throw Utils.Errors.NO_ZIP();
+          _zip.entries.forEach(function(entry) {
+            var entryName = sanitize(targetPath, canonical(entry.entryName));
+            if (entry.isDirectory) {
+              filetools.makeDir(entryName);
+              return;
+            }
+            var content = entry.getData(pass);
+            if (!content) {
+              throw Utils.Errors.CANT_EXTRACT_FILE();
+            }
+            const fileAttr = keepOriginalPermission ? entry.header.fileAttr : void 0;
+            filetools.writeFileTo(entryName, content, overwrite, fileAttr);
+            try {
+              filetools.fs.utimesSync(entryName, entry.header.time, entry.header.time);
+            } catch (err) {
+              throw Utils.Errors.CANT_EXTRACT_FILE();
+            }
+          });
+        },
+        /**
+         * Asynchronous extractAllTo
+         *
+         * @param {string} targetPath Target location
+         * @param {boolean} [overwrite=false] If the file already exists at the target path, the file will be overwriten if this is true.
+         *                  Default is FALSE
+         * @param {boolean} [keepOriginalPermission=false] The file will be set as the permission from the entry if this is true.
+         *                  Default is FALSE
+         * @param {function} callback The callback will be executed when all entries are extracted successfully or any error is thrown.
+         */
+        extractAllToAsync: function(targetPath, overwrite, keepOriginalPermission, callback) {
+          callback = get_Fun(overwrite, keepOriginalPermission, callback);
+          keepOriginalPermission = get_Bool(false, keepOriginalPermission);
+          overwrite = get_Bool(false, overwrite);
+          if (!callback) {
+            return new Promise((resolve4, reject) => {
+              this.extractAllToAsync(targetPath, overwrite, keepOriginalPermission, function(err) {
+                if (err) {
+                  reject(err);
+                } else {
+                  resolve4(this);
+                }
+              });
+            });
+          }
+          if (!_zip) {
+            callback(Utils.Errors.NO_ZIP());
+            return;
+          }
+          targetPath = pth.resolve(targetPath);
+          const getPath = (entry) => sanitize(targetPath, pth.normalize(canonical(entry.entryName)));
+          const getError = (msg, file2) => new Error(msg + ': "' + file2 + '"');
+          const dirEntries = [];
+          const fileEntries = [];
+          _zip.entries.forEach((e) => {
+            if (e.isDirectory) {
+              dirEntries.push(e);
+            } else {
+              fileEntries.push(e);
+            }
+          });
+          for (const entry of dirEntries) {
+            const dirPath = getPath(entry);
+            const dirAttr = keepOriginalPermission ? entry.header.fileAttr : void 0;
+            try {
+              filetools.makeDir(dirPath);
+              if (dirAttr) filetools.fs.chmodSync(dirPath, dirAttr);
+              filetools.fs.utimesSync(dirPath, entry.header.time, entry.header.time);
+            } catch (er) {
+              callback(getError("Unable to create folder", dirPath));
+            }
+          }
+          fileEntries.reverse().reduce(function(next, entry) {
+            return function(err) {
+              if (err) {
+                next(err);
+              } else {
+                const entryName = pth.normalize(canonical(entry.entryName));
+                const filePath = sanitize(targetPath, entryName);
+                entry.getDataAsync(function(content, err_1) {
+                  if (err_1) {
+                    next(err_1);
+                  } else if (!content) {
+                    next(Utils.Errors.CANT_EXTRACT_FILE());
+                  } else {
+                    const fileAttr = keepOriginalPermission ? entry.header.fileAttr : void 0;
+                    filetools.writeFileToAsync(filePath, content, overwrite, fileAttr, function(succ) {
+                      if (!succ) {
+                        next(getError("Unable to write file", filePath));
+                      }
+                      filetools.fs.utimes(filePath, entry.header.time, entry.header.time, function(err_2) {
+                        if (err_2) {
+                          next(getError("Unable to set times", filePath));
+                        } else {
+                          next();
+                        }
+                      });
+                    });
+                  }
+                });
+              }
+            };
+          }, callback)();
+        },
+        /**
+         * Writes the newly created zip file to disk at the specified location or if a zip was opened and no ``targetFileName`` is provided, it will overwrite the opened zip
+         *
+         * @param {string} targetFileName
+         * @param {function} callback
+         */
+        writeZip: function(targetFileName, callback) {
+          if (arguments.length === 1) {
+            if (typeof targetFileName === "function") {
+              callback = targetFileName;
+              targetFileName = "";
+            }
+          }
+          if (!targetFileName && opts.filename) {
+            targetFileName = opts.filename;
+          }
+          if (!targetFileName) return;
+          var zipData = _zip.compressToBuffer();
+          if (zipData) {
+            var ok = filetools.writeFileTo(targetFileName, zipData, true);
+            if (typeof callback === "function") callback(!ok ? new Error("failed") : null, "");
+          }
+        },
+        /**
+                 *
+                 * @param {string} targetFileName
+                 * @param {object} [props]
+                 * @param {boolean} [props.overwrite=true] If the file already exists at the target path, the file will be overwriten if this is true.
+                 * @param {boolean} [props.perm] The file will be set as the permission from the entry if this is true.
+        
+                 * @returns {Promise<void>}
+                 */
+        writeZipPromise: function(targetFileName, props) {
+          const { overwrite, perm } = Object.assign({ overwrite: true }, props);
+          return new Promise((resolve4, reject) => {
+            if (!targetFileName && opts.filename) targetFileName = opts.filename;
+            if (!targetFileName) reject("ADM-ZIP: ZIP File Name Missing");
+            this.toBufferPromise().then((zipData) => {
+              const ret = (done) => done ? resolve4(done) : reject("ADM-ZIP: Wasn't able to write zip file");
+              filetools.writeFileToAsync(targetFileName, zipData, overwrite, perm, ret);
+            }, reject);
+          });
+        },
+        /**
+         * @returns {Promise<Buffer>} A promise to the Buffer.
+         */
+        toBufferPromise: function() {
+          return new Promise((resolve4, reject) => {
+            _zip.toAsyncBuffer(resolve4, reject);
+          });
+        },
+        /**
+         * Returns the content of the entire zip file as a Buffer object
+         *
+         * @prop {function} [onSuccess]
+         * @prop {function} [onFail]
+         * @prop {function} [onItemStart]
+         * @prop {function} [onItemEnd]
+         * @returns {Buffer}
+         */
+        toBuffer: function(onSuccess, onFail, onItemStart, onItemEnd) {
+          if (typeof onSuccess === "function") {
+            _zip.toAsyncBuffer(onSuccess, onFail, onItemStart, onItemEnd);
+            return null;
+          }
+          return _zip.compressToBuffer();
+        }
+      };
+    };
+  }
+});
+
 // src/main.ts
 var core6 = __toESM(require_core(), 1);
 var github4 = __toESM(require_github(), 1);
@@ -143663,17 +150975,16 @@ import { resolve as resolve3 } from "node:path";
 
 // src/ai-summary.ts
 var core = __toESM(require_core(), 1);
-async function generateAISummaries(comparisons, apiKey) {
+async function generateAISummaries(comparisons, apiKey, provider = "openai") {
   const summaries = /* @__PURE__ */ new Map();
   try {
     const { generateText: generateText2 } = await Promise.resolve().then(() => (init_dist5(), dist_exports));
-    const { createOpenAI: createOpenAI2 } = await Promise.resolve().then(() => (init_dist6(), dist_exports2));
-    const openai2 = createOpenAI2({ apiKey });
+    const model = await resolveModel(apiKey, provider);
     for (const comparison of comparisons) {
       try {
         const prompt = buildPrompt(comparison);
         const { text: text2 } = await generateText2({
-          model: openai2("gpt-4o-mini"),
+          model,
           prompt,
           maxTokens: 500
         });
@@ -143686,6 +150997,16 @@ async function generateAISummaries(comparisons, apiKey) {
     core.warning(`AI summary initialization failed: ${error41}`);
   }
   return summaries;
+}
+async function resolveModel(apiKey, provider) {
+  if (provider === "anthropic") {
+    const { createAnthropic: createAnthropic2 } = await Promise.resolve().then(() => (init_dist6(), dist_exports2));
+    const anthropic2 = createAnthropic2({ apiKey });
+    return anthropic2("claude-haiku-4-5-20251001");
+  }
+  const { createOpenAI: createOpenAI2 } = await Promise.resolve().then(() => (init_dist7(), dist_exports3));
+  const openai2 = createOpenAI2({ apiKey });
+  return openai2("gpt-4o-mini");
 }
 function buildPrompt(comparison) {
   const { current, previous, diffs } = comparison;
@@ -143739,7 +151060,8 @@ function buildPrompt(comparison) {
 var import_artifact = __toESM(require_artifact2(), 1);
 var core2 = __toESM(require_core(), 1);
 var github = __toESM(require_github(), 1);
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+var import_adm_zip = __toESM(require_adm_zip(), 1);
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 var ARTIFACT_NAME = "cobalt-experiment-results";
@@ -143749,8 +151071,15 @@ async function uploadResults(reports) {
   mkdirSync(tmpDir, { recursive: true });
   const filePath = join(tmpDir, "results.json");
   writeFileSync(filePath, JSON.stringify(reports, null, 2), "utf-8");
-  await client.uploadArtifact(ARTIFACT_NAME, [filePath], tmpDir);
-  core2.info(`Uploaded experiment results as artifact: ${ARTIFACT_NAME}`);
+  try {
+    await client.uploadArtifact(ARTIFACT_NAME, [filePath], tmpDir);
+    core2.info(`Uploaded experiment results as artifact: ${ARTIFACT_NAME}`);
+  } finally {
+    try {
+      rmSync(tmpDir, { recursive: true, force: true });
+    } catch {
+    }
+  }
 }
 async function downloadPreviousResults(githubToken, baseBranch) {
   const octokit = github.getOctokit(githubToken);
@@ -143788,21 +151117,16 @@ async function downloadPreviousResults(githubToken, baseBranch) {
   core2.info(`No previous cobalt results found on ${baseBranch}`);
   return null;
 }
-async function extractResultsFromZip(zipBuffer) {
+function extractResultsFromZip(zipBuffer) {
   try {
-    const tmpDir = join(tmpdir(), `cobalt-prev-${Date.now()}`);
-    mkdirSync(tmpDir, { recursive: true });
-    const zipPath = join(tmpDir, "artifact.zip");
-    writeFileSync(zipPath, zipBuffer);
-    const { execSync } = await import("node:child_process");
-    execSync(`unzip -o "${zipPath}" -d "${tmpDir}"`, { stdio: "pipe" });
-    const resultsPath = join(tmpDir, "results.json");
-    if (existsSync(resultsPath)) {
-      const content = readFileSync(resultsPath, "utf-8");
-      return JSON.parse(content);
+    const zip = new import_adm_zip.default(zipBuffer);
+    const entry = zip.getEntry("results.json");
+    if (!entry) {
+      core2.warning("Artifact downloaded but results.json not found inside");
+      return null;
     }
-    core2.warning("Artifact downloaded but results.json not found inside");
-    return null;
+    const content = entry.getData().toString("utf-8");
+    return JSON.parse(content);
   } catch (error41) {
     core2.warning(`Failed to extract previous results: ${error41}`);
     return null;
@@ -143831,6 +151155,17 @@ async function runCobalt(options) {
   const cobaltArgs = ["run", "--reporter", "json"];
   if (ci) {
     cobaltArgs.push("--ci");
+  }
+  if (options.filter) {
+    cobaltArgs.push("--filter", options.filter);
+  }
+  if (options.concurrency) {
+    const value = Number.parseInt(options.concurrency, 10);
+    if (!Number.isNaN(value) && value > 0) {
+      cobaltArgs.push("--concurrency", options.concurrency);
+    } else {
+      core3.warning(`Invalid concurrency value "${options.concurrency}", ignoring`);
+    }
   }
   if (experimentFiles) {
     for (const file2 of experimentFiles.split(",")) {
@@ -144106,13 +151441,16 @@ function buildComparisons(currentReports, previousReports) {
 var core5 = __toESM(require_core(), 1);
 var github3 = __toESM(require_github(), 1);
 init_zod();
-import { existsSync as existsSync2 } from "node:fs";
+import { existsSync } from "node:fs";
 import { dirname, resolve as resolve2 } from "node:path";
 var inputSchema = external_exports2.object({
   experimentFiles: external_exports2.string(),
+  filter: external_exports2.string(),
+  concurrency: external_exports2.string(),
   workingDirectory: external_exports2.string(),
   ci: external_exports2.boolean(),
-  apiKey: external_exports2.string(),
+  openaiApiKey: external_exports2.string(),
+  anthropicApiKey: external_exports2.string(),
   aiSummary: external_exports2.boolean(),
   githubToken: external_exports2.string(),
   commentOnPr: external_exports2.boolean(),
@@ -144123,9 +151461,12 @@ var inputSchema = external_exports2.object({
 function parseInputs() {
   return inputSchema.parse({
     experimentFiles: core5.getInput("experiment_files"),
+    filter: core5.getInput("filter"),
+    concurrency: core5.getInput("concurrency"),
     workingDirectory: core5.getInput("working_directory") || ".",
     ci: core5.getBooleanInput("ci"),
-    apiKey: core5.getInput("api_key"),
+    openaiApiKey: core5.getInput("openai_api_key"),
+    anthropicApiKey: core5.getInput("anthropic_api_key"),
     aiSummary: core5.getBooleanInput("ai_summary"),
     githubToken: core5.getInput("github_token"),
     commentOnPr: core5.getBooleanInput("comment_on_pr"),
@@ -144138,9 +151479,9 @@ function detectPackageManager(cwd) {
   let dir = resolve2(cwd);
   const root = dirname(dir) === dir ? dir : void 0;
   while (dir) {
-    if (existsSync2(resolve2(dir, "pnpm-lock.yaml"))) return "pnpm";
-    if (existsSync2(resolve2(dir, "yarn.lock"))) return "yarn";
-    if (existsSync2(resolve2(dir, "package-lock.json"))) return "npm";
+    if (existsSync(resolve2(dir, "pnpm-lock.yaml"))) return "pnpm";
+    if (existsSync(resolve2(dir, "yarn.lock"))) return "yarn";
+    if (existsSync(resolve2(dir, "package-lock.json"))) return "npm";
     const parent = dirname(dir);
     if (parent === dir || parent === root) break;
     dir = parent;
@@ -144390,8 +151731,11 @@ async function run() {
     const packageManager = resolvePackageManager(inputs, cwd);
     core6.info(`Working directory: ${cwd}`);
     core6.info(`Package manager: ${packageManager}`);
-    if (inputs.apiKey) {
-      core6.exportVariable("OPENAI_API_KEY", inputs.apiKey);
+    if (inputs.openaiApiKey) {
+      core6.exportVariable("OPENAI_API_KEY", inputs.openaiApiKey);
+    }
+    if (inputs.anthropicApiKey) {
+      core6.exportVariable("ANTHROPIC_API_KEY", inputs.anthropicApiKey);
     }
     if (inputs.commentOnPr) {
       await upsertComment(
@@ -144405,6 +151749,8 @@ async function run() {
     }
     const reports = await runCobalt({
       experimentFiles: inputs.experimentFiles,
+      filter: inputs.filter,
+      concurrency: inputs.concurrency,
       ci: inputs.ci,
       cwd,
       packageManager
@@ -144429,10 +151775,16 @@ async function run() {
     }
     const comparisons = buildComparisons(reports, previousReports);
     let aiSummaries;
-    if (inputs.aiSummary && inputs.apiKey) {
-      core6.info("Generating AI summaries...");
-      aiSummaries = await generateAISummaries(comparisons, inputs.apiKey);
-      core6.info(`Generated ${aiSummaries.size} AI summary(ies)`);
+    if (inputs.aiSummary) {
+      const aiApiKey = inputs.openaiApiKey || inputs.anthropicApiKey;
+      const aiProvider = inputs.openaiApiKey ? "openai" : "anthropic";
+      if (aiApiKey) {
+        core6.info(`Generating AI summaries with ${aiProvider}...`);
+        aiSummaries = await generateAISummaries(comparisons, aiApiKey, aiProvider);
+        core6.info(`Generated ${aiSummaries.size} AI summary(ies)`);
+      } else {
+        core6.info("AI summary enabled but no API key provided \u2014 skipping");
+      }
     }
     if (inputs.commentOnPr) {
       const body = generateCommentBody(comparisons, {
