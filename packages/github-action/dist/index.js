@@ -143848,15 +143848,8 @@ async function runCobalt(options) {
   core3.info(`Running: ${cmd} ${allArgs.join(" ")}`);
   return parseExperimentOutput(cmd, allArgs, cwd);
 }
-function buildRunnerArgs(packageManager) {
-  switch (packageManager) {
-    case "pnpm":
-      return ["pnpm", "exec", "cobalt"];
-    case "yarn":
-      return ["yarn", "cobalt"];
-    case "npm":
-      return ["npx", "cobalt"];
-  }
+function buildRunnerArgs(_packageManager) {
+  return ["npx", "cobalt"];
 }
 function parseExperimentOutput(cmd, args, cwd) {
   return new Promise((resolve4, reject) => {
@@ -143995,7 +143988,7 @@ async function deleteComment(githubToken, stepKey) {
         repo: pr.repo,
         comment_id: existing.id
       });
-      core4.info(`Deleted PR comment (no experiments found)`);
+      core4.info("Deleted PR comment (no experiments found)");
     }
   }
 }

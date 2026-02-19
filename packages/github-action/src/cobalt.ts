@@ -60,15 +60,11 @@ export async function runCobalt(options: RunOptions): Promise<ExperimentReport[]
 	return parseExperimentOutput(cmd, allArgs, cwd)
 }
 
-function buildRunnerArgs(packageManager: PackageManager): string[] {
-	switch (packageManager) {
-		case 'pnpm':
-			return ['pnpm', 'exec', 'cobalt']
-		case 'yarn':
-			return ['yarn', 'cobalt']
-		case 'npm':
-			return ['npx', 'cobalt']
-	}
+function buildRunnerArgs(_packageManager: PackageManager): string[] {
+	// Always use npx to run cobalt — it resolves binaries from node_modules/.bin/
+	// up the directory tree, which works universally regardless of package manager
+	// and even when running from within the cobalt package itself (dogfood case).
+	return ['npx', 'cobalt']
 }
 
 function parseExperimentOutput(

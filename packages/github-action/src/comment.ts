@@ -47,7 +47,7 @@ export async function deleteComment(githubToken: string, stepKey: string): Promi
 				repo: pr.repo,
 				comment_id: existing.id,
 			})
-			core.info(`Deleted PR comment (no experiments found)`)
+			core.info('Deleted PR comment (no experiments found)')
 		}
 	}
 }
