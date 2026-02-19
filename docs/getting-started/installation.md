@@ -359,7 +359,7 @@ Upgrade to specific version:
 ```bash
 pnpm add @basalt-ai/cobalt@latest
 # or
-pnpm add @basalt-ai/cobalt@0.2.0
+pnpm add @basalt-ai/cobalt@0.3.0
 ```
 
 ## Uninstalling
