@@ -18,9 +18,12 @@ export async function run(): Promise<void> {
 		core.info(`Working directory: ${cwd}`)
 		core.info(`Package manager: ${packageManager}`)
 
-		// Set API key in environment if provided
-		if (inputs.apiKey) {
-			core.exportVariable('OPENAI_API_KEY', inputs.apiKey)
+		// Set API keys in environment if provided
+		if (inputs.openaiApiKey) {
+			core.exportVariable('OPENAI_API_KEY', inputs.openaiApiKey)
+		}
+		if (inputs.anthropicApiKey) {
+			core.exportVariable('ANTHROPIC_API_KEY', inputs.anthropicApiKey)
 		}
 
 		// Post initial "in progress" comment
@@ -40,6 +43,8 @@ export async function run(): Promise<void> {
 		// Run cobalt and collect reports
 		const reports = await runCobalt({
 			experimentFiles: inputs.experimentFiles,
+			filter: inputs.filter,
+			concurrency: inputs.concurrency,
 			ci: inputs.ci,
 			cwd,
 			packageManager,
@@ -72,10 +77,16 @@ export async function run(): Promise<void> {
 
 		// Generate AI summaries (if enabled)
 		let aiSummaries: Map<string, string> | undefined
-		if (inputs.aiSummary && inputs.apiKey) {
-			core.info('Generating AI summaries...')
-			aiSummaries = await generateAISummaries(comparisons, inputs.apiKey)
-			core.info(`Generated ${aiSummaries.size} AI summary(ies)`)
+		if (inputs.aiSummary) {
+			const aiApiKey = inputs.openaiApiKey || inputs.anthropicApiKey
+			const aiProvider = inputs.openaiApiKey ? 'openai' : 'anthropic'
+			if (aiApiKey) {
+				core.info(`Generating AI summaries with ${aiProvider}...`)
+				aiSummaries = await generateAISummaries(comparisons, aiApiKey, aiProvider)
+				core.info(`Generated ${aiSummaries.size} AI summary(ies)`)
+			} else {
+				core.info('AI summary enabled but no API key provided — skipping')
+			}
 		}
 
 		// Generate and post comment

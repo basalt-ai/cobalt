@@ -8,9 +8,12 @@ export type PackageManager = 'npm' | 'pnpm' | 'yarn'
 
 const inputSchema = z.object({
 	experimentFiles: z.string(),
+	filter: z.string(),
+	concurrency: z.string(),
 	workingDirectory: z.string(),
 	ci: z.boolean(),
-	apiKey: z.string(),
+	openaiApiKey: z.string(),
+	anthropicApiKey: z.string(),
 	aiSummary: z.boolean(),
 	githubToken: z.string(),
 	commentOnPr: z.boolean(),
@@ -24,9 +27,12 @@ export type ActionInputs = z.infer<typeof inputSchema>
 export function parseInputs(): ActionInputs {
 	return inputSchema.parse({
 		experimentFiles: core.getInput('experiment_files'),
+		filter: core.getInput('filter'),
+		concurrency: core.getInput('concurrency'),
 		workingDirectory: core.getInput('working_directory') || '.',
 		ci: core.getBooleanInput('ci'),
-		apiKey: core.getInput('api_key'),
+		openaiApiKey: core.getInput('openai_api_key'),
+		anthropicApiKey: core.getInput('anthropic_api_key'),
 		aiSummary: core.getBooleanInput('ai_summary'),
 		githubToken: core.getInput('github_token'),
 		commentOnPr: core.getBooleanInput('comment_on_pr'),
