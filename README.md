@@ -177,17 +177,25 @@ The built-in [MCP](https://modelcontextprotocol.io/) server gives Claude Code (a
 
 Cobalt is built to run in your CI pipeline. Define quality thresholds for your agents, and Cobalt will enforce them on every commit — ensuring your AI systems stay reliable over time, not just at launch.
 
+### GitHub Action
+
+The easiest way to integrate Cobalt into your CI. Runs experiments, posts rich PR comments with score tables, auto-compares against the base branch, and optionally generates AI-powered analysis.
+
+```yaml
+- uses: basalt-ai/cobalt@v1
+  with:
+    api_key: ${{ secrets.OPENAI_API_KEY }}
+```
+
+[Read the GitHub Action docs →](docs/github-action.md)
+
+### CLI
+
+For any CI provider, use the CLI directly with `--ci` to enforce quality thresholds:
+
 ```bash
 npx cobalt run --ci
 # Exit code 1 if any threshold is violated
-```
-
-```yaml
-# .github/workflows/test-agent.yml
-- name: Run AI Agent Tests
-  run: npx cobalt run --ci
-  env:
-    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 Define thresholds per evaluator, latency, cost, or overall score — Cobalt catches regressions before they reach production.
@@ -261,7 +269,7 @@ Cobalt is open source and community-driven. The roadmap is shaped by what you ne
 | :white_check_mark: | CI mode with quality thresholds |
 | :white_check_mark: | Plugin system & Autoevals integration |
 | :construction: | **Vibe code your test reports** - Vibe coded dashboard UI to make it like you want |
-| :construction: | **GitHub Action** - First-class CI integration |
+| :white_check_mark: | **GitHub Action** - First-class CI integration with PR comments |
 | :construction: | **Tracing** - Full tracing of the agent to have more context for the evaluation |
 | :crystal_ball: | **Python version** - Bring Cobalt to the Python ecosystem |
 | :crystal_ball: | **VS Code extension** - Run experiments from your editor |
