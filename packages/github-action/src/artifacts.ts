@@ -1,9 +1,10 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { DefaultArtifactClient } from '@actions/artifact'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
+import AdmZip from 'adm-zip'
 import type { ExperimentReport } from './types'
 
 const ARTIFACT_NAME = 'cobalt-experiment-results'
@@ -19,8 +20,16 @@ export async function uploadResults(reports: ExperimentReport[]): Promise<void> 
 	const filePath = join(tmpDir, 'results.json')
 	writeFileSync(filePath, JSON.stringify(reports, null, 2), 'utf-8')
 
-	await client.uploadArtifact(ARTIFACT_NAME, [filePath], tmpDir)
-	core.info(`Uploaded experiment results as artifact: ${ARTIFACT_NAME}`)
+	try {
+		await client.uploadArtifact(ARTIFACT_NAME, [filePath], tmpDir)
+		core.info(`Uploaded experiment results as artifact: ${ARTIFACT_NAME}`)
+	} finally {
+		try {
+			rmSync(tmpDir, { recursive: true, force: true })
+		} catch {
+			// Non-critical: temp dirs are cleaned up by the OS eventually
+		}
+	}
 }
 
 /**
@@ -80,28 +89,18 @@ export async function downloadPreviousResults(
 	return null
 }
 
-async function extractResultsFromZip(zipBuffer: Buffer): Promise<ExperimentReport[] | null> {
+function extractResultsFromZip(zipBuffer: Buffer): ExperimentReport[] | null {
 	try {
-		// Use the artifact client to handle zip extraction
-		const tmpDir = join(tmpdir(), `cobalt-prev-${Date.now()}`)
-		mkdirSync(tmpDir, { recursive: true })
+		const zip = new AdmZip(zipBuffer)
+		const entry = zip.getEntry('results.json')
 
-		// Write zip to temp file and extract
-		const zipPath = join(tmpDir, 'artifact.zip')
-		writeFileSync(zipPath, zipBuffer)
-
-		// Use node's built-in zlib or spawn unzip
-		const { execSync } = await import('node:child_process')
-		execSync(`unzip -o "${zipPath}" -d "${tmpDir}"`, { stdio: 'pipe' })
-
-		const resultsPath = join(tmpDir, 'results.json')
-		if (existsSync(resultsPath)) {
-			const content = readFileSync(resultsPath, 'utf-8')
-			return JSON.parse(content) as ExperimentReport[]
+		if (!entry) {
+			core.warning('Artifact downloaded but results.json not found inside')
+			return null
 		}
 
-		core.warning('Artifact downloaded but results.json not found inside')
-		return null
+		const content = entry.getData().toString('utf-8')
+		return JSON.parse(content) as ExperimentReport[]
 	} catch (error) {
 		core.warning(`Failed to extract previous results: ${error}`)
 		return null

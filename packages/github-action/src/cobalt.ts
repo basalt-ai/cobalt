@@ -5,6 +5,8 @@ import type { ExperimentReport, JsonEvent } from './types'
 
 interface RunOptions {
 	experimentFiles: string
+	filter: string
+	concurrency: string
 	ci: boolean
 	cwd: string
 	packageManager: PackageManager
@@ -38,6 +40,19 @@ export async function runCobalt(options: RunOptions): Promise<ExperimentReport[]
 
 	if (ci) {
 		cobaltArgs.push('--ci')
+	}
+
+	if (options.filter) {
+		cobaltArgs.push('--filter', options.filter)
+	}
+
+	if (options.concurrency) {
+		const value = Number.parseInt(options.concurrency, 10)
+		if (!Number.isNaN(value) && value > 0) {
+			cobaltArgs.push('--concurrency', options.concurrency)
+		} else {
+			core.warning(`Invalid concurrency value "${options.concurrency}", ignoring`)
+		}
 	}
 
 	if (experimentFiles) {
