@@ -143983,6 +143983,22 @@ async function upsertComment(body, githubToken, stepKey) {
   const commentKey = `<!-- cobalt_eval_comment ${stepKey} -->`;
   await Promise.all(prs.map((pr) => createOrUpdateComment(octokit, pr, body, commentKey)));
 }
+async function deleteComment(githubToken, stepKey) {
+  const octokit = github2.getOctokit(githubToken);
+  const prs = await inferPullRequests(octokit);
+  const commentKey = `<!-- cobalt_eval_comment ${stepKey} -->`;
+  for (const pr of prs) {
+    const existing = await findComment(octokit, pr, commentKey);
+    if (existing) {
+      await octokit.rest.issues.deleteComment({
+        owner: pr.owner,
+        repo: pr.repo,
+        comment_id: existing.id
+      });
+      core4.info(`Deleted PR comment (no experiments found)`);
+    }
+  }
+}
 async function createOrUpdateComment(octokit, pr, body, commentKey) {
   const fullBody = `${body}
 ${commentKey}`;
@@ -144098,7 +144114,7 @@ var core5 = __toESM(require_core(), 1);
 var github3 = __toESM(require_github(), 1);
 init_zod();
 import { existsSync as existsSync2 } from "node:fs";
-import { resolve as resolve2 } from "node:path";
+import { dirname, resolve as resolve2 } from "node:path";
 var inputSchema = external_exports2.object({
   experimentFiles: external_exports2.string(),
   workingDirectory: external_exports2.string(),
@@ -144126,13 +144142,21 @@ function parseInputs() {
   });
 }
 function detectPackageManager(cwd) {
-  if (existsSync2(resolve2(cwd, "pnpm-lock.yaml"))) return "pnpm";
-  if (existsSync2(resolve2(cwd, "yarn.lock"))) return "yarn";
+  let dir = resolve2(cwd);
+  const root = dirname(dir) === dir ? dir : void 0;
+  while (dir) {
+    if (existsSync2(resolve2(dir, "pnpm-lock.yaml"))) return "pnpm";
+    if (existsSync2(resolve2(dir, "yarn.lock"))) return "yarn";
+    if (existsSync2(resolve2(dir, "package-lock.json"))) return "npm";
+    const parent = dirname(dir);
+    if (parent === dir || parent === root) break;
+    dir = parent;
+  }
   return "npm";
 }
-function resolvePackageManager(inputs) {
+function resolvePackageManager(inputs, cwd) {
   if (inputs.packageManager === "auto") {
-    return detectPackageManager(inputs.workingDirectory);
+    return detectPackageManager(cwd);
   }
   return inputs.packageManager;
 }
@@ -144235,8 +144259,8 @@ function formatCIStatus(ciStatus) {
 async function run() {
   try {
     const inputs = parseInputs();
-    const packageManager = resolvePackageManager(inputs);
     const cwd = resolve3(process.cwd(), inputs.workingDirectory);
+    const packageManager = resolvePackageManager(inputs, cwd);
     core6.info(`Working directory: ${cwd}`);
     core6.info(`Package manager: ${packageManager}`);
     if (inputs.apiKey) {
@@ -144261,11 +144285,7 @@ async function run() {
     if (reports.length === 0) {
       core6.warning("No experiment reports were produced");
       if (inputs.commentOnPr) {
-        await upsertComment(
-          "## Cobalt Experiment Results\n\n:warning: No experiments found.",
-          inputs.githubToken,
-          inputs.stepKey
-        );
+        await deleteComment(inputs.githubToken, inputs.stepKey);
       }
       return;
     }
