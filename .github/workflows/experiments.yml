@@ -8,6 +8,9 @@ on:
       - 'packages/cobalt/experiments/**'
       - 'packages/cobalt/cobalt.config.ts'
 
+permissions:
+  pull-requests: write
+
 jobs:
   experiments:
     runs-on: ubuntu-latest
