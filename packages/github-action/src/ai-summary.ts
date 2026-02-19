@@ -1,7 +1,6 @@
 import * as core from '@actions/core'
+import type { AIProvider } from './inputs'
 import type { ExperimentComparison } from './types'
-
-export type AIProvider = 'openai' | 'anthropic'
 
 /**
  * Generate AI-powered analysis of experiment results.

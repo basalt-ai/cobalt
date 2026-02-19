@@ -12,8 +12,7 @@ const inputSchema = z.object({
 	concurrency: z.string(),
 	workingDirectory: z.string(),
 	ci: z.boolean(),
-	openaiApiKey: z.string(),
-	anthropicApiKey: z.string(),
+	apiKey: z.string(),
 	aiSummary: z.boolean(),
 	githubToken: z.string(),
 	commentOnPr: z.boolean(),
@@ -31,8 +30,7 @@ export function parseInputs(): ActionInputs {
 		concurrency: core.getInput('concurrency'),
 		workingDirectory: core.getInput('working_directory') || '.',
 		ci: core.getBooleanInput('ci'),
-		openaiApiKey: core.getInput('openai_api_key'),
-		anthropicApiKey: core.getInput('anthropic_api_key'),
+		apiKey: core.getInput('api_key'),
 		aiSummary: core.getBooleanInput('ai_summary'),
 		githubToken: core.getInput('github_token'),
 		commentOnPr: core.getBooleanInput('comment_on_pr'),
@@ -62,4 +60,14 @@ export function resolvePackageManager(inputs: ActionInputs, cwd: string): Packag
 		return detectPackageManager(cwd)
 	}
 	return inputs.packageManager
+}
+
+export type AIProvider = 'openai' | 'anthropic'
+
+/**
+ * Detect the AI provider from the API key prefix.
+ * Anthropic keys start with "sk-ant-", everything else is treated as OpenAI.
+ */
+export function detectAIProvider(apiKey: string): AIProvider {
+	return apiKey.startsWith('sk-ant-') ? 'anthropic' : 'openai'
 }

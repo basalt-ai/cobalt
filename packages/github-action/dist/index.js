@@ -151449,8 +151449,7 @@ var inputSchema = external_exports2.object({
   concurrency: external_exports2.string(),
   workingDirectory: external_exports2.string(),
   ci: external_exports2.boolean(),
-  openaiApiKey: external_exports2.string(),
-  anthropicApiKey: external_exports2.string(),
+  apiKey: external_exports2.string(),
   aiSummary: external_exports2.boolean(),
   githubToken: external_exports2.string(),
   commentOnPr: external_exports2.boolean(),
@@ -151465,8 +151464,7 @@ function parseInputs() {
     concurrency: core5.getInput("concurrency"),
     workingDirectory: core5.getInput("working_directory") || ".",
     ci: core5.getBooleanInput("ci"),
-    openaiApiKey: core5.getInput("openai_api_key"),
-    anthropicApiKey: core5.getInput("anthropic_api_key"),
+    apiKey: core5.getInput("api_key"),
     aiSummary: core5.getBooleanInput("ai_summary"),
     githubToken: core5.getInput("github_token"),
     commentOnPr: core5.getBooleanInput("comment_on_pr"),
@@ -151493,6 +151491,9 @@ function resolvePackageManager(inputs, cwd) {
     return detectPackageManager(cwd);
   }
   return inputs.packageManager;
+}
+function detectAIProvider(apiKey) {
+  return apiKey.startsWith("sk-ant-") ? "anthropic" : "openai";
 }
 
 // src/markdown.ts
@@ -151731,11 +151732,12 @@ async function run() {
     const packageManager = resolvePackageManager(inputs, cwd);
     core6.info(`Working directory: ${cwd}`);
     core6.info(`Package manager: ${packageManager}`);
-    if (inputs.openaiApiKey) {
-      core6.exportVariable("OPENAI_API_KEY", inputs.openaiApiKey);
-    }
-    if (inputs.anthropicApiKey) {
-      core6.exportVariable("ANTHROPIC_API_KEY", inputs.anthropicApiKey);
+    let aiProvider = "openai";
+    if (inputs.apiKey) {
+      aiProvider = detectAIProvider(inputs.apiKey);
+      const envVar = aiProvider === "anthropic" ? "ANTHROPIC_API_KEY" : "OPENAI_API_KEY";
+      core6.exportVariable(envVar, inputs.apiKey);
+      core6.info(`API key detected as ${aiProvider} (exported as ${envVar})`);
     }
     if (inputs.commentOnPr) {
       await upsertComment(
@@ -151776,11 +151778,9 @@ async function run() {
     const comparisons = buildComparisons(reports, previousReports);
     let aiSummaries;
     if (inputs.aiSummary) {
-      const aiApiKey = inputs.openaiApiKey || inputs.anthropicApiKey;
-      const aiProvider = inputs.openaiApiKey ? "openai" : "anthropic";
-      if (aiApiKey) {
+      if (inputs.apiKey) {
         core6.info(`Generating AI summaries with ${aiProvider}...`);
-        aiSummaries = await generateAISummaries(comparisons, aiApiKey, aiProvider);
+        aiSummaries = await generateAISummaries(comparisons, inputs.apiKey, aiProvider);
         core6.info(`Generated ${aiSummaries.size} AI summary(ies)`);
       } else {
         core6.info("AI summary enabled but no API key provided \u2014 skipping");

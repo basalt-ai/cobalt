@@ -19,7 +19,7 @@ jobs:
           node-version: "20"
       - uses: basalt-ai/cobalt@v1
         with:
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 That's it. On every PR, Cobalt will install dependencies, run all experiments, and post a comment with the results.
@@ -45,40 +45,33 @@ The comment is upserted (created once, then updated on subsequent pushes) so you
 | `concurrency` | `""` | Override concurrency setting (number of parallel experiment items). Maps to CLI `--concurrency` flag. |
 | `working_directory` | `"."` | Working directory for running experiments. |
 | `ci` | `"false"` | Enable CI mode with threshold validation. Fails the action if thresholds are violated. |
-| `openai_api_key` | `""` | OpenAI API key for LLM judges and AI summary. Exported as `OPENAI_API_KEY` env var. |
-| `anthropic_api_key` | `""` | Anthropic API key for LLM judges and AI summary. Exported as `ANTHROPIC_API_KEY` env var. |
-| `ai_summary` | `"false"` | Generate an AI-powered analysis of results. Requires `openai_api_key` or `anthropic_api_key`. |
+| `api_key` | `""` | API key for LLM judges and AI summary. Supports both OpenAI and Anthropic (auto-detected from key prefix). |
+| `ai_summary` | `"false"` | Generate an AI-powered analysis of results. Requires `api_key`. |
 | `github_token` | `${{ github.token }}` | GitHub token for posting PR comments and accessing artifacts. |
 | `comment_on_pr` | `"true"` | Whether to post a comment on the PR. |
 | `package_manager` | `"auto"` | Package manager to use: `npm`, `pnpm`, `yarn`, or `auto` (detect from lockfile). |
 | `install_deps` | `"true"` | Whether to install dependencies before running experiments. |
 | `step_key` | `""` | Unique key for comment deduplication. Only change this if running multiple Cobalt steps in one workflow. |
 
-### API Keys
+### API Key
 
-You can provide one or both API keys depending on your evaluator configuration:
+The `api_key` input supports both OpenAI and Anthropic keys. The provider is auto-detected from the key prefix:
 
-- **`openai_api_key`** — Used for OpenAI-based LLM judges and AI summaries (uses `gpt-4o-mini`)
-- **`anthropic_api_key`** — Used for Anthropic-based LLM judges and AI summaries (uses `claude-haiku-4-5-20251001`)
+- Keys starting with `sk-ant-` are detected as **Anthropic** (exported as `ANTHROPIC_API_KEY`)
+- All other keys are treated as **OpenAI** (exported as `OPENAI_API_KEY`)
 
-If `ai_summary` is enabled, the action uses whichever key is available (prefers OpenAI if both are set). If no API key is provided, AI summaries are skipped gracefully without error.
+If no API key is provided and `ai_summary` is enabled, AI summaries are skipped gracefully without error.
 
 ```yaml
-# OpenAI only
+# OpenAI key
 - uses: basalt-ai/cobalt@v1
   with:
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 
-# Anthropic only
+# Anthropic key (auto-detected from sk-ant- prefix)
 - uses: basalt-ai/cobalt@v1
   with:
-    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-
-# Both (e.g. OpenAI judges + Anthropic judges in different experiments)
-- uses: basalt-ai/cobalt@v1
-  with:
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
-    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    api_key: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
 
 ## Outputs
@@ -96,7 +89,7 @@ If `ai_summary` is enabled, the action uses whichever key is available (prefers 
   id: cobalt
   with:
     ci: "true"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 
 - name: Check results
   if: steps.cobalt.outputs.passed == 'false'
@@ -121,13 +114,13 @@ Enable AI-powered analysis of your experiment results:
 ```yaml
 - uses: basalt-ai/cobalt@v1
   with:
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
     ai_summary: "true"
 ```
 
 The AI summary appears in a collapsible section in the PR comment. It highlights key improvements, regressions, and provides actionable insights about your experiment results.
 
-Requires an API key to be set. Uses `gpt-4o-mini` with an OpenAI key or `claude-haiku-4-5-20251001` with an Anthropic key.
+Requires `api_key` to be set. Uses `gpt-4o-mini` with an OpenAI key or `claude-haiku-4-5-20251001` with an Anthropic key.
 
 ## CI Threshold Validation
 
@@ -137,7 +130,7 @@ Combine the action with CI mode to enforce quality gates:
 - uses: basalt-ai/cobalt@v1
   with:
     ci: "true"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 When `ci: true`, the action reads thresholds from your `cobalt.config.ts` and fails if any are violated. The PR comment includes a detailed CI status section showing which thresholds passed or failed.
@@ -152,7 +145,7 @@ Use the `filter` input to run only experiments matching a pattern:
 - uses: basalt-ai/cobalt@v1
   with:
     filter: "qa-agent"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 This performs a case-insensitive substring match on experiment filenames — the same behavior as the CLI `--filter` flag. Useful for large test suites where you only want to run a subset on each PR.
@@ -166,13 +159,13 @@ By default, the action posts a single comment per PR and updates it on each push
   with:
     experiment_files: "experiments/fast/*.cobalt.ts"
     step_key: "fast-tests"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 
 - uses: basalt-ai/cobalt@v1
   with:
     experiment_files: "experiments/slow/*.cobalt.ts"
     step_key: "slow-tests"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 Each `step_key` produces its own PR comment.
@@ -185,7 +178,7 @@ Each `step_key` produces its own PR comment.
 - uses: basalt-ai/cobalt@v1
   with:
     experiment_files: "experiments/qa-agent.cobalt.ts"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 ### Custom working directory
@@ -196,7 +189,7 @@ For monorepos where Cobalt lives in a subdirectory:
 - uses: basalt-ai/cobalt@v1
   with:
     working_directory: "packages/my-agent"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 ### Override concurrency
@@ -207,7 +200,7 @@ Control how many experiment items run in parallel:
 - uses: basalt-ai/cobalt@v1
   with:
     concurrency: "10"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 ### Skip PR comment
@@ -219,7 +212,7 @@ Run experiments and set outputs without posting a comment:
   id: cobalt
   with:
     comment_on_pr: "false"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 
 - run: echo "Ran ${{ steps.cobalt.outputs.total_experiments }} experiments"
 ```
@@ -233,7 +226,7 @@ If dependencies are already installed in a previous step:
 - uses: basalt-ai/cobalt@v1
   with:
     install_deps: "false"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 ### Only run on agent changes
@@ -262,7 +255,7 @@ To override, set it explicitly:
 - uses: basalt-ai/cobalt@v1
   with:
     package_manager: "pnpm"
-    openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+    api_key: ${{ secrets.OPENAI_API_KEY }}
 ```
 
 ## Full Workflow Example
@@ -297,7 +290,7 @@ jobs:
         with:
           ci: "true"
           ai_summary: "true"
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          api_key: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Summary
         if: always()
@@ -321,11 +314,9 @@ This is normal on the first run. The action uploads results as an artifact after
 
 ### API key errors
 
-If LLM judges fail, ensure the appropriate API key is set:
-- For OpenAI judges: set `openai_api_key` (exported as `OPENAI_API_KEY`)
-- For Anthropic judges: set `anthropic_api_key` (exported as `ANTHROPIC_API_KEY`)
-
-Check that the secret exists in your repository settings (Settings > Secrets and variables > Actions).
+If LLM judges fail, ensure `api_key` is set and the secret exists in your repository settings (Settings > Secrets and variables > Actions). The provider is auto-detected from the key prefix:
+- OpenAI keys are exported as `OPENAI_API_KEY`
+- Anthropic keys (starting with `sk-ant-`) are exported as `ANTHROPIC_API_KEY`
 
 ### Permission errors on PR comments
 

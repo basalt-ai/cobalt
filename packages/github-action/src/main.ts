@@ -6,7 +6,7 @@ import { downloadPreviousResults, uploadResults } from './artifacts'
 import { installDependencies, runCobalt } from './cobalt'
 import { deleteComment, upsertComment } from './comment'
 import { buildComparisons } from './compare'
-import { parseInputs, resolvePackageManager } from './inputs'
+import { detectAIProvider, parseInputs, resolvePackageManager } from './inputs'
 import { generateCommentBody } from './markdown'
 
 export async function run(): Promise<void> {
@@ -18,12 +18,13 @@ export async function run(): Promise<void> {
 		core.info(`Working directory: ${cwd}`)
 		core.info(`Package manager: ${packageManager}`)
 
-		// Set API keys in environment if provided
-		if (inputs.openaiApiKey) {
-			core.exportVariable('OPENAI_API_KEY', inputs.openaiApiKey)
-		}
-		if (inputs.anthropicApiKey) {
-			core.exportVariable('ANTHROPIC_API_KEY', inputs.anthropicApiKey)
+		// Set API key in environment if provided (auto-detect provider from key prefix)
+		let aiProvider: 'openai' | 'anthropic' = 'openai'
+		if (inputs.apiKey) {
+			aiProvider = detectAIProvider(inputs.apiKey)
+			const envVar = aiProvider === 'anthropic' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY'
+			core.exportVariable(envVar, inputs.apiKey)
+			core.info(`API key detected as ${aiProvider} (exported as ${envVar})`)
 		}
 
 		// Post initial "in progress" comment
@@ -78,11 +79,9 @@ export async function run(): Promise<void> {
 		// Generate AI summaries (if enabled)
 		let aiSummaries: Map<string, string> | undefined
 		if (inputs.aiSummary) {
-			const aiApiKey = inputs.openaiApiKey || inputs.anthropicApiKey
-			const aiProvider = inputs.openaiApiKey ? 'openai' : 'anthropic'
-			if (aiApiKey) {
+			if (inputs.apiKey) {
 				core.info(`Generating AI summaries with ${aiProvider}...`)
-				aiSummaries = await generateAISummaries(comparisons, aiApiKey, aiProvider)
+				aiSummaries = await generateAISummaries(comparisons, inputs.apiKey, aiProvider)
 				core.info(`Generated ${aiSummaries.size} AI summary(ies)`)
 			} else {
 				core.info('AI summary enabled but no API key provided — skipping')

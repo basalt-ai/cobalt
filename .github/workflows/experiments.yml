@@ -44,7 +44,7 @@ jobs:
         with:
           working_directory: packages/cobalt
           ci: 'true'
-          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          api_key: ${{ secrets.OPENAI_API_KEY }}
           comment_on_pr: 'true'
           ai_summary: 'true'
           install_deps: 'false'

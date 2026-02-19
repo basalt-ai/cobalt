@@ -27,16 +27,12 @@ inputs:
     description: "Enable CI mode with threshold validation"
     required: false
     default: "false"
-  openai_api_key:
-    description: "OpenAI API key for LLM judges and AI summary"
-    required: false
-    default: ""
-  anthropic_api_key:
-    description: "Anthropic API key for LLM judges and AI summary"
+  api_key:
+    description: "API key for LLM judges and AI summary. Supports both OpenAI and Anthropic (auto-detected from key prefix)."
     required: false
     default: ""
   ai_summary:
-    description: "Generate an AI-powered analysis of results (requires openai_api_key or anthropic_api_key)"
+    description: "Generate an AI-powered analysis of results (requires api_key)"
     required: false
     default: "false"
   github_token:
